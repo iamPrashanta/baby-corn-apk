@@ -33,10 +33,7 @@ class _PinScreenState extends State<PinScreen> {
     if (!widget.isSetup) {
       _checkLockoutState();
     }
-    // Auto focus the keyboard when the screen opens
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) _pinFocus.requestFocus();
-    });
+    // Removed auto-focus to prevent Android 14 Emulator crash with InteractionJankMonitor
   }
 
   @override
