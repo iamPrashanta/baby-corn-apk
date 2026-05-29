@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1089979205044",
+    "project_id": "baby-corn-57726",
+    "storage_bucket": "baby-corn-57726.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1089979205044:android:29f5ee0d2d10499e069ee1",
+        "android_client_info": {
+          "package_name": "com.babycorn.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAS0_7nAvm_jVivIRK6TIndIO1W2LQPZ-c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

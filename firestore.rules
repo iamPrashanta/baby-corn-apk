@@ -1,0 +1,52 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    function isValidString(str, minLen, maxLen) {
+      return str is string && str.size() >= minLen && str.size() <= maxLen;
+    }
+
+    // ==========================================
+    // BABIES COLLECTION
+    // ==========================================
+    match /babies/{babyId} {
+      
+      // Users can only read/write their own baby document
+      allow read, write: if isOwner(babyId);
+
+      // ==========================================
+      // RECORDS SUBCOLLECTION
+      // ==========================================
+      match /records/{recordId} {
+        
+        // Read: Owner only
+        allow read: if isOwner(babyId);
+
+        // Write: Owner only + Payload validation
+        allow write: if isOwner(babyId) 
+          // Prevent massive document abuse (Max ~20KB per record is plenty for our usecase)
+          // Note: request.resource.data size estimation is tricky in rules, but we restrict fields.
+          && request.resource.data.keys().hasOnly(['id', 'type', 'timestamp', 'metadata', 'isSynced', 'createdAt'])
+          && request.resource.data.type in ['feeding', 'sleep', 'diaper', 'growth', 'milestone']
+          && request.resource.data.metadata is map
+          // Basic injection/spam prevention
+          && isValidString(request.resource.data.id, 1, 100);
+      }
+    }
+    
+    // Deny all other access by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

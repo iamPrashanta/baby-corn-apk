@@ -1,0 +1,406 @@
+// features/settings/presentation/screens/account_screen.dart
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter_overlay_window/flutter_overlay_window.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../providers/theme_provider.dart';
+import '../../../../core/local_storage/secure_storage_manager.dart';
+import '../../../../core/config/app_config.dart';
+import '../../../../core/services/backup_service.dart';
+import '../../../../core/constants/app_colors.dart';
+
+class AccountScreen extends ConsumerStatefulWidget {
+  const AccountScreen({super.key});
+
+  @override
+  ConsumerState<AccountScreen> createState() => _AccountScreenState();
+}
+
+class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindingObserver {
+  int _timeoutMinutes = 5;
+  bool _hasOverlayPermission = false;
+
+  // Firebase user (null if offline)
+  User? get _firebaseUser => AppConfig.enableFirebaseAuth
+      ? FirebaseAuth.instance.currentUser
+      : null;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _loadTimeout();
+    _checkOverlayPermission();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkOverlayPermission();
+    }
+  }
+
+  Future<void> _checkOverlayPermission() async {
+    try {
+      final isGranted = await FlutterOverlayWindow.isPermissionGranted();
+      if (mounted) {
+        setState(() => _hasOverlayPermission = isGranted);
+      }
+    } catch (e) {
+      // Ignore
+    }
+  }
+
+  Future<void> _loadTimeout() async {
+    final timeout = await SecureStorageManager.getSessionTimeout();
+    setState(() => _timeoutMinutes = timeout);
+  }
+
+  Future<void> _updateTimeout(int minutes) async {
+    await SecureStorageManager.saveSessionTimeout(minutes);
+    setState(() => _timeoutMinutes = minutes);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final themeMode = ref.watch(themeModeProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Account & Settings')),
+      body: ListView(
+        padding: const EdgeInsets.all(16.0),
+        children: [
+          // ─── Profile Card ───────────────────────────────────────────
+          _buildProfileCard(isDark),
+          const SizedBox(height: 24),
+
+          _buildSettingsSection(
+            context,
+            'App Settings',
+            [
+              ListTile(
+                leading: const Icon(Icons.dark_mode),
+                title: const Text('Theme'),
+                trailing: DropdownButton<ThemeMode>(
+                  value: themeMode,
+                  onChanged: (mode) {
+                    if (mode != null) {
+                      ref.read(themeModeProvider.notifier).updateThemeMode(mode);
+                    }
+                  },
+                  items: const [
+                    DropdownMenuItem(value: ThemeMode.system, child: Text('System')),
+                    DropdownMenuItem(value: ThemeMode.light, child: Text('Light')),
+                    DropdownMenuItem(value: ThemeMode.dark, child: Text('Dark')),
+                  ],
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.lock),
+                title: const Text('App Lock Timeout'),
+                trailing: DropdownButton<int>(
+                  value: _timeoutMinutes,
+                  onChanged: (val) {
+                    if (val != null) _updateTimeout(val);
+                  },
+                  items: const [
+                    DropdownMenuItem(value: 0, child: Text('Immediately')),
+                    DropdownMenuItem(value: 1, child: Text('1 minute')),
+                    DropdownMenuItem(value: 5, child: Text('5 minutes')),
+                    DropdownMenuItem(value: 30, child: Text('30 minutes')),
+                    DropdownMenuItem(value: -1, child: Text('Never')),
+                  ],
+                ),
+              ),
+              SwitchListTile(
+                secondary: const Icon(Icons.layers_rounded),
+                title: const Text('Floating Timer (Overlay)'),
+                subtitle: const Text('Draw over other apps'),
+                value: _hasOverlayPermission,
+                onChanged: (val) async {
+                  await FlutterOverlayWindow.requestPermission();
+                  _checkOverlayPermission();
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildSettingsSection(
+            context,
+            'Family',
+            [
+              ListTile(
+                leading: const Icon(Icons.family_restroom),
+                title: const Text('Manage Babies'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () {
+                  context.push('/manage_babies');
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildSettingsSection(
+            context,
+            'Data & Backup',
+            [
+              ListTile(
+                leading: const Icon(Icons.file_upload_outlined),
+                title: const Text('Export Backup (Local)'),
+                onTap: () async {
+                  final success = await BackupService.exportBackup();
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(success ? 'Backup exported successfully!' : 'Backup failed')),
+                    );
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.file_download_outlined),
+                title: const Text('Import Backup (Local)'),
+                onTap: () async {
+                  final success = await BackupService.importBackup();
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(success ? 'Backup restored successfully! Restarting...' : 'Restore failed')),
+                    );
+                    if (success) context.go('/'); // Restart app to reload state
+                  }
+                },
+              ),
+              if (!AppConfig.enableCloudSync)
+                ListTile(
+                  leading: const Icon(Icons.cloud_sync, color: Colors.grey),
+                  title: const Text('Cloud Sync', style: TextStyle(color: Colors.grey)),
+                  trailing: const Icon(Icons.lock, color: Colors.grey, size: 16),
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Cloud Sync is coming in a future update!')),
+                    );
+                  },
+                ),
+              if (!AppConfig.enableCloudBackup)
+                ListTile(
+                  leading: const Icon(Icons.group, color: Colors.grey),
+                  title: const Text('Family Sharing', style: TextStyle(color: Colors.grey)),
+                  trailing: const Icon(Icons.lock, color: Colors.grey, size: 16),
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Family Sharing is coming in a future update!')),
+                    );
+                  },
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildSettingsSection(
+            context,
+            'About',
+            [
+              ListTile(
+                leading: const Icon(Icons.info),
+                title: const Text('About Baby Corn'),
+                onTap: () {},
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete_forever, color: Colors.red),
+                title: const Text('Factory Reset (Erase All Data)', style: TextStyle(color: Colors.red)),
+                onTap: () async {
+                  await SecureStorageManager.clearAll();
+                  if (mounted) context.go('/');
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileCard(bool isDark) {
+    final user = _firebaseUser;
+    final isGoogleUser = user != null;
+
+    final cardBg = isDark
+        ? const Color(0xFF1E1C20)
+        : Colors.white;
+    final subtitleColor = isDark ? Colors.white54 : Colors.black45;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 6),
+          ),
+        ],
+        border: Border.all(
+          color: AppColors.primary.withOpacity(isDark ? 0.15 : 0.08),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          // Avatar
+          _buildAvatar(user, isDark),
+          const SizedBox(width: 20),
+
+          // Name + status
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isGoogleUser
+                      ? (user.displayName?.isNotEmpty == true ? user.displayName! : 'Baby Corn User')
+                      : 'Offline User',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : AppColors.textPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                if (isGoogleUser && user.email != null)
+                  Text(
+                    user.email!,
+                    style: TextStyle(fontSize: 13, color: subtitleColor),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                const SizedBox(height: 8),
+                // Badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isGoogleUser
+                        ? AppColors.primary.withOpacity(0.12)
+                        : Colors.orange.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        isGoogleUser ? Icons.verified_rounded : Icons.wifi_off_rounded,
+                        size: 12,
+                        color: isGoogleUser ? AppColors.primary : Colors.orange,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        isGoogleUser ? 'Google Account' : 'Offline Mode',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isGoogleUser ? AppColors.primary : Colors.orange,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAvatar(User? user, bool isDark) {
+    const double size = 72;
+
+    if (user?.photoURL != null) {
+      // Google profile photo
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(size / 2),
+        child: Image.network(
+          user!.photoURL!,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _defaultAvatar(size, isDark, user.displayName),
+        ),
+      );
+    }
+
+    return _defaultAvatar(size, isDark, user?.displayName);
+  }
+
+  Widget _defaultAvatar(double size, bool isDark, String? name) {
+    final initials = _getInitials(name);
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primary.withOpacity(0.8),
+            AppColors.secondary,
+          ],
+        ),
+      ),
+      child: Center(
+        child: Text(
+          initials,
+          style: const TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _getInitials(String? name) {
+    if (name == null || name.trim().isEmpty) return '👶';
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return parts[0][0].toUpperCase();
+  }
+
+  Widget _buildSettingsSection(BuildContext context, String title, List<Widget> children) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            title,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        Card(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Column(children: children),
+        ),
+      ],
+    );
+  }
+}

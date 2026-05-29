@@ -1,0 +1,43 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    // Validate images: Max 2MB, and must be an image content type
+    function isValidImage() {
+      return request.resource.size < 2 * 1024 * 1024 
+             && request.resource.contentType.matches('image/.*')
+             && !request.resource.contentType.matches('application/.*'); 
+    }
+
+    // ==========================================
+    // USERS FOLDER
+    // ==========================================
+    // Structure: /users/{uid}/images/{imageId}
+    match /users/{uid}/{allPaths=**} {
+      
+      // Read: Only the owner can read their uploaded files
+      allow read: if isOwner(uid);
+      
+      // Write: Owner only + strict image validation
+      allow write: if isOwner(uid) && isValidImage();
+      
+      // Delete: Owner only
+      allow delete: if isOwner(uid);
+    }
+
+    // Deny all other access
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

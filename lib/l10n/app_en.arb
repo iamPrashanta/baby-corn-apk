@@ -1,0 +1,16 @@
+{
+  "appTitle": "Baby Corn",
+  "@appTitle": {
+    "description": "The title of the application"
+  },
+  "launchpad": "Launchpad",
+  "records": "Records",
+  "statistics": "Statistics",
+  "development": "Development",
+  "account": "Account",
+  "feeding": "Feeding",
+  "sleep": "Sleep",
+  "urination": "Urination",
+  "stool": "Stool",
+  "diaper": "Diaper"
+}
