@@ -46,8 +46,8 @@ class SanskarJourneyScreen extends ConsumerWidget {
                   final effectiveDate = SanskarDateEngine.getEffectiveDate(sanskar, birthDate);
                   return _buildTimelineCard(context, ref, sanskar, effectiveDate, index, isDark)
                       .animate()
-                      .fadeIn(duration: 400.ms, delay: (100 * index).ms)
-                      .slideY(begin: 0.1, end: 0);
+                      .fadeIn(duration: 200.ms)
+                      .slideY(begin: 0.05, end: 0, duration: 200.ms);
                 },
                 childCount: sortedSanskars.length,
               ),

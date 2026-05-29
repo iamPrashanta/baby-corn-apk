@@ -5,26 +5,22 @@ import '../../domain/models/record_model.dart';
 import '../../data/repositories/local_record_repository.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
 
+final timelineFilterDateProvider = StateProvider<DateTime?>((ref) => null);
+
 final recordsProvider = StateNotifierProvider<RecordsNotifier, AsyncValue<List<RecordModel>>>((ref) {
   final repository = ref.watch(localRecordRepositoryProvider);
   final activeBaby = ref.watch(activeBabyProvider);
+  final filterDate = ref.watch(timelineFilterDateProvider);
   
-  return RecordsNotifier(repository, activeBaby?.id);
+  return RecordsNotifier(repository, activeBaby?.id, filterDate);
 });
 
 class RecordsNotifier extends StateNotifier<AsyncValue<List<RecordModel>>> {
   final LocalRecordRepository _repository;
   final String? _activeBabyId;
-  DateTime? _startDate;
+  final DateTime? _filterDate;
 
-  RecordsNotifier(this._repository, this._activeBabyId) : super(const AsyncValue.loading()) {
-    // Default to last 10 days
-    _startDate = DateTime.now().subtract(const Duration(days: 10));
-    loadRecords();
-  }
-
-  void setStartDate(DateTime date) {
-    _startDate = date;
+  RecordsNotifier(this._repository, this._activeBabyId, this._filterDate) : super(const AsyncValue.loading()) {
     loadRecords();
   }
 
@@ -32,12 +28,13 @@ class RecordsNotifier extends StateNotifier<AsyncValue<List<RecordModel>>> {
     try {
       final records = _repository.getAllRecords();
       
-      // Filter records by active baby ID
-      // If a record has no babyId (from older versions), it belongs to the first/default baby.
       final filtered = records.where((r) {
-        // Apply date filter
-        if (_startDate != null && r.timestamp.isBefore(_startDate!)) {
-          return false;
+        if (_filterDate != null) {
+          if (r.timestamp.year != _filterDate!.year ||
+              r.timestamp.month != _filterDate!.month ||
+              r.timestamp.day != _filterDate!.day) {
+            return false;
+          }
         }
 
         final rBabyId = r.metadata['babyId'] as String?;

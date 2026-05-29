@@ -15,6 +15,7 @@ class RecordsTimelineScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final recordsAsync = ref.watch(recordsProvider);
+    final filterDate = ref.watch(timelineFilterDateProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -35,20 +36,26 @@ class RecordsTimelineScreen extends ConsumerWidget {
                   ),
                   TextButton.icon(
                     onPressed: () async {
+                      if (filterDate != null) {
+                        ref.read(timelineFilterDateProvider.notifier).state = null;
+                        return;
+                      }
+
                       final picked = await showDatePicker(
                         context: context,
-                        initialDate: DateTime.now().subtract(const Duration(days: 10)),
+                        initialDate: DateTime.now(),
                         firstDate: DateTime(2020),
                         lastDate: DateTime.now(),
                       );
                       if (picked != null) {
-                        ref.read(recordsProvider.notifier).setStartDate(picked);
+                        ref.read(timelineFilterDateProvider.notifier).state = picked;
                       }
                     },
-                    icon: const Icon(Icons.filter_list_rounded, size: 20),
-                    label: const Text('Filter Date'),
+                    icon: Icon(filterDate != null ? Icons.close_rounded : Icons.filter_list_rounded, size: 20),
+                    label: Text(filterDate != null ? DateFormat('MMM d').format(filterDate) : 'Filter Date'),
                     style: TextButton.styleFrom(
                       foregroundColor: Theme.of(context).colorScheme.primary,
+                      backgroundColor: filterDate != null ? Theme.of(context).colorScheme.primary.withOpacity(0.1) : null,
                     ),
                   ),
                 ],

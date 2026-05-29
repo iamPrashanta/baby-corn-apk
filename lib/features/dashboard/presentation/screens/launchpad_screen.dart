@@ -38,7 +38,7 @@ class LaunchpadScreen extends ConsumerWidget {
                 const SizedBox(height: 16),
                 _buildQuickLogSection(context, ref, isDark),
                 const SizedBox(height: 48),
-                _buildSummaryCard(context, isDark),
+                _buildSummaryCard(context, recordsAsync, isDark),
                 const SizedBox(height: 48),
                 _buildRecentActivitySection(context, recordsAsync, isDark),
                 const SizedBox(height: 120), // Padding for bottom nav
@@ -83,30 +83,7 @@ class LaunchpadScreen extends ConsumerWidget {
                 ).animate().fadeIn(duration: 600.ms),
                 const SizedBox(height: 4),
                 if (allBabies.length > 1)
-                  DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: activeBaby?.id,
-                      icon: const Icon(Icons.keyboard_arrow_down_rounded),
-                      isDense: true,
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.5,
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
-                      onChanged: (id) {
-                        if (id != null) {
-                          ref.read(activeBabyProvider.notifier).setActiveBaby(id);
-                        }
-                      },
-                      items: allBabies.map((baby) {
-                        return DropdownMenuItem(
-                          value: baby.id,
-                          child: Text(baby.name),
-                        );
-                      }).toList(),
-                    ),
-                  ).animate().fadeIn(duration: 600.ms, delay: 100.ms).slideY(begin: 0.1, end: 0)
+                  _buildProfileSwitcher(context, ref, activeBaby, allBabies, isDark)
                 else
                   Text(
                     babyName,
@@ -194,7 +171,37 @@ class LaunchpadScreen extends ConsumerWidget {
     ).animate().fadeIn(duration: 600.ms, delay: 300.ms).slideY(begin: 0.05, end: 0);
   }
 
-  Widget _buildSummaryCard(BuildContext context, bool isDark) {
+  Widget _buildSummaryCard(BuildContext context, AsyncValue<List<RecordModel>> recordsAsync, bool isDark) {
+    int sleepMinutes = 0;
+    int feedsCount = 0;
+    int diapersCount = 0;
+
+    final now = DateTime.now();
+
+    recordsAsync.whenData((records) {
+      for (final r in records) {
+        if (r.timestamp.year == now.year &&
+            r.timestamp.month == now.month &&
+            r.timestamp.day == now.day) {
+          final type = r.type.toLowerCase();
+          if (type.contains('sleep')) {
+             final dur = r.metadata['durationSeconds'];
+             final min = r.metadata['durationMinutes'];
+             if (dur != null) sleepMinutes += (dur as int) ~/ 60;
+             else if (min != null) sleepMinutes += min as int;
+          } else if (type.contains('feed')) {
+             feedsCount++;
+          } else if (type == 'diaper') {
+             diapersCount++;
+          }
+        }
+      }
+    });
+
+    final sleepStr = sleepMinutes >= 60 
+        ? '${sleepMinutes ~/ 60}h ${sleepMinutes % 60}m'
+        : '${sleepMinutes}m';
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -229,11 +236,11 @@ class LaunchpadScreen extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildSummaryItem('😴', '8h 30m', 'Sleep', isDark),
+              _buildSummaryItem('😴', sleepMinutes == 0 ? '--' : sleepStr, 'Sleep', isDark),
               Container(width: 1, height: 40, color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
-              _buildSummaryItem('🍼', '6 times', 'Feeds', isDark),
+              _buildSummaryItem('🍼', '$feedsCount times', 'Feeds', isDark),
               Container(width: 1, height: 40, color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
-              _buildSummaryItem('🩲', '4 times', 'Diapers', isDark),
+              _buildSummaryItem('🩲', '$diapersCount times', 'Diapers', isDark),
             ],
           ),
         ],
@@ -338,6 +345,76 @@ class LaunchpadScreen extends ConsumerWidget {
     if (days < 30) return '${(days / 7).floor()} weeks old';
     final months = (days / 30.44).floor();
     return '$months months old';
+  }
+
+  Widget _buildProfileSwitcher(BuildContext context, WidgetRef ref, BabyModel? activeBaby, List<BabyModel> allBabies, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.only(top: 6, bottom: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark ? Colors.white12 : Colors.black.withOpacity(0.05),
+          width: 1,
+        ),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: activeBaby?.id,
+          icon: Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Icon(Icons.keyboard_arrow_down_rounded, color: isDark ? Colors.white70 : Colors.black54),
+          ),
+          isDense: true,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
+            color: isDark ? Colors.white : Colors.black87,
+            fontFamily: 'Outfit',
+          ),
+          dropdownColor: isDark ? const Color(0xFF2A2329) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          onChanged: (id) async {
+            if (id != null && id != activeBaby?.id) {
+              final activeSession = ref.read(activeSessionProvider);
+              if (activeSession != null && activeSession.isRunning) {
+                final result = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Active Timer Running'),
+                    content: const Text('You have an active timer running. Please stop it before switching baby profiles.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          ref.read(activeSessionProvider.notifier).cancelSession();
+                          Navigator.pop(ctx, true);
+                        },
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                        child: const Text('Stop Timer', style: TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  ),
+                );
+                if (result != true) return;
+              }
+              ref.read(activeBabyProvider.notifier).setActiveBaby(id);
+            }
+          },
+          items: allBabies.map((baby) {
+            return DropdownMenuItem(
+              value: baby.id,
+              child: Text(baby.name),
+            );
+          }).toList(),
+        ),
+      ),
+    ).animate().fadeIn(duration: 600.ms, delay: 100.ms).slideY(begin: 0.1, end: 0);
   }
 }
 
@@ -488,9 +565,27 @@ class _RecentTile extends StatelessWidget {
         final durSec = r.metadata['durationSeconds'];
         final durMin = durSec != null ? (durSec as int) ~/ 60 : r.metadata['durationMinutes'];
         return ('😴', 'Sleep', durMin != null && durMin > 0 ? '${durMin} mins' : 'Sleep logged', AppColors.sleep);
+      case 'tummy_time':
+      case 'tummy time':
+        final dur = r.metadata['durationSeconds'];
+        final durMin = dur != null ? (dur as int) ~/ 60 : null;
+        return ('🤸', 'Tummy Time', durMin != null && durMin > 0 ? '${durMin} mins' : '', AppColors.tertiary);
       case 'diaper':
         final status = r.metadata['status'] as String? ?? 'Diaper changed';
+        if (status == 'Wet') {
+          return ('💦', 'Urination', 'Wet diaper', AppColors.urination);
+        } else if (status == 'Dirty') {
+          return ('💩', 'Stool', 'Dirty diaper', AppColors.stool);
+        } else if (status == 'Mixed') {
+          return ('🩲', 'Diaper', 'Mixed diaper', AppColors.diaper);
+        }
         return ('🩲', 'Diaper', status, AppColors.diaper);
+      case 'bath':
+        final type = r.metadata['type'] as String? ?? 'Bath';
+        final hair = r.metadata['hairWashed'] == true ? 'Hair washed' : '';
+        final lotion = r.metadata['lotionApplied'] == true ? 'Lotion applied' : '';
+        final parts = [if(hair.isNotEmpty) hair, if(lotion.isNotEmpty) lotion].join(' • ');
+        return ('🛁', type, parts.isNotEmpty ? parts : 'Bath logged', Colors.lightBlue);
       default:
         return ('📝', 'Activity', '', AppColors.primary);
     }
