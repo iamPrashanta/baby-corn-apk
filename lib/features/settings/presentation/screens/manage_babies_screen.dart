@@ -2,9 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
 import '../../../auth/domain/models/baby_model.dart';
+import 'package:go_router/go_router.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
+import '../../../records/presentation/providers/active_session_provider.dart';
 
 class ManageBabiesScreen extends ConsumerWidget {
   const ManageBabiesScreen({super.key});
@@ -57,24 +58,51 @@ class ManageBabiesScreen extends ConsumerWidget {
               subtitle: Text(
                 'Born: ${baby.birthDate.day}/${baby.birthDate.month}/${baby.birthDate.year}',
               ),
-              trailing: isActive
-                  ? const Icon(Icons.check_circle, color: Colors.green)
-                  : TextButton(
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isActive)
+                    const Icon(Icons.check_circle, color: Colors.green)
+                  else
+                    TextButton(
                       onPressed: () {
-                        ref.read(activeBabyProvider.notifier).setActiveBaby(baby.id);
+                        final activeSession = ref.read(activeSessionProvider);
+                        if (activeSession != null) {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Active Timer Running'),
+                              content: const Text('You have an active timer running. Please stop or cancel it before switching profiles.'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('OK'),
+                                ),
+                              ],
+                            ),
+                          );
+                        } else {
+                          ref.read(activeBabyProvider.notifier).setActiveBaby(baby.id);
+                        }
                       },
                       child: const Text('Select'),
                     ),
+                  if (allBabies.length > 1) // Only allow deletion if more than 1 baby
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, color: Colors.red),
+                      onPressed: () {
+                        _showDeleteConfirm(context, ref, baby);
+                      },
+                    ),
+                ],
+              ),
             ),
           );
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // For simplicity, we can reuse the onboarding screen or a custom add baby dialog.
-          // Since onboarding has all the nice UI, we can just push a simplified Add Baby screen.
-          // For now, let's create a quick dialog.
-          _showAddBabyDialog(context, ref);
+          context.push('/onboarding?add=true');
         },
         icon: const Icon(Icons.add),
         label: const Text('Add Baby'),
@@ -82,44 +110,27 @@ class ManageBabiesScreen extends ConsumerWidget {
     );
   }
 
-  void _showAddBabyDialog(BuildContext context, WidgetRef ref) {
-    final nameController = TextEditingController();
-    
+  void _showDeleteConfirm(BuildContext context, WidgetRef ref, BabyModel baby) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Add Baby'),
-          content: TextField(
-            controller: nameController,
-            decoration: const InputDecoration(
-              labelText: 'Baby Name',
-              hintText: 'Enter name',
-            ),
-            autofocus: true,
-          ),
+          title: const Text('Delete Baby Profile'),
+          content: Text('Are you sure you want to delete ${baby.name}? This action cannot be undone.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              onPressed: () {
-                final name = nameController.text.trim();
-                if (name.isNotEmpty) {
-                  final baby = BabyModel(
-                    id: const Uuid().v4(),
-                    name: name,
-                    birthDate: DateTime.now(), // default to today
-                    feedingType: 'Mixed',
-                    gender: 'Prefer not to say',
-                    birthWeight: 3.2,
-                  );
-                  ref.read(activeBabyProvider.notifier).addBaby(baby);
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () async {
+                await ref.read(activeBabyProvider.notifier).deleteBaby(baby.id);
+                if (context.mounted) {
                   Navigator.pop(context);
                 }
               },
-              child: const Text('Add'),
+              child: const Text('Delete', style: TextStyle(color: Colors.white)),
             ),
           ],
         );

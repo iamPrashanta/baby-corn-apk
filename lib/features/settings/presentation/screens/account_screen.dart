@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../providers/theme_provider.dart';
 import '../../../../core/local_storage/secure_storage_manager.dart';
 import '../../../../core/config/app_config.dart';
@@ -67,6 +68,34 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
   Future<void> _updateTimeout(int minutes) async {
     await SecureStorageManager.saveSessionTimeout(minutes);
     setState(() => _timeoutMinutes = minutes);
+  }
+
+  Future<void> _signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return;
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      
+      await FirebaseAuth.instance.signInWithCredential(credential);
+      
+      if (mounted) {
+        setState(() {}); // Refresh to show Google user
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Successfully signed in with Google!')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Sign in failed: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -315,6 +344,19 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
                     ],
                   ),
                 ),
+                if (!isGoogleUser && AppConfig.enableFirebaseAuth) ...[
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: _signInWithGoogle,
+                    icon: const Icon(Icons.g_mobiledata, size: 24),
+                    label: const Text('Sign in with Google'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isDark ? Colors.white : Colors.black,
+                      foregroundColor: isDark ? Colors.black : Colors.white,
+                      minimumSize: const Size(double.infinity, 40),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

@@ -112,13 +112,13 @@ class RecordsTimelineScreen extends ConsumerWidget {
 // ─────────────────────────────────────────────────────────
 // TIMELINE TILE
 // ─────────────────────────────────────────────────────────
-class _TimelineTile extends StatelessWidget {
+class _TimelineTile extends ConsumerWidget {
   final RecordModel record;
   final bool isLast;
   const _TimelineTile({required this.record, this.isLast = false});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final (emoji, label, subtitle, color) = _recordMeta(record);
     final timeStr = DateFormat.jm().format(record.timestamp);
 
@@ -215,6 +215,11 @@ class _TimelineTile extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: () => _showDeleteConfirm(context, ref),
+                        child: Icon(Icons.delete_outline, color: Colors.red.withOpacity(0.7), size: 20),
+                      ),
                     ],
                   ),
                 ],
@@ -223,6 +228,32 @@ class _TimelineTile extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showDeleteConfirm(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Delete Activity'),
+          content: const Text('Are you sure you want to delete this activity? This cannot be undone.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () {
+                ref.read(recordsProvider.notifier).deleteRecord(record.id);
+                Navigator.pop(context);
+              },
+              child: const Text('Delete', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -254,6 +285,12 @@ class _TimelineTile extends StatelessWidget {
           return ('🩲', 'Diaper', 'Mixed diaper', AppColors.diaper);
         }
         return ('🩲', 'Diaper', status, AppColors.diaper);
+      case 'bath':
+        final type = r.metadata['type'] as String? ?? 'Bath';
+        final hair = r.metadata['hairWashed'] == true ? 'Hair washed' : '';
+        final lotion = r.metadata['lotionApplied'] == true ? 'Lotion applied' : '';
+        final parts = [if(hair.isNotEmpty) hair, if(lotion.isNotEmpty) lotion].join(' • ');
+        return ('🛁', type, parts.isNotEmpty ? parts : 'Bath logged', Colors.lightBlue);
       default:
         return ('📝', 'Activity', '', Colors.grey);
     }

@@ -82,6 +82,23 @@ class BabyRepository {
     }
   }
 
+  Future<void> deleteBaby(String id) async {
+    final babies = getBabies();
+    babies.removeWhere((b) => b.id == id);
+    await saveBabies(babies);
+    
+    // If the active baby was deleted, switch to another one if available
+    if (getActiveBabyId() == id) {
+      if (babies.isNotEmpty) {
+        await setActiveBabyId(babies.first.id);
+      } else {
+        final box = HiveManager.getSettingsBox();
+        await box.delete('active_baby_id');
+        await box.delete('onboarding_complete'); // reset if no babies left
+      }
+    }
+  }
+
   String? getActiveBabyId() {
     final box = HiveManager.getSettingsBox();
     return box.get('active_baby_id') as String?;

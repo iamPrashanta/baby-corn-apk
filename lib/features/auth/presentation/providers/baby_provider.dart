@@ -54,4 +54,9 @@ class ActiveBabyNotifier extends StateNotifier<BabyModel?> {
     await _repository.updateBaby(baby);
     _loadActiveBaby();
   }
+
+  Future<void> deleteBaby(String id) async {
+    await _repository.deleteBaby(id);
+    _loadActiveBaby();
+  }
 }

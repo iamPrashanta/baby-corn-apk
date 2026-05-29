@@ -13,6 +13,7 @@ import 'core/widgets/floating_timer_overlay.dart';
 import 'features/settings/presentation/providers/theme_provider.dart';
 import 'core/services/reminder_service.dart';
 import 'core/config/app_config.dart';
+import 'core/widgets/background_timer_overlay.dart';
 
 // Firebase imports — conditionally used based on AppConfig flags
 import 'package:firebase_core/firebase_core.dart';
@@ -87,6 +88,17 @@ void main() async {
       ),
     );
   }
+}
+
+@pragma("vm:entry-point")
+void overlayMain() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(
+    const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: BackgroundTimerOverlay(),
+    ),
+  );
 }
 
 class BabyCornApp extends ConsumerWidget {

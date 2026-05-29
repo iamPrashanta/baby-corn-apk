@@ -1,6 +1,7 @@
 // features/records/presentation/providers/active_session_provider.dart
 
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -116,7 +117,13 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
 
     try {
       _timer?.cancel();
-      await FlutterOverlayWindow.closeOverlay();
+      try {
+        if (await FlutterOverlayWindow.isActive()) {
+          await FlutterOverlayWindow.closeOverlay();
+        }
+      } catch (e) {
+        debugPrint('Overlay close error: $e');
+      }
 
       // Calculate final duration
       final duration = state!.currentDuration;
@@ -167,7 +174,13 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
 
   void cancelSession() async {
     _timer?.cancel();
-    await FlutterOverlayWindow.closeOverlay();
+    try {
+      if (await FlutterOverlayWindow.isActive()) {
+        await FlutterOverlayWindow.closeOverlay();
+      }
+    } catch (e) {
+      debugPrint('Overlay close error: $e');
+    }
     state = null;
     final box = HiveManager.getActiveSessionBox();
     await box.clear();
@@ -177,29 +190,39 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
   void pauseTicker() async {
     _timer?.cancel();
     if (state != null && state!.isRunning) {
-      if (await FlutterOverlayWindow.isPermissionGranted()) {
-        await FlutterOverlayWindow.showOverlay(
-          enableDrag: true,
-          overlayTitle: "Baby Corn Timer",
-          overlayContent: "Timer running",
-          flag: OverlayFlag.defaultFlag,
-          alignment: OverlayAlignment.center,
-          visibility: NotificationVisibility.visibilityPublic,
-          positionGravity: PositionGravity.auto,
-          height: 150,
-          width: WindowSize.matchParent,
-        );
-        FlutterOverlayWindow.shareData({
-          'type': 'timer_sync',
-          'startTimeMs': state!.startTime.millisecondsSinceEpoch,
-        });
+      try {
+        if (await FlutterOverlayWindow.isPermissionGranted()) {
+          await FlutterOverlayWindow.showOverlay(
+            enableDrag: true,
+            overlayTitle: "Baby Corn Timer",
+            overlayContent: "Timer running",
+            flag: OverlayFlag.defaultFlag,
+            alignment: OverlayAlignment.center,
+            visibility: NotificationVisibility.visibilityPublic,
+            positionGravity: PositionGravity.auto,
+            height: 150,
+            width: WindowSize.matchParent,
+          );
+          FlutterOverlayWindow.shareData({
+            'type': 'timer_sync',
+            'startTimeMs': state!.startTime.millisecondsSinceEpoch,
+          });
+        }
+      } catch (e) {
+        debugPrint("Overlay failed to show: $e");
       }
     }
   }
 
   /// Resumes the ticker (call when app comes to foreground)
   void resumeTicker() async {
-    await FlutterOverlayWindow.closeOverlay();
+    try {
+      if (await FlutterOverlayWindow.isActive()) {
+        await FlutterOverlayWindow.closeOverlay();
+      }
+    } catch (e) {
+      debugPrint('Overlay close error: $e');
+    }
     if (state != null && state!.isRunning) {
       _startTick();
     } else if (state != null) {

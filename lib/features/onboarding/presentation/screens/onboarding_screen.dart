@@ -11,11 +11,13 @@ import '../../../../core/local_storage/secure_storage_manager.dart';
 import '../../../../core/local_storage/hive_manager.dart';
 import '../../../../core/widgets/bouncing_button.dart';
 import '../../../../core/config/app_config.dart';
+import '../../../auth/presentation/providers/baby_provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:math' as math;
 
 class OnboardingScreen extends ConsumerStatefulWidget {
-  const OnboardingScreen({super.key});
+  final bool isAddingBaby;
+  const OnboardingScreen({super.key, this.isAddingBaby = false});
 
   @override
   ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -79,11 +81,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
 
     await ref.read(babyRepositoryProvider).addBaby(baby);
+    await ref.read(activeBabyProvider.notifier).setActiveBaby(baby.id);
 
     // ✅ Mark onboarding as complete so the app never shows it again
     await HiveManager.getSettingsBox().put('onboarding_complete', true);
 
     if (mounted) {
+      if (widget.isAddingBaby) {
+        context.pop();
+        return;
+      }
       if (AppConfig.enableFirebaseAuth) {
         final hasPin = await SecureStorageManager.hasPin();
         if (hasPin) {

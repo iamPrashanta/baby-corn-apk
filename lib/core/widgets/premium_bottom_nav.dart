@@ -138,48 +138,24 @@ class _NavItemWidgetState extends State<_NavItemWidget>
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 400),
           curve: Curves.easeOutBack,
-          padding: EdgeInsets.symmetric(
-            horizontal: widget.isActive ? 14 : 12,
-            vertical: 12,
-          ),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: widget.isActive
                 ? activeColor.withOpacity(0.12)
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(24),
+            shape: BoxShape.circle,
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                transitionBuilder: (child, animation) {
-                  return ScaleTransition(scale: animation, child: child);
-                },
-                child: Icon(
-                  widget.item.icon,
-                  key: ValueKey(widget.isActive),
-                  size: 22,
-                  color: widget.isActive ? activeColor : inactiveColor,
-                ),
-              ),
-              if (widget.isActive) ...[
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(
-                    widget.item.label,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: activeColor,
-                      letterSpacing: 0.2,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ),
-              ],
-            ],
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (child, animation) {
+              return ScaleTransition(scale: animation, child: child);
+            },
+            child: Icon(
+              widget.item.icon,
+              key: ValueKey(widget.isActive),
+              size: 24,
+              color: widget.isActive ? activeColor : inactiveColor,
+            ),
           ),
         ),
       ),

@@ -79,7 +79,7 @@ class _SanskarDetailSheetState extends ConsumerState<SanskarDetailSheet> {
           left: 24,
           right: 24,
           top: 24,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+          bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom + 24,
         ),
         child: SingleChildScrollView(
         child: Column(

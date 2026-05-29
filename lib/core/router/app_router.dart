@@ -13,6 +13,7 @@ import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../../features/records/presentation/screens/feeding_entry_screen.dart';
 import '../../features/records/presentation/screens/sleep_entry_screen.dart';
 import '../../features/records/presentation/screens/diaper_entry_screen.dart';
+import '../../features/records/presentation/screens/bath_entry_screen.dart';
 import '../../features/settings/presentation/screens/manage_babies_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -37,7 +38,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/onboarding',
-        builder: (context, state) => const OnboardingScreen(),
+        builder: (context, state) {
+          final isAdding = state.uri.queryParameters['add'] == 'true';
+          return OnboardingScreen(isAddingBaby: isAdding);
+        },
       ),
       GoRoute(
         path: '/home',
@@ -57,6 +61,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           final status = state.uri.queryParameters['status'];
           return DiaperEntryScreen(initialStatus: status);
         },
+      ),
+      GoRoute(
+        path: '/entry/bath',
+        builder: (context, state) => const BathEntryScreen(),
       ),
       GoRoute(
         path: '/manage_babies',
