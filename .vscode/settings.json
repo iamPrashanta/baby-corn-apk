@@ -1,0 +1,15 @@
+{
+  "java.project.excludePaths": [
+    "**/android/.gradle",
+    "**/android/build",
+    "**/build",
+    "**/.dart_tool"
+  ],
+  "java.configuration.updateBuildConfiguration": "interactive",
+  "files.watcherExclude": {
+    "**/.git/**": true,
+    "**/build/**": true,
+    "**/.dart_tool/**": true,
+    "**/.gradle/**": true
+  }
+}

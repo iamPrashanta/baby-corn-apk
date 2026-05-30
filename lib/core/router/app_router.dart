@@ -15,6 +15,8 @@ import '../../features/records/presentation/screens/sleep_entry_screen.dart';
 import '../../features/records/presentation/screens/diaper_entry_screen.dart';
 import '../../features/records/presentation/screens/bath_entry_screen.dart';
 import '../../features/settings/presentation/screens/manage_babies_screen.dart';
+import '../../features/settings/presentation/screens/edit_baby_screen.dart';
+import '../../features/auth/presentation/providers/baby_provider.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -69,6 +71,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/manage_babies',
         builder: (context, state) => const ManageBabiesScreen(),
+      ),
+      GoRoute(
+        path: '/edit_baby/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          final babies = ref.read(allBabiesProvider);
+          final baby = babies.firstWhere(
+            (b) => b.id == id,
+            orElse: () => babies.first,
+          );
+          return EditBabyScreen(baby: baby);
+        },
       ),
     ],
   );

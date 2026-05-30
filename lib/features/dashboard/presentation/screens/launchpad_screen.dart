@@ -82,17 +82,32 @@ class LaunchpadScreen extends ConsumerWidget {
                   ),
                 ).animate().fadeIn(duration: 600.ms),
                 const SizedBox(height: 4),
-                if (allBabies.length > 1)
-                  _buildProfileSwitcher(context, ref, activeBaby, allBabies, isDark)
-                else
-                  Text(
-                    babyName,
-                    style: const TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
-                    ),
-                  ).animate().fadeIn(duration: 600.ms, delay: 100.ms).slideY(begin: 0.1, end: 0),
+                GestureDetector(
+                  onTap: allBabies.length > 1
+                      ? () => _showProfileSwitcherSheet(context, ref, activeBaby, allBabies, isDark)
+                      : null,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        babyName,
+                        style: const TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      if (allBabies.length > 1) ...[  
+                        const SizedBox(width: 6),
+                        Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          size: 28,
+                          color: isDark ? Colors.white54 : const Color(0xFF9A8C98),
+                        ),
+                      ],
+                    ],
+                  ),
+                ).animate().fadeIn(duration: 600.ms, delay: 100.ms).slideY(begin: 0.1, end: 0),
                 if (age.isNotEmpty) ...[
                   const SizedBox(height: 6),
                   Text(
@@ -121,8 +136,11 @@ class LaunchpadScreen extends ConsumerWidget {
                 )
               ],
             ),
-            child: const Center(
-              child: Text('👶', style: TextStyle(fontSize: 32)),
+            child: Center(
+              child: Text(
+                activeBaby?.avatarEmoji ?? '👶',
+                style: const TextStyle(fontSize: 32),
+              ),
             ),
           ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack, delay: 200.ms),
         ],
@@ -347,74 +365,60 @@ class LaunchpadScreen extends ConsumerWidget {
     return '$months months old';
   }
 
-  Widget _buildProfileSwitcher(BuildContext context, WidgetRef ref, BabyModel? activeBaby, List<BabyModel> allBabies, bool isDark) {
-    return Container(
-      margin: const EdgeInsets.only(top: 6, bottom: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isDark ? Colors.white12 : Colors.black.withOpacity(0.05),
-          width: 1,
-        ),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: activeBaby?.id,
-          icon: Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: Icon(Icons.keyboard_arrow_down_rounded, color: isDark ? Colors.white70 : Colors.black54),
-          ),
-          isDense: true,
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.5,
-            color: isDark ? Colors.white : Colors.black87,
-            fontFamily: 'Outfit',
-          ),
-          dropdownColor: isDark ? const Color(0xFF2A2329) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          onChanged: (id) async {
-            if (id != null && id != activeBaby?.id) {
-              final activeSession = ref.read(activeSessionProvider);
-              if (activeSession != null && activeSession.isRunning) {
-                final result = await showDialog<bool>(
-                  context: context,
-                  builder: (ctx) => AlertDialog(
-                    title: const Text('Active Timer Running'),
-                    content: const Text('You have an active timer running. Please stop it before switching baby profiles.'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(ctx, false),
-                        child: const Text('Cancel'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          ref.read(activeSessionProvider.notifier).cancelSession();
-                          Navigator.pop(ctx, true);
-                        },
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                        child: const Text('Stop Timer', style: TextStyle(color: Colors.white)),
-                      ),
-                    ],
+  void _showProfileSwitcherSheet(
+    BuildContext context,
+    WidgetRef ref,
+    BabyModel? activeBaby,
+    List<BabyModel> allBabies,
+    bool isDark,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) => _ProfileSwitcherSheet(
+        allBabies: allBabies,
+        activeBaby: activeBaby,
+        isDark: isDark,
+        onSelect: (baby) async {
+          Navigator.of(sheetContext).pop();
+          if (baby.id == activeBaby?.id) return;
+          final activeSession = ref.read(activeSessionProvider);
+          if (activeSession != null && activeSession.isRunning) {
+            final result = await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24)),
+                title: const Text('Timer Running'),
+                content: const Text(
+                    'Stop the active timer before switching profiles.'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: const Text('Cancel'),
                   ),
-                );
-                if (result != true) return;
-              }
-              ref.read(activeBabyProvider.notifier).setActiveBaby(id);
-            }
-          },
-          items: allBabies.map((baby) {
-            return DropdownMenuItem(
-              value: baby.id,
-              child: Text(baby.name),
+                  ElevatedButton(
+                    onPressed: () {
+                      ref
+                          .read(activeSessionProvider.notifier)
+                          .cancelSession();
+                      Navigator.pop(ctx, true);
+                    },
+                    style:
+                        ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    child: const Text('Stop Timer',
+                        style: TextStyle(color: Colors.white)),
+                  ),
+                ],
+              ),
             );
-          }).toList(),
-        ),
+            if (result != true) return;
+          }
+          ref.read(activeBabyProvider.notifier).setActiveBaby(baby.id);
+        },
       ),
-    ).animate().fadeIn(duration: 600.ms, delay: 100.ms).slideY(begin: 0.1, end: 0);
+    );
   }
 }
 
@@ -610,6 +614,199 @@ class _EmptyRecentState extends StatelessWidget {
           Text(
             'Nothing logged yet today.',
             style: TextStyle(color: Colors.grey.shade500, fontSize: 15),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Profile Switcher Bottom Sheet ────────────────────────────────────────────
+
+class _ProfileSwitcherSheet extends StatelessWidget {
+  final List<BabyModel> allBabies;
+  final BabyModel? activeBaby;
+  final bool isDark;
+  final ValueChanged<BabyModel> onSelect;
+
+  const _ProfileSwitcherSheet({
+    required this.allBabies,
+    required this.activeBaby,
+    required this.isDark,
+    required this.onSelect,
+  });
+
+  String _formatAge(DateTime birthDate) {
+    final days = DateTime.now().difference(birthDate).inDays;
+    if (days < 7) return '$days days old';
+    if (days < 30) return '${(days / 7).floor()} weeks old';
+    final months = (days / 30.44).floor();
+    if (months < 24) return '$months months old';
+    return '${(months / 12).floor()} years old';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final sheetBg = isDark ? const Color(0xFF1A1820) : const Color(0xFFFDFBF7);
+    final cardBg = isDark ? const Color(0xFF252229) : Colors.white;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: sheetBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white24 : Colors.black12,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Title
+          Text(
+            'Switch Baby',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: isDark ? Colors.white : const Color(0xFF2D3142),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Baby cards
+          ...allBabies.map((baby) {
+            final isActive = baby.id == activeBaby?.id;
+            return GestureDetector(
+              onTap: () => onSelect(baby),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                decoration: BoxDecoration(
+                  color: isActive
+                      ? AppColors.primary.withOpacity(0.12)
+                      : cardBg,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(
+                    color: isActive ? AppColors.primary : Colors.transparent,
+                    width: 2,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    // Avatar
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.14),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          baby.avatarEmoji,
+                          style: const TextStyle(fontSize: 28),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            baby.name,
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? Colors.white : const Color(0xFF2D3142),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _formatAge(baby.birthDate),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark ? Colors.white54 : const Color(0xFF9A8C98),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Active indicator
+                    if (isActive)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.18),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          'Active',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      )
+                    else
+                      Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 16,
+                        color: isDark ? Colors.white30 : Colors.black26,
+                      ),
+                  ],
+                ),
+              ),
+            );
+          }),
+
+          const SizedBox(height: 4),
+
+          // Add baby shortcut
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).pop();
+              context.push('/onboarding?add=true');
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.white.withOpacity(0.06)
+                    : Colors.black.withOpacity(0.04),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.add_circle_outline_rounded,
+                    color: isDark ? Colors.white54 : Colors.black38,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Add Another Baby',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white54 : Colors.black45,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),

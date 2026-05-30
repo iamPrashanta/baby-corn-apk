@@ -1,0 +1,15 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Flutter Reset",
+      "type": "shell",
+      "command": "scripts\\dev_reset.bat"
+    },
+    {
+      "label": "Flutter Release Build",
+      "type": "shell",
+      "command": "scripts\\release_build.bat"
+    }
+  ]
+}

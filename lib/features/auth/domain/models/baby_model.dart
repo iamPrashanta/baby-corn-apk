@@ -7,6 +7,9 @@ class BabyModel {
   final String feedingType;
   final String gender;
   final double birthWeight;
+  /// Optional emoji avatar for visual identity across multiple baby profiles.
+  /// Defaults to '👶' when not set (backward-compatible).
+  final String avatarEmoji;
 
   BabyModel({
     required this.id,
@@ -15,6 +18,7 @@ class BabyModel {
     required this.feedingType,
     required this.gender,
     required this.birthWeight,
+    this.avatarEmoji = '👶',
   });
 
   Map<String, dynamic> toJson() {
@@ -25,6 +29,7 @@ class BabyModel {
       'feedingType': feedingType,
       'gender': gender,
       'birthWeight': birthWeight,
+      'avatarEmoji': avatarEmoji,
     };
   }
 
@@ -36,6 +41,7 @@ class BabyModel {
       feedingType: json['feedingType'] as String? ?? 'Mixed',
       gender: json['gender'] as String? ?? 'Prefer not to say',
       birthWeight: (json['birthWeight'] as num?)?.toDouble() ?? 3.2,
+      avatarEmoji: json['avatarEmoji'] as String? ?? '👶',
     );
   }
 
@@ -46,6 +52,7 @@ class BabyModel {
     String? feedingType,
     String? gender,
     double? birthWeight,
+    String? avatarEmoji,
   }) {
     return BabyModel(
       id: id ?? this.id,
@@ -54,6 +61,7 @@ class BabyModel {
       feedingType: feedingType ?? this.feedingType,
       gender: gender ?? this.gender,
       birthWeight: birthWeight ?? this.birthWeight,
+      avatarEmoji: avatarEmoji ?? this.avatarEmoji,
     );
   }
 }
