@@ -95,10 +95,14 @@ class RecordsNotifier extends StateNotifier<AsyncValue<List<RecordModel>>> {
     if (!state.hasValue) return null;
     final records = state.value!;
     
+    final targetBabyId = newRecord.metadata['babyId'] ?? _activeBabyId;
+    
     for (final r in records) {
       // Must be same type and same baby
       if (r.type != newRecord.type) continue;
-      if (r.metadata['babyId'] != newRecord.metadata['babyId']) continue;
+      
+      final rBabyId = r.metadata['babyId'] ?? _activeBabyId;
+      if (rBabyId != targetBabyId) continue;
 
       // Ensure we have a valid timestamp to compare against
       final diff = r.timestamp.difference(newRecord.timestamp).abs();

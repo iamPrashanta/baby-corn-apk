@@ -71,15 +71,28 @@ class _SyncDetailsSheetState extends ConsumerState<SyncDetailsSheet> {
 
     setState(() => _isSyncing = true);
     
-    await SyncService.syncOfflineDataToCloud();
-    await SyncService.syncCloudDataToLocal();
-    
-    if (mounted) {
-      _loadSyncDetails();
-      setState(() => _isSyncing = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sync complete!')),
-      );
+    try {
+      await SyncService.syncOfflineDataToCloud();
+      await SyncService.syncCloudDataToLocal();
+      
+      if (mounted) {
+        _loadSyncDetails();
+        setState(() => _isSyncing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sync complete!')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSyncing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Sync failed: ${e.toString().replaceAll('Exception: ', '')}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
     }
   }
 
@@ -173,7 +186,7 @@ class _SyncDetailsSheetState extends ConsumerState<SyncDetailsSheet> {
             
             const SizedBox(height: 40),
             ElevatedButton(
-              onPressed: _isSyncing || !isConnected ? null : _forceSync,
+              onPressed: _isSyncing ? null : _forceSync,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,

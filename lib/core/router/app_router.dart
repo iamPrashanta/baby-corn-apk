@@ -15,6 +15,7 @@ import '../../features/records/presentation/screens/feeding_entry_screen.dart';
 import '../../features/records/presentation/screens/sleep_entry_screen.dart';
 import '../../features/records/presentation/screens/diaper_entry_screen.dart';
 import '../../features/records/presentation/screens/bath_entry_screen.dart';
+import '../../features/records/presentation/screens/mood_entry_screen.dart';
 import '../../features/settings/presentation/screens/manage_babies_screen.dart';
 import '../../features/settings/presentation/screens/edit_baby_screen.dart';
 import '../../features/settings/presentation/screens/reminders_setting_screen.dart';
@@ -74,6 +75,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/entry/bath',
         builder: (context, state) => const BathEntryScreen(),
+      ),
+      GoRoute(
+        path: '/entry/mood',
+        builder: (context, state) => const MoodEntryScreen(),
       ),
       GoRoute(
         path: '/manage_babies',

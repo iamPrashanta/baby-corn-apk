@@ -27,6 +27,7 @@ class AppColors {
   static const Color diaper = Color(0xFFE2D5F8);
   static const Color urination = Color(0xFFFFF2CD); // Soft yellow
   static const Color stool = Color(0xFFE6D5C3); // Soft brown
+  static const Color mood = Color(0xFFC4E8C2); // Soft green
   
   // Dark theme colors (Warm Glass System)
   static const Color darkBackground = Color(0xFF2C2A2F); // warm charcoal

@@ -268,14 +268,42 @@ static const bool enableFirebaseAuth = false;
 flutter run
 ```
 
-### Build Release APK
+### Build Optimized Release Versions
+
+#### Android (APK)
+
+To build the smallest, most optimized APKs for Android, run:
 
 ```bash
-flutter build apk --release
+flutter build apk --release --split-per-abi --obfuscate --split-debug-info=./debug_info
 ```
+
+**Which APK should you use?**
+The `--split-per-abi` flag will generate multiple APKs in `build/app/outputs/flutter-apk/`. 
+- **`app-arm64-v8a-release.apk`**: Use this for 99% of modern Android phones.
+- **`app-armeabi-v7a-release.apk`**: Use this for older, 32-bit Android phones.
+- **`app-x86_64-release.apk`**: Use this for Android emulators on PC.
 
 > **Note for Windows developers**: See [`docs/android-build-aapt2-windows-fix.md`](docs/android-build-aapt2-windows-fix.md) if you encounter AAPT2 build errors on Windows.
 
+#### iOS (IPA)
+
+To build a release archive for iOS, there are strict prerequisites mandated by Apple.
+
+**Prerequisites to build for iOS:**
+1. **A Mac Computer**: Apple strictly requires macOS to compile iOS apps. You cannot build an iOS app on Windows or Linux natively.
+2. **Xcode**: Download and install Xcode from the Mac App Store.
+3. **Apple Developer Account**: To install the app on a physical iPhone or distribute it, you need an Apple Developer account (a free account allows testing on your own device; a $99/year paid account is required for App Store/TestFlight distribution).
+4. **CocoaPods**: Ensure CocoaPods is installed (`sudo gem install cocoapods`) to handle iOS dependencies.
+
+**Build Command:**
+Once you are on a Mac and have opened the `ios/Runner.xcworkspace` in Xcode at least once to configure your developer signing certificate, you can run:
+
+```bash
+flutter build ipa --obfuscate --split-debug-info=./debug_info
+```
+
+This generates an `.xcarchive` and an `.ipa` file located in `build/ios/ipa/`, which you can distribute via TestFlight or upload to the App Store.
 ---
 
 ## 🔑 Permissions (Android)

@@ -338,6 +338,11 @@ class _TimelineTile extends ConsumerWidget {
         final lotion = r.metadata['lotionApplied'] == true ? 'Lotion applied' : '';
         final parts = [if(hair.isNotEmpty) hair, if(lotion.isNotEmpty) lotion].join(' • ');
         return ('🛁', type, parts.isNotEmpty ? parts : 'Bath logged', Colors.lightBlue);
+      case 'mood':
+        final emoji = r.metadata['emoji'] as String? ?? '😊';
+        final mood = r.metadata['mood'] as String? ?? 'Happy';
+        final intensity = r.metadata['intensity'] as String? ?? 'Moderate';
+        return (emoji, 'Mood: $mood', '$intensity intensity', AppColors.mood);
       default:
         return ('📝', 'Activity', '', Colors.grey);
     }

@@ -59,6 +59,7 @@ class SyncService {
       debugPrint('Sync: Offline data successfully merged to Cloud');
     } catch (e) {
       debugPrint('Sync Error: $e');
+      throw e;
     }
   }
 
@@ -125,6 +126,7 @@ class SyncService {
       debugPrint('Sync: Cloud data successfully merged to Local');
     } catch (e) {
       debugPrint('Sync Error: $e');
+      throw e;
     }
   }
 
