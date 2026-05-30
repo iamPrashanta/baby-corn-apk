@@ -1,6 +1,7 @@
 // features/dashboard/presentation/screens/main_scaffold.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../records/presentation/widgets/add_record_modal.dart';
 import 'launchpad_screen.dart';
 import '../../../records/presentation/screens/records_timeline_screen.dart';
@@ -18,6 +19,7 @@ class MainScaffold extends StatefulWidget {
 
 class _MainScaffoldState extends State<MainScaffold> {
   int _currentIndex = 0;
+  DateTime? _lastPressedAt;
 
   final List<Widget> _screens = [
     const LaunchpadScreen(), // 0: Home
@@ -40,28 +42,50 @@ class _MainScaffoldState extends State<MainScaffold> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     
-    return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
-      bottomNavigationBar: PremiumBottomNav(
-        currentIndex: _currentIndex,
-          onTap: (index) {
-            if (index == 2) {
-              _showAddRecordModal(context);
-            } else {
-              setState(() => _currentIndex = index);
-            }
-          },
-          items: [
-            PremiumNavItem(icon: Icons.home_rounded, label: l10n.launchpad),
-            PremiumNavItem(icon: Icons.view_timeline_rounded, label: l10n.records),
-            PremiumNavItem(icon: Icons.add_circle_rounded, label: l10n.records), // Add record uses records label or can be hardcoded 'Add'
-            PremiumNavItem(icon: Icons.menu_book_rounded, label: l10n.guides),
-            PremiumNavItem(icon: Icons.person_rounded, label: l10n.account),
-          ],
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
+
+        final now = DateTime.now();
+        final maxDuration = const Duration(seconds: 2);
+        final isWarning = _lastPressedAt == null || now.difference(_lastPressedAt!) > maxDuration;
+
+        if (isWarning) {
+          _lastPressedAt = now;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Click back again to exit the app'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        } else {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        body: IndexedStack(
+          index: _currentIndex,
+          children: _screens,
         ),
+        bottomNavigationBar: PremiumBottomNav(
+          currentIndex: _currentIndex,
+            onTap: (index) {
+              if (index == 2) {
+                _showAddRecordModal(context);
+              } else {
+                setState(() => _currentIndex = index);
+              }
+            },
+            items: [
+              PremiumNavItem(icon: Icons.home_rounded, label: l10n.launchpad),
+              PremiumNavItem(icon: Icons.view_timeline_rounded, label: l10n.records),
+              PremiumNavItem(icon: Icons.add_circle_rounded, label: l10n.records), // Add record uses records label or can be hardcoded 'Add'
+              PremiumNavItem(icon: Icons.menu_book_rounded, label: l10n.guides),
+              PremiumNavItem(icon: Icons.person_rounded, label: l10n.account),
+            ],
+          ),
+      ),
     );
   }
 }
