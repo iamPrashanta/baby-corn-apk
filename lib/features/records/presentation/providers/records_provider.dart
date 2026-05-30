@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/record_model.dart';
 import '../../data/repositories/local_record_repository.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
+import '../../../../core/services/widget_service.dart';
 
 final timelineFilterDateProvider = StateProvider<DateTime?>((ref) => null);
 
@@ -50,6 +51,9 @@ class RecordsNotifier extends StateNotifier<AsyncValue<List<RecordModel>>> {
       filtered.sort((a, b) => b.timestamp.compareTo(a.timestamp));
       
       state = AsyncValue.data(filtered);
+      
+      // Update Native Widgets
+      WidgetService.updateWidgetData(filtered);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }

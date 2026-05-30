@@ -10,6 +10,7 @@ import 'core/local_storage/hive_manager.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'features/settings/presentation/providers/theme_provider.dart';
 import 'core/services/reminder_service.dart';
+import 'core/services/widget_service.dart';
 import 'core/config/app_config.dart';
 import 'core/widgets/app_lifecycle_wrapper.dart';
 import 'core/widgets/floating_timer_overlay.dart';
@@ -60,6 +61,9 @@ void main() async {
 
     debugPrint("STEP 4: Initializing ReminderService");
     await ReminderService.init();
+
+    debugPrint("STEP 4.5: Initializing WidgetService");
+    await WidgetService.initialize();
 
     debugPrint("STEP 5: Running App");
     runApp(
