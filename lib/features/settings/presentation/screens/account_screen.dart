@@ -14,6 +14,9 @@ import '../../../../core/services/sync_service.dart';
 import '../../../../core/providers/locale_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../providers/theme_provider.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class AccountScreen extends ConsumerStatefulWidget {
   const AccountScreen({super.key});
@@ -22,14 +25,14 @@ class AccountScreen extends ConsumerStatefulWidget {
   ConsumerState<AccountScreen> createState() => _AccountScreenState();
 }
 
-class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindingObserver {
+class _AccountScreenState extends ConsumerState<AccountScreen>
+    with WidgetsBindingObserver {
   int _timeoutMinutes = 5;
   bool _hasOverlayPermission = false;
 
   // Firebase user (null if offline)
-  User? get _firebaseUser => AppConfig.enableFirebaseAuth
-      ? FirebaseAuth.instance.currentUser
-      : null;
+  User? get _firebaseUser =>
+      AppConfig.enableFirebaseAuth ? FirebaseAuth.instance.currentUser : null;
 
   @override
   void initState() {
@@ -78,14 +81,15 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) return;
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-      
+
       await FirebaseAuth.instance.signInWithCredential(credential);
-      
+
       if (mounted) {
         setState(() {}); // Refresh to show Google user
         ScaffoldMessenger.of(context).showSnackBar(
@@ -111,7 +115,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
       if (mounted) {
         setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Signed out. You are now in Offline Mode.')),
+          const SnackBar(
+              content: Text('Signed out. You are now in Offline Mode.')),
         );
       }
     } catch (e) {
@@ -143,7 +148,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
             [
               ListTile(
                 leading: const Icon(Icons.language),
-                title: Text(AppLocalizations.of(context)?.language ?? 'Language'),
+                title:
+                    Text(AppLocalizations.of(context)?.language ?? 'Language'),
                 trailing: DropdownButton<Locale>(
                   value: ref.watch(localeProvider),
                   onChanged: (newLocale) {
@@ -152,10 +158,13 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
                     }
                   },
                   items: const [
-                    DropdownMenuItem(value: Locale('en'), child: Text('English')),
-                    DropdownMenuItem(value: Locale('hi'), child: Text('हिन्दी')),
+                    DropdownMenuItem(
+                        value: Locale('en'), child: Text('English')),
+                    DropdownMenuItem(
+                        value: Locale('hi'), child: Text('हिन्दी')),
                     DropdownMenuItem(value: Locale('bn'), child: Text('বাংলা')),
-                    DropdownMenuItem(value: Locale('te'), child: Text('తెలుగు')),
+                    DropdownMenuItem(
+                        value: Locale('te'), child: Text('తెలుగు')),
                     DropdownMenuItem(value: Locale('ta'), child: Text('தமிழ்')),
                     DropdownMenuItem(value: Locale('kn'), child: Text('ಕನ್ನಡ')),
                   ],
@@ -176,13 +185,18 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
                   value: themeMode,
                   onChanged: (mode) {
                     if (mode != null) {
-                      ref.read(themeModeProvider.notifier).updateThemeMode(mode);
+                      ref
+                          .read(themeModeProvider.notifier)
+                          .updateThemeMode(mode);
                     }
                   },
                   items: const [
-                    DropdownMenuItem(value: ThemeMode.system, child: Text('System')),
-                    DropdownMenuItem(value: ThemeMode.light, child: Text('Light')),
-                    DropdownMenuItem(value: ThemeMode.dark, child: Text('Dark')),
+                    DropdownMenuItem(
+                        value: ThemeMode.system, child: Text('System')),
+                    DropdownMenuItem(
+                        value: ThemeMode.light, child: Text('Light')),
+                    DropdownMenuItem(
+                        value: ThemeMode.dark, child: Text('Dark')),
                   ],
                 ),
               ),
@@ -242,7 +256,10 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
                   final success = await BackupService.exportBackup();
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(success ? 'Backup exported successfully!' : 'Backup failed')),
+                      SnackBar(
+                          content: Text(success
+                              ? 'Backup exported successfully!'
+                              : 'Backup failed')),
                     );
                   }
                 },
@@ -254,7 +271,10 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
                   final success = await BackupService.importBackup();
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(success ? 'Backup restored successfully! Restarting...' : 'Restore failed')),
+                      SnackBar(
+                          content: Text(success
+                              ? 'Backup restored successfully! Restarting...'
+                              : 'Restore failed')),
                     );
                     if (success) context.go('/'); // Restart app to reload state
                   }
@@ -268,7 +288,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
                   onTap: () async {
                     if (_firebaseUser == null) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Please sign in to sync data.')),
+                        const SnackBar(
+                            content: Text('Please sign in to sync data.')),
                       );
                       return;
                     }
@@ -286,13 +307,84 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
                 ),
               if (!AppConfig.enableCloudBackup)
                 ListTile(
-                  leading: const Icon(Icons.group, color: Colors.grey),
-                  title: const Text('Family Sharing', style: TextStyle(color: Colors.grey)),
-                  trailing: const Icon(Icons.lock, color: Colors.grey, size: 16),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Family Sharing is coming in a future update!')),
-                    );
+                  leading: const Icon(Icons.group, color: Colors.blue),
+                  title: const Text('Family Sharing'),
+                  subtitle: const Text('Invite partner or family member'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () async {
+                    // 1. Request Contacts Permission
+                    final status = await Permission.contacts.request();
+                    if (!status.isGranted) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text(
+                                  'Contacts permission is required to invite family members.')),
+                        );
+                      }
+                      return;
+                    }
+
+                    // 2. Open Native Contact Picker
+                    final contact = await FlutterContacts.native
+                        .showPicker(properties: {ContactProperty.phone});
+                    if (contact == null) return; // User canceled
+
+                    // 3. Try to get a phone number
+                    if (contact.phones.isEmpty) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text(
+                                  'Selected contact has no phone number.')),
+                        );
+                      }
+                      return;
+                    }
+
+                    final phoneNumber = contact.phones.first.number;
+                    final contactName = contact.displayName;
+
+                    // 4. Show Disclaimer Dialog
+                    if (mounted) {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: Text('Invite $contactName?'),
+                          content: const Text(
+                            'An SMS invitation will be sent to their number.\n\n'
+                            'Disclaimer: Standard SMS charges may apply from your network provider. Baby Corn does not charge anything.',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(false),
+                              child: const Text('Cancel'),
+                            ),
+                            FilledButton(
+                              onPressed: () => Navigator.of(ctx).pop(true),
+                              child: const Text('Send SMS'),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      // 5. Launch SMS App
+                      if (confirm == true) {
+                        final uri = Uri.parse(
+                            "sms:$phoneNumber?body=Hey! Join me on Baby Corn to manage our baby's profile together. Download it here: https://play.google.com/store/apps/details?id=com.babycorn.app");
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri);
+                        } else {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text('Could not open messaging app.')),
+                            );
+                          }
+                        }
+                      }
+                    }
                   },
                 ),
             ],
@@ -305,16 +397,34 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
               ListTile(
                 leading: const Icon(Icons.info),
                 title: const Text('About Baby Corn'),
-                onTap: () {},
-              ),
-              ListTile(
-                leading: const Icon(Icons.delete_forever, color: Colors.red),
-                title: const Text('Factory Reset (Erase All Data)', style: TextStyle(color: Colors.red)),
-                onTap: () async {
-                  await SecureStorageManager.clearAll();
-                  if (mounted) context.go('/');
+                onTap: () {
+                  showAboutDialog(
+                    context: context,
+                    applicationName: 'Baby Corn',
+                    applicationVersion: '1.0.0',
+                    applicationIcon: Image.asset(
+                      'assets/images/logo.png', // Assuming there's a logo in assets, otherwise a generic icon
+                      width: 48,
+                      height: 48,
+                      errorBuilder: (_, __, ___) => const Icon(Icons.child_care, size: 48),
+                    ),
+                    applicationLegalese: '© 2026 Baby Corn App',
+                    children: [
+                      const SizedBox(height: 16),
+                      const Text(
+                        "Baby Corn is an all-in-one companion app for modern parents to track and manage their baby's daily activities like feeding, sleeping, and diaper changes.",
+                      ),
+                    ],
+                  );
                 },
               ),
+              if (_firebaseUser != null)
+                ListTile(
+                  leading: const Icon(Icons.logout, color: Colors.red),
+                  title: const Text('Log Out',
+                      style: TextStyle(color: Colors.red)),
+                  onTap: _signOut,
+                ),
             ],
           ),
           const SizedBox(height: 24),
@@ -327,9 +437,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
     final user = _firebaseUser;
     final isGoogleUser = user != null;
 
-    final cardBg = isDark
-        ? const Color(0xFF1E1C20)
-        : Colors.white;
+    final cardBg = isDark ? const Color(0xFF1E1C20) : Colors.white;
     final subtitleColor = isDark ? Colors.white54 : Colors.black45;
 
     return Container(
@@ -362,7 +470,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
               children: [
                 Text(
                   isGoogleUser
-                      ? (user.displayName?.isNotEmpty == true ? user.displayName! : 'Baby Corn User')
+                      ? (user.displayName?.isNotEmpty == true
+                          ? user.displayName!
+                          : 'Baby Corn User')
                       : 'Offline User',
                   style: TextStyle(
                     fontSize: 18,
@@ -383,7 +493,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
                 const SizedBox(height: 8),
                 // Badge
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: isGoogleUser
                         ? AppColors.primary.withOpacity(0.12)
@@ -394,7 +505,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        isGoogleUser ? Icons.verified_rounded : Icons.wifi_off_rounded,
+                        isGoogleUser
+                            ? Icons.verified_rounded
+                            : Icons.wifi_off_rounded,
                         size: 12,
                         color: isGoogleUser ? AppColors.primary : Colors.orange,
                       ),
@@ -404,7 +517,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: isGoogleUser ? AppColors.primary : Colors.orange,
+                          color:
+                              isGoogleUser ? AppColors.primary : Colors.orange,
                         ),
                       ),
                     ],
@@ -415,7 +529,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
                   ElevatedButton.icon(
                     onPressed: _signInWithGoogle,
                     icon: const Icon(Icons.g_mobiledata, size: 24),
-                    label: Text(AppLocalizations.of(context)?.signInWithGoogle ?? 'Sign in with Google'),
+                    label: Text(
+                        AppLocalizations.of(context)?.signInWithGoogle ??
+                            'Sign in with Google'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: isDark ? Colors.white : Colors.black,
                       foregroundColor: isDark ? Colors.black : Colors.white,
@@ -428,7 +544,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
                   OutlinedButton.icon(
                     onPressed: _signOut,
                     icon: const Icon(Icons.logout, size: 20),
-                    label: Text(AppLocalizations.of(context)?.signOut ?? 'Sign Out'),
+                    label: Text(
+                        AppLocalizations.of(context)?.signOut ?? 'Sign Out'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.red,
                       side: const BorderSide(color: Colors.red),
@@ -456,7 +573,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
           width: size,
           height: size,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _defaultAvatar(size, isDark, user.displayName),
+          errorBuilder: (_, __, ___) =>
+              _defaultAvatar(size, isDark, user.displayName),
         ),
       );
     }
@@ -503,7 +621,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
     return parts[0][0].toUpperCase();
   }
 
-  Widget _buildSettingsSection(BuildContext context, String title, List<Widget> children) {
+  Widget _buildSettingsSection(
+      BuildContext context, String title, List<Widget> children) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -512,13 +631,14 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
           child: Text(
             title,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.bold,
-            ),
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
         ),
         Card(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          clipBehavior: Clip.antiAlias, // This clips the rectangular ripple animations of ListTiles inside
           child: Column(children: children),
         ),
       ],
