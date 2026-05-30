@@ -70,6 +70,10 @@ class ReminderService {
     await _notificationsPlugin.cancelAll();
   }
 
+  static Future<void> cancelReminder(int id) async {
+    await _notificationsPlugin.cancel(id: id);
+  }
+
   static Future<void> updateSchedules(ReminderSettingsModel settings) async {
     // 1. Clear existing schedules
     await cancelAll();

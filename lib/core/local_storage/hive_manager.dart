@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../features/records/domain/models/record_model.dart';
 import '../../features/records/domain/models/active_session_model.dart';
 import '../../features/guide/domain/models/sanskar_model.dart';
+import '../../features/development/domain/models/moment_model.dart';
 
 class HiveManager {
   static const String babyProfileBox = 'baby_profile';
@@ -14,6 +15,7 @@ class HiveManager {
   static const String syncQueueBox = 'sync_queue'; // for offline-first sync engine
   static const String activeSessionBox = 'active_session';
   static const String sanskarsBox = 'sanskars';
+  static const String momentsBox = 'moments';
 
   static Future<void> init() async {
     await Hive.initFlutter();
@@ -24,6 +26,7 @@ class HiveManager {
     Hive.registerAdapter(SanskarModelAdapter());
     Hive.registerAdapter(SanskarRuleAdapter());
     Hive.registerAdapter(SanskarOffsetUnitAdapter());
+    Hive.registerAdapter(MomentModelAdapter());
     
     // Open Boxes
     await Future.wait([
@@ -35,12 +38,14 @@ class HiveManager {
       Hive.openBox(syncQueueBox),
       Hive.openBox<ActiveSessionModel>(activeSessionBox),
       Hive.openBox<SanskarModel>(sanskarsBox),
+      Hive.openBox<MomentModel>(momentsBox),
     ]);
   }
 
   static Box<RecordModel> getRecordsBox() => Hive.box<RecordModel>(recordsBox);
   static Box<ActiveSessionModel> getActiveSessionBox() => Hive.box<ActiveSessionModel>(activeSessionBox);
   static Box<SanskarModel> getSanskarsBox() => Hive.box<SanskarModel>(sanskarsBox);
+  static Box<MomentModel> getMomentsBox() => Hive.box<MomentModel>(momentsBox);
   static Box getSyncQueueBox() => Hive.box(syncQueueBox);
   static Box getSettingsBox() => Hive.box(settingsBox);
   static Box getProfileBox() => Hive.box(babyProfileBox);

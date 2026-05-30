@@ -64,6 +64,7 @@ dependencies:
   flutter_contacts: ^2.2.0
   url_launcher: ^6.3.2
   home_widget: ^0.9.2
+  path: ^1.9.1
 
 dev_dependencies:
   flutter_test:

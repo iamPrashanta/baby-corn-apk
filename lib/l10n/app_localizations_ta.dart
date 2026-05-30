@@ -70,4 +70,76 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get babyRashes => 'குழந்தை தடிப்புகள்';
+
+  @override
+  String get spiritualJourneyDesc =>
+      'பாரம்பரிய மைல்கற்களின் அழகான பாதை. வாழ்க்கையின் 18 சம்ஸ்காரங்களை வழிநடத்துங்கள்.';
+
+  @override
+  String get moments => 'Moments';
+
+  @override
+  String get growth => 'Growth';
+
+  @override
+  String get teething => 'Teething';
+
+  @override
+  String get addMoment => 'Add Moment';
+
+  @override
+  String get comingSoon => 'Coming Soon';
+
+  @override
+  String get completedStatus => 'முடிந்தது';
+
+  @override
+  String get pastDueStatus => 'காலக்கெடு முடிந்தது';
+
+  @override
+  String get todayStatus => 'இன்று!';
+
+  @override
+  String inDaysStatus(String days) {
+    return '$days நாட்களில்';
+  }
+
+  @override
+  String get title => 'Title';
+
+  @override
+  String get description => 'Description';
+
+  @override
+  String get saveMoment => 'Save Moment';
+
+  @override
+  String get noMoments => 'No moments yet';
+
+  @override
+  String get startCapturing => 'Start capturing memories';
+
+  @override
+  String get milestones => 'Milestones';
+
+  @override
+  String get photos => 'Photos';
+
+  @override
+  String get memories => 'Memories';
+
+  @override
+  String get favorites => 'Favorites';
+
+  @override
+  String get firstSmile => 'First Smile';
+
+  @override
+  String get firstRoll => 'First Roll';
+
+  @override
+  String get firstCrawl => 'First Crawl';
+
+  @override
+  String get firstSteps => 'First Steps';
 }

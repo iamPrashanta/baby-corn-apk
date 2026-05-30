@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../records/presentation/widgets/add_record_modal.dart';
 import 'launchpad_screen.dart';
-import '../../../records/presentation/screens/records_timeline_screen.dart';
+import '../../../development/presentation/screens/development_main_screen.dart';
 import '../../../guide/presentation/screens/guide_main_screen.dart';
 import '../../../settings/presentation/screens/account_screen.dart';
 import '../../../../core/widgets/premium_bottom_nav.dart';
@@ -23,7 +23,7 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   final List<Widget> _screens = [
     const LaunchpadScreen(), // 0: Home
-    const RecordsTimelineScreen(), // 1: Timeline
+    const DevelopmentMainScreen(), // 1: Development
     const SizedBox.shrink(), // 2: Record (Never shown, handled via modal)
     const GuideMainScreen(), // 3: Guide/Sanskars
     const AccountScreen(), // 4: Profile
@@ -79,7 +79,7 @@ class _MainScaffoldState extends State<MainScaffold> {
             },
             items: [
               PremiumNavItem(icon: Icons.home_rounded, label: l10n.launchpad),
-              PremiumNavItem(icon: Icons.view_timeline_rounded, label: l10n.records),
+              PremiumNavItem(icon: Icons.child_care_rounded, label: l10n.development),
               PremiumNavItem(icon: Icons.add_circle_rounded, label: l10n.records), // Add record uses records label or can be hardcoded 'Add'
               PremiumNavItem(icon: Icons.menu_book_rounded, label: l10n.guides),
               PremiumNavItem(icon: Icons.person_rounded, label: l10n.account),

@@ -231,6 +231,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Baby Rashes'**
   String get babyRashes;
+
+  /// No description provided for @spiritualJourneyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A beautiful path of traditional milestones. Navigate the 18 Sanskars of life.'**
+  String get spiritualJourneyDesc;
+
+  /// No description provided for @moments.
+  ///
+  /// In en, this message translates to:
+  /// **'Moments'**
+  String get moments;
+
+  /// No description provided for @growth.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth'**
+  String get growth;
+
+  /// No description provided for @teething.
+  ///
+  /// In en, this message translates to:
+  /// **'Teething'**
+  String get teething;
+
+  /// No description provided for @addMoment.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Moment'**
+  String get addMoment;
+
+  /// No description provided for @comingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming Soon'**
+  String get comingSoon;
+
+  /// No description provided for @completedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get completedStatus;
+
+  /// No description provided for @pastDueStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Past due'**
+  String get pastDueStatus;
+
+  /// No description provided for @todayStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Today!'**
+  String get todayStatus;
+
+  /// No description provided for @inDaysStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'In {days} days'**
+  String inDaysStatus(String days);
+
+  /// No description provided for @title.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get title;
+
+  /// No description provided for @description.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get description;
+
+  /// No description provided for @saveMoment.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Moment'**
+  String get saveMoment;
+
+  /// No description provided for @noMoments.
+  ///
+  /// In en, this message translates to:
+  /// **'No moments yet'**
+  String get noMoments;
+
+  /// No description provided for @startCapturing.
+  ///
+  /// In en, this message translates to:
+  /// **'Start capturing memories'**
+  String get startCapturing;
+
+  /// No description provided for @milestones.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestones'**
+  String get milestones;
+
+  /// No description provided for @photos.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get photos;
+
+  /// No description provided for @memories.
+  ///
+  /// In en, this message translates to:
+  /// **'Memories'**
+  String get memories;
+
+  /// No description provided for @favorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get favorites;
+
+  /// No description provided for @firstSmile.
+  ///
+  /// In en, this message translates to:
+  /// **'First Smile'**
+  String get firstSmile;
+
+  /// No description provided for @firstRoll.
+  ///
+  /// In en, this message translates to:
+  /// **'First Roll'**
+  String get firstRoll;
+
+  /// No description provided for @firstCrawl.
+  ///
+  /// In en, this message translates to:
+  /// **'First Crawl'**
+  String get firstCrawl;
+
+  /// No description provided for @firstSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'First Steps'**
+  String get firstSteps;
 }
 
 class _AppLocalizationsDelegate

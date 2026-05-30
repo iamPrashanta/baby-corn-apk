@@ -8,6 +8,8 @@ import '../../domain/services/sanskar_date_engine.dart';
 import '../providers/sanskar_provider.dart';
 import '../widgets/sanskar_detail_sheet.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/providers/locale_provider.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class SanskarJourneyScreen extends ConsumerWidget {
   const SanskarJourneyScreen({super.key});
@@ -30,10 +32,39 @@ class SanskarJourneyScreen extends ConsumerWidget {
         return dateA.compareTo(dateB);
       });
 
+    final locale = ref.watch(localeProvider);
+    final isHindi = locale.languageCode == 'hi';
+    final l10n = AppLocalizations.of(context)!;
+
     return CustomScrollView(
       slivers: [
-        SliverToBoxAdapter(
-          child: _buildHeroHeader(context, completedCount, total, isDark),
+        SliverPadding(
+          padding: const EdgeInsets.all(24),
+          sliver: SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.spiritualJourney,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : AppColors.textPrimary,
+                    letterSpacing: -0.5,
+                  ),
+                ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.spiritualJourneyDesc,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? Colors.white70 : AppColors.textSecondary,
+                    height: 1.5,
+                  ),
+                ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
+              ],
+            ),
+          ),
         ),
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -42,7 +73,7 @@ class SanskarJourneyScreen extends ConsumerWidget {
               (context, index) {
                 final sanskar = sortedSanskars[index];
                 final effectiveDate = SanskarDateEngine.getEffectiveDate(sanskar, birthDate);
-                return _buildTimelineCard(context, ref, sanskar, effectiveDate, index, isDark)
+                return _buildTimelineCard(context, ref, sanskar, effectiveDate, index, isDark, isHindi, l10n)
                     .animate()
                     .fadeIn(duration: 200.ms)
                     .slideY(begin: 0.05, end: 0, duration: 200.ms);
@@ -56,94 +87,9 @@ class SanskarJourneyScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeroHeader(BuildContext context, int completed, int total, bool isDark) {
-    final double progress = total == 0 ? 0 : completed / total;
+  // Removed _buildHeroHeader
 
-    return Container(
-      padding: const EdgeInsets.only(top: 80, left: 24, right: 24, bottom: 40),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: isDark
-              ? [const Color(0xFF2A2329), Colors.transparent]
-              : [const Color(0xFFFFF0ED), Colors.transparent],
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withOpacity(0.2),
-                  blurRadius: 32,
-                  offset: const Offset(0, 12),
-                )
-              ],
-            ),
-            child: const Center(child: Text('🪔', style: TextStyle(fontSize: 40))),
-          ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack),
-          const SizedBox(height: 24),
-          Text(
-            'Spiritual Journey',
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.5),
-          ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1),
-          const SizedBox(height: 8),
-          Text(
-            'A beautiful path of traditional milestones',
-            style: TextStyle(
-              fontSize: 15,
-              color: isDark ? Colors.white70 : const Color(0xFF9A8C98),
-            ),
-          ).animate().fadeIn(delay: 300.ms),
-          const SizedBox(height: 32),
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E1C20) : Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: isDark ? Colors.black26 : Colors.black.withOpacity(0.04),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
-                )
-              ],
-            ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Milestones', style: TextStyle(fontWeight: FontWeight.w600, color: isDark ? Colors.white70 : Colors.black54)),
-                    Text('$completed of $total', style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.primary)),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    backgroundColor: isDark ? Colors.white10 : Colors.black.withOpacity(0.05),
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                    minHeight: 8,
-                  ),
-                )
-              ],
-            ),
-          ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.1),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTimelineCard(BuildContext context, WidgetRef ref, SanskarModel sanskar, DateTime date, int index, bool isDark) {
+  Widget _buildTimelineCard(BuildContext context, WidgetRef ref, SanskarModel sanskar, DateTime date, int index, bool isDark, bool isHindi, AppLocalizations l10n) {
     final now = DateTime.now();
     final diff = date.difference(now).inDays;
     
@@ -151,16 +97,16 @@ class SanskarJourneyScreen extends ConsumerWidget {
     Color timeColor = isDark ? Colors.white54 : Colors.black54;
     
     if (sanskar.isCompleted) {
-      timeText = 'Completed';
+      timeText = l10n.completedStatus;
       timeColor = Colors.green;
     } else if (diff < 0) {
-      timeText = 'Past due (${diff.abs()} days ago)';
+      timeText = l10n.pastDueStatus;
       timeColor = Colors.orange;
     } else if (diff == 0) {
-      timeText = 'Today!';
+      timeText = l10n.todayStatus;
       timeColor = AppColors.primary;
     } else {
-      timeText = 'In $diff days';
+      timeText = l10n.inDaysStatus(diff.toString());
     }
 
     return GestureDetector(
@@ -176,77 +122,97 @@ class SanskarJourneyScreen extends ConsumerWidget {
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E1C20) : Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: sanskar.isCompleted ? Colors.green.withOpacity(0.3) : Colors.transparent,
-            width: 2,
-          ),
+          color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
           boxShadow: [
-            BoxShadow(
-              color: isDark ? Colors.black12 : Colors.black.withOpacity(0.03),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-            )
+            if (!isDark)
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.05),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
+              )
           ],
+          border: Border.all(
+            color: isDark ? Colors.white.withOpacity(0.1) : Colors.transparent,
+          ),
         ),
-        child: Row(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: sanskar.isCompleted 
-                    ? Colors.green.withOpacity(0.1) 
-                    : AppColors.primary.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: sanskar.isCompleted
-                    ? const Icon(Icons.check_rounded, color: Colors.green, size: 28)
-                    : Text(sanskar.emojiIcon, style: const TextStyle(fontSize: 28)),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: sanskar.isCompleted
+                        ? Colors.green.withOpacity(0.15)
+                        : AppColors.primary.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Center(
+                    child: sanskar.isCompleted
+                        ? const Icon(Icons.check_rounded, color: Colors.green, size: 28)
+                        : Text(sanskar.emojiIcon, style: const TextStyle(fontSize: 28)),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          sanskar.name,
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              isHindi ? sanskar.sanskritName : sanskar.name,
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w900,
+                                color: isDark ? Colors.white : AppColors.textPrimary,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            DateFormat('MMM d, yyyy').format(date),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white70 : AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        DateFormat('MMM d, yyyy').format(date),
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: sanskar.isCompleted
+                              ? Colors.green.withOpacity(0.1)
+                              : AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          timeText,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: sanskar.isCompleted ? Colors.green : AppColors.primary,
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    sanskar.sanskritName,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    timeText,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: timeColor,
-                    ),
-                  ),
-                ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              sanskar.description,
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark ? Colors.white70 : AppColors.textSecondary,
+                height: 1.5,
               ),
             ),
           ],

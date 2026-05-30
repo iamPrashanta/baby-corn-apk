@@ -2,16 +2,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/local_storage/hive_manager.dart';
 import '../../domain/models/sanskar_model.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
+import '../../domain/services/sanskar_date_engine.dart';
+import '../../../../core/services/reminder_service.dart';
 
 final sanskarsProvider = StateNotifierProvider<SanskarNotifier, List<SanskarModel>>((ref) {
   final activeBaby = ref.watch(activeBabyProvider);
-  return SanskarNotifier(activeBaby?.id);
+  return SanskarNotifier(activeBaby?.id, activeBaby?.birthDate);
 });
 
 class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
   final String? _activeBabyId;
+  final DateTime? _birthDate;
 
-  SanskarNotifier(this._activeBabyId) : super([]) {
+  SanskarNotifier(this._activeBabyId, this._birthDate) : super([]) {
     _loadSanskars();
   }
 
@@ -27,6 +30,26 @@ class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
       _initializeDefaultSanskars();
       babySanskars = box.values.where((s) => s.id.startsWith(_prefix)).toList();
     }
+    
+    // Auto-complete past dates
+    bool changed = false;
+    final now = DateTime.now();
+    final bDate = _birthDate ?? now;
+    
+    for (var s in babySanskars) {
+      final effectiveDate = SanskarDateEngine.getEffectiveDate(s, bDate);
+      if (!s.isCompleted && effectiveDate.isBefore(now.subtract(const Duration(days: 1)))) {
+        final updated = s.copyWith(isCompleted: true, reminderEnabled: false);
+        box.put(s.id, updated);
+        changed = true;
+        ReminderService.cancelReminder(s.id.hashCode);
+      }
+    }
+    
+    if (changed) {
+      babySanskars = box.values.where((s) => s.id.startsWith(_prefix)).toList();
+    }
+
     state = babySanskars;
   }
 
@@ -46,6 +69,12 @@ class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
     if (item != null) {
       final updated = item.copyWith(isCompleted: completed);
       box.put(id, updated);
+      if (completed) {
+        // Cancel reminder if marked completed
+        ReminderService.cancelReminder(id.hashCode);
+        final unreminded = updated.copyWith(reminderEnabled: false);
+        box.put(id, unreminded);
+      }
       _refreshState();
     }
   }
@@ -76,6 +105,31 @@ class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
     if (item != null) {
       final updated = item.copyWith(reminderEnabled: enabled);
       box.put(id, updated);
+      
+      if (enabled) {
+        final effectiveDate = SanskarDateEngine.getEffectiveDate(updated, _birthDate ?? DateTime.now());
+        final notificationDate = effectiveDate.subtract(const Duration(days: 1)); // 1 day before
+        final delay = notificationDate.difference(DateTime.now());
+        if (delay.isNegative) {
+          // If 1 day before has passed, just schedule it for an hour from now as fallback?
+          ReminderService.scheduleReminder(
+            id: id.hashCode,
+            title: 'Upcoming Sanskar: ${updated.name}',
+            body: 'Your baby has the ${updated.name} sanskar coming up soon!',
+            delay: const Duration(hours: 1),
+          );
+        } else {
+          ReminderService.scheduleReminder(
+            id: id.hashCode,
+            title: 'Upcoming Sanskar: ${updated.name}',
+            body: 'Tomorrow is the traditional date for ${updated.name}.',
+            delay: delay,
+          );
+        }
+      } else {
+        ReminderService.cancelReminder(id.hashCode);
+      }
+      
       _refreshState();
     }
   }

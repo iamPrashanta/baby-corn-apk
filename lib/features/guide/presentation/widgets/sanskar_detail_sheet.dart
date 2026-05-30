@@ -5,6 +5,7 @@ import '../../domain/models/sanskar_model.dart';
 import '../providers/sanskar_provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/app_bottom_sheet.dart';
+import '../../../../core/providers/locale_provider.dart';
 
 class SanskarDetailSheet extends ConsumerStatefulWidget {
   final SanskarModel sanskar;
@@ -71,6 +72,8 @@ class _SanskarDetailSheetState extends ConsumerState<SanskarDetailSheet> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final sanskar = ref.watch(sanskarsProvider).firstWhere((s) => s.id == widget.sanskar.id);
+    final locale = ref.watch(localeProvider);
+    final isHindi = locale.languageCode == 'hi';
 
     return AppBottomSheet(
       padding: const EdgeInsets.only(left: 24, right: 24, top: 24),
@@ -96,16 +99,8 @@ class _SanskarDetailSheetState extends ConsumerState<SanskarDetailSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        sanskar.name,
+                        isHindi ? sanskar.sanskritName : sanskar.name,
                         style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
-                      ),
-                      Text(
-                        sanskar.sanskritName,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
-                        ),
                       ),
                     ],
                   ),

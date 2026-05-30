@@ -68,7 +68,7 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
     state = session;
     _saveSession(session);
     _startTick();
-    HapticFeedback.mediumImpact();
+    HapticFeedback.vibrate();
   }
 
   void pauseSession() {
@@ -156,7 +156,7 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
       _ref.invalidate(recordsProvider);
 
       // Haptic success
-      HapticFeedback.mediumImpact();
+      HapticFeedback.vibrate();
 
       return record;
     } catch (e) {

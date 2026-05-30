@@ -70,4 +70,76 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get babyRashes => 'Baby Rashes';
+
+  @override
+  String get spiritualJourneyDesc =>
+      'A beautiful path of traditional milestones. Navigate the 18 Sanskars of life.';
+
+  @override
+  String get moments => 'Moments';
+
+  @override
+  String get growth => 'Growth';
+
+  @override
+  String get teething => 'Teething';
+
+  @override
+  String get addMoment => 'Add Moment';
+
+  @override
+  String get comingSoon => 'Coming Soon';
+
+  @override
+  String get completedStatus => 'Completed';
+
+  @override
+  String get pastDueStatus => 'Past due';
+
+  @override
+  String get todayStatus => 'Today!';
+
+  @override
+  String inDaysStatus(String days) {
+    return 'In $days days';
+  }
+
+  @override
+  String get title => 'Title';
+
+  @override
+  String get description => 'Description';
+
+  @override
+  String get saveMoment => 'Save Moment';
+
+  @override
+  String get noMoments => 'No moments yet';
+
+  @override
+  String get startCapturing => 'Start capturing memories';
+
+  @override
+  String get milestones => 'Milestones';
+
+  @override
+  String get photos => 'Photos';
+
+  @override
+  String get memories => 'Memories';
+
+  @override
+  String get favorites => 'Favorites';
+
+  @override
+  String get firstSmile => 'First Smile';
+
+  @override
+  String get firstRoll => 'First Roll';
+
+  @override
+  String get firstCrawl => 'First Crawl';
+
+  @override
+  String get firstSteps => 'First Steps';
 }

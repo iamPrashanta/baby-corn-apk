@@ -15,6 +15,7 @@ import '../../../../core/services/sync_service.dart';
 import '../../../../core/providers/locale_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../providers/theme_provider.dart';
+import '../providers/premium_provider.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -120,6 +121,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeModeProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isPremium = ref.watch(premiumProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Account & Settings')),
@@ -218,7 +220,11 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                 title: const Text('Manage Babies'),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () {
-                  context.push('/manage_babies');
+                  if (!isPremium) {
+                    context.push('/subscription');
+                  } else {
+                    context.push('/manage_babies');
+                  }
                 },
               ),
             ],
@@ -265,6 +271,10 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                   title: const Text('Sync Data'),
                   subtitle: const Text('Manage cloud sync and backups'),
                   onTap: () {
+                    if (!isPremium) {
+                      context.push('/subscription');
+                      return;
+                    }
                     showModalBottomSheet(
                       context: context,
                       isScrollControlled: true,
@@ -280,6 +290,11 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                   subtitle: const Text('Invite partner or family member'),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () async {
+                    if (!isPremium) {
+                      context.push('/subscription');
+                      return;
+                    }
+                    
                     // 1. Request Contacts Permission
                     final status = await Permission.contacts.request();
                     if (!status.isGranted) {

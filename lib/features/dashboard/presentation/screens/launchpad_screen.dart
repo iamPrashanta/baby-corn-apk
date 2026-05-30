@@ -10,9 +10,8 @@ import '../../../auth/domain/models/baby_model.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/app_bottom_sheet.dart';
-import '../../../records/presentation/widgets/add_record_modal.dart';
-
 import '../../../records/presentation/providers/active_session_provider.dart';
+import '../../../records/presentation/widgets/timeline_tile.dart';
 
 class LaunchpadScreen extends ConsumerWidget {
   const LaunchpadScreen({super.key});
@@ -22,6 +21,7 @@ class LaunchpadScreen extends ConsumerWidget {
     final recordsAsync = ref.watch(recordsProvider);
     final activeBaby = ref.watch(activeBabyProvider);
     final allBabies = ref.watch(allBabiesProvider);
+    final filterDate = ref.watch(timelineFilterDateProvider);
     
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -38,14 +38,16 @@ class LaunchpadScreen extends ConsumerWidget {
               delegate: SliverChildListDelegate([
                 const SizedBox(height: 16),
                 _buildSummaryCard(context, recordsAsync, isDark),
-                const SizedBox(height: 48),
-                _buildRecentActivitySection(context, recordsAsync, isDark),
-                const SizedBox(height: 48),
-                _buildQuickLogSection(context, ref, isDark),
-                const SizedBox(height: 120), // Padding for bottom nav
+                const SizedBox(height: 32),
+                _buildTimelineHeader(context, ref, filterDate, isDark),
               ]),
             ),
           ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            sliver: _buildTimelineSlivers(recordsAsync, isDark),
+          ),
+          const SliverPadding(padding: EdgeInsets.only(bottom: 120)), // Padding for bottom nav
         ],
       ),
     );
@@ -147,47 +149,6 @@ class LaunchpadScreen extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  Widget _buildQuickLogSection(BuildContext context, WidgetRef ref, bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: _QuickActionButton(
-                emoji: '🍼',
-                label: 'Feed',
-                color: AppColors.feeding,
-                isDark: isDark,
-                onTap: () => _logRecord(context, ref, 'feeding'),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _QuickActionButton(
-                emoji: '😴',
-                label: 'Sleep',
-                color: AppColors.sleep,
-                isDark: isDark,
-                onTap: () => _logRecord(context, ref, 'sleep'),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _QuickActionButton(
-                emoji: '🩲',
-                label: 'Diaper',
-                color: AppColors.diaper,
-                isDark: isDark,
-                onTap: () => _logRecord(context, ref, 'diaper'),
-              ),
-            ),
-          ],
-        ),
-      ],
-    ).animate().fadeIn(duration: 600.ms, delay: 300.ms).slideY(begin: 0.05, end: 0);
   }
 
   Widget _buildSummaryCard(BuildContext context, AsyncValue<List<RecordModel>> recordsAsync, bool isDark) {
@@ -292,12 +253,12 @@ class LaunchpadScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildRecentActivitySection(BuildContext context, AsyncValue<List<RecordModel>> recordsAsync, bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildTimelineHeader(BuildContext context, WidgetRef ref, DateTime? filterDate, bool isDark) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          'Recent Activity',
+          'History',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w800,
@@ -305,43 +266,78 @@ class LaunchpadScreen extends ConsumerWidget {
             letterSpacing: -0.3,
           ),
         ),
-        const SizedBox(height: 20),
-        recordsAsync.when(
-          loading: () => const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator())),
-          error: (e, _) => const SizedBox.shrink(),
-          data: (records) {
-            if (records.isEmpty) return _EmptyRecentState();
-            final recent = records.take(4).toList();
-            return Column(
-              children: recent.asMap().entries.map((entry) {
-                return _RecentTile(record: entry.value, isDark: isDark)
-                    .animate()
-                    .fadeIn(duration: 400.ms, delay: (500 + (entry.key * 100)).ms)
-                    .slideY(begin: 0.05, end: 0);
-              }).toList(),
+        TextButton.icon(
+          onPressed: () async {
+            if (filterDate != null) {
+              ref.read(timelineFilterDateProvider.notifier).state = null;
+              return;
+            }
+
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: DateTime.now(),
+              firstDate: DateTime(2020),
+              lastDate: DateTime.now(),
             );
+            if (picked != null) {
+              ref.read(timelineFilterDateProvider.notifier).state = picked;
+            }
           },
+          icon: Icon(filterDate != null ? Icons.close_rounded : Icons.filter_list_rounded, size: 20),
+          label: Text(filterDate != null ? DateFormat('MMM d').format(filterDate) : 'Filter Date'),
+          style: TextButton.styleFrom(
+            foregroundColor: AppColors.primary,
+            backgroundColor: filterDate != null ? AppColors.primary.withOpacity(0.1) : null,
+          ),
         ),
       ],
-    );
+    ).animate().fadeIn(duration: 400.ms, delay: 500.ms).slideY(begin: 0.05, end: 0);
   }
 
-  void _logRecord(BuildContext context, WidgetRef ref, String initialType) async {
-    if (initialType == 'sleep' || initialType == 'feeding') {
-      // Removed forced permission request.
-      // The user can optionally enable the overlay from Settings.
-      // Instantly start the timer globally
-      ref.read(activeSessionProvider.notifier).startSession(initialType);
-    } else if (initialType == 'diaper') {
-      context.push('/entry/diaper?status=Mixed');
-    } else {
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (context) => AddRecordModal(initialType: initialType),
-      );
-    }
+  Widget _buildTimelineSlivers(AsyncValue<List<RecordModel>> recordsAsync, bool isDark) {
+    return recordsAsync.when(
+      loading: () => const SliverToBoxAdapter(child: Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator()))),
+      error: (e, _) => SliverToBoxAdapter(child: Center(child: Text('Error: $e'))),
+      data: (records) {
+        if (records.isEmpty) return const SliverToBoxAdapter(child: EmptyTimelineState());
+
+        final grouped = <String, List<RecordModel>>{};
+        for (final r in records) {
+          final dateKey = DateFormat('EEEE, d MMMM').format(r.timestamp);
+          grouped.putIfAbsent(dateKey, () => []).add(r);
+        }
+
+        final items = <Widget>[];
+        for (final entry in grouped.entries) {
+          items.add(
+            Padding(
+              padding: const EdgeInsets.only(top: 20, bottom: 10),
+              child: Text(
+                entry.key,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade500,
+                  letterSpacing: 0.4,
+                ),
+              ),
+            ),
+          );
+          for (int i = 0; i < entry.value.length; i++) {
+            items.add(
+              TimelineTile(record: entry.value[i], isLast: i == entry.value.length - 1)
+                  .animate()
+                  .fadeIn(duration: 300.ms, delay: (i * 100).ms)
+                  .slideX(begin: -0.1, end: 0, curve: Curves.easeOutCubic, delay: (i * 100).ms),
+            );
+          }
+        }
+
+        return SliverList(
+          delegate: SliverChildListDelegate(items),
+        );
+      },
+    );
   }
 
   String _greeting() {
@@ -415,206 +411,6 @@ class LaunchpadScreen extends ConsumerWidget {
           }
           ref.read(activeBabyProvider.notifier).setActiveBaby(baby.id);
         },
-      ),
-    );
-  }
-}
-
-class _QuickActionButton extends StatefulWidget {
-  final String emoji;
-  final String label;
-  final Color color;
-  final bool isDark;
-  final VoidCallback onTap;
-
-  const _QuickActionButton({
-    required this.emoji,
-    required this.label,
-    required this.color,
-    required this.isDark,
-    required this.onTap,
-  });
-
-  @override
-  State<_QuickActionButton> createState() => _QuickActionButtonState();
-}
-
-class _QuickActionButtonState extends State<_QuickActionButton> with SingleTickerProviderStateMixin {
-  late AnimationController _scaleController;
-
-  @override
-  void initState() {
-    super.initState();
-    _scaleController = AnimationController(vsync: this, duration: const Duration(milliseconds: 150));
-  }
-
-  @override
-  void dispose() {
-    _scaleController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final bgColor = widget.isDark ? widget.color.withOpacity(0.15) : widget.color.withOpacity(0.12);
-    
-    return GestureDetector(
-      onTapDown: (_) => _scaleController.forward(),
-      onTapUp: (_) {
-        _scaleController.reverse();
-        HapticFeedback.lightImpact();
-        widget.onTap();
-      },
-      onTapCancel: () => _scaleController.reverse(),
-      child: ScaleTransition(
-        scale: Tween<double>(begin: 1.0, end: 0.94).animate(CurvedAnimation(parent: _scaleController, curve: Curves.easeOutCubic)),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(28),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(widget.emoji, style: const TextStyle(fontSize: 32)),
-              const SizedBox(height: 12),
-              Text(
-                widget.label,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: widget.isDark ? Colors.white : widget.color.withOpacity(0.8).withBlue(100), // Darken slightly for text
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _RecentTile extends StatelessWidget {
-  final RecordModel record;
-  final bool isDark;
-  const _RecentTile({required this.record, required this.isDark});
-
-  @override
-  Widget build(BuildContext context) {
-    final (icon, label, subtitle, color) = _recordMeta(record);
-    final timeStr = DateFormat.jm().format(record.timestamp);
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1C20) : Colors.white,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: isDark ? color.withOpacity(0.15) : color.withOpacity(0.12),
-              shape: BoxShape.circle,
-            ),
-            child: Center(child: Text(icon, style: const TextStyle(fontSize: 22))),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
-                ),
-                if (subtitle.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TextStyle(color: isDark ? Colors.white54 : const Color(0xFF9A8C98), fontSize: 13),
-                  ),
-                ]
-              ],
-            ),
-          ),
-          Text(
-            timeStr,
-            style: TextStyle(
-              color: isDark ? Colors.white38 : const Color(0xFFB4A9B2),
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  (String, String, String, Color) _recordMeta(RecordModel r) {
-    switch (r.type.toLowerCase()) {
-      case 'left feeding':
-      case 'right feeding':
-      case 'feeding':
-        final method = r.metadata['side'] ?? r.metadata['method'] ?? 'Feeding';
-        final dur = r.metadata['durationSeconds'];
-        final durMin = dur != null ? (dur as int) ~/ 60 : r.metadata['duration'];
-        return ('🍼', 'Feeding', durMin != null && durMin > 0 ? '$method • ${durMin}m' : '$method', AppColors.feeding);
-      case 'sleep':
-        final durSec = r.metadata['durationSeconds'];
-        final durMin = durSec != null ? (durSec as int) ~/ 60 : r.metadata['durationMinutes'];
-        return ('😴', 'Sleep', durMin != null && durMin > 0 ? '${durMin} mins' : 'Sleep logged', AppColors.sleep);
-      case 'tummy_time':
-      case 'tummy time':
-        final dur = r.metadata['durationSeconds'];
-        final durMin = dur != null ? (dur as int) ~/ 60 : null;
-        return ('🤸', 'Tummy Time', durMin != null && durMin > 0 ? '${durMin} mins' : '', AppColors.tertiary);
-      case 'diaper':
-        final status = r.metadata['status'] as String? ?? 'Diaper changed';
-        if (status == 'Wet') {
-          return ('💦', 'Urination', 'Wet diaper', AppColors.urination);
-        } else if (status == 'Dirty') {
-          return ('💩', 'Stool', 'Dirty diaper', AppColors.stool);
-        } else if (status == 'Mixed') {
-          return ('🩲', 'Diaper', 'Mixed diaper', AppColors.diaper);
-        }
-        return ('🩲', 'Diaper', status, AppColors.diaper);
-      case 'bath':
-        final type = r.metadata['type'] as String? ?? 'Bath';
-        final hair = r.metadata['hairWashed'] == true ? 'Hair washed' : '';
-        final lotion = r.metadata['lotionApplied'] == true ? 'Lotion applied' : '';
-        final parts = [if(hair.isNotEmpty) hair, if(lotion.isNotEmpty) lotion].join(' • ');
-        return ('🛁', type, parts.isNotEmpty ? parts : 'Bath logged', Colors.lightBlue);
-      default:
-        return ('📝', 'Activity', '', AppColors.primary);
-    }
-  }
-}
-
-class _EmptyRecentState extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
-      alignment: Alignment.center,
-      child: Column(
-        children: [
-          const Text('✨', style: TextStyle(fontSize: 40)),
-          const SizedBox(height: 16),
-          const Text(
-            'A quiet day',
-            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Nothing logged yet today.',
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 15),
-          ),
-        ],
       ),
     );
   }

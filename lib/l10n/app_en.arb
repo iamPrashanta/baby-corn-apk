@@ -19,5 +19,35 @@
   "guides": "Guides",
   "spiritualJourney": "Spiritual Journey",
   "cryLanguage": "Cry Language",
-  "babyRashes": "Baby Rashes"
+  "babyRashes": "Baby Rashes",
+  "spiritualJourneyDesc": "A beautiful path of traditional milestones. Navigate the 18 Sanskars of life.",
+  "moments": "Moments",
+  "growth": "Growth",
+  "teething": "Teething",
+  "addMoment": "Add Moment",
+  "comingSoon": "Coming Soon",
+  "completedStatus": "Completed",
+  "pastDueStatus": "Past due",
+  "todayStatus": "Today!",
+  "inDaysStatus": "In {days} days",
+  "@inDaysStatus": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "title": "Title",
+  "description": "Description",
+  "saveMoment": "Save Moment",
+  "noMoments": "No moments yet",
+  "startCapturing": "Start capturing memories",
+  "milestones": "Milestones",
+  "photos": "Photos",
+  "memories": "Memories",
+  "favorites": "Favorites",
+  "firstSmile": "First Smile",
+  "firstRoll": "First Roll",
+  "firstCrawl": "First Crawl",
+  "firstSteps": "First Steps"
 }

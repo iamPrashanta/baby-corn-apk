@@ -217,7 +217,22 @@ class AddRecordModal extends ConsumerWidget {
                     .scaleXY(begin: 0.9, end: 1.0, duration: 250.ms, delay: 450.ms, curve: Curves.easeOutBack),
               ),
               const SizedBox(width: 12),
-              Expanded(child: const SizedBox()), // Empty slot for balance
+              Expanded(
+                child: _CategoryTile(
+                  emoji: '💉',
+                  label: 'Vaccine',
+                  color: AppColors.vaccine,
+                  isActive: true,
+                  isHighlighted: initialType == 'vaccine',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/vaccines');
+                  },
+                )
+                    .animate()
+                    .fadeIn(duration: 200.ms, delay: 500.ms)
+                    .scaleXY(begin: 0.9, end: 1.0, duration: 250.ms, delay: 500.ms, curve: Curves.easeOutBack),
+              ),
             ],
           ),
 
@@ -240,7 +255,7 @@ class AddRecordModal extends ConsumerWidget {
             children: [
               Expanded(child: _CategoryTile(emoji: '💊', label: 'Medicine', color: Colors.orange, isActive: false, onTap: () {})),
               const SizedBox(width: 12),
-              Expanded(child: _CategoryTile(emoji: '💉', label: 'Vaccine', color: Colors.green, isActive: false, onTap: () {})),
+              Expanded(child: const SizedBox()),
               const SizedBox(width: 12),
               Expanded(child: const SizedBox()),
             ],

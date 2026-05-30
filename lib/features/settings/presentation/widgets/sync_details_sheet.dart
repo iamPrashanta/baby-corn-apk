@@ -1,5 +1,6 @@
 // features/settings/presentation/widgets/sync_details_sheet.dart
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -63,6 +64,7 @@ class _SyncDetailsSheetState extends ConsumerState<SyncDetailsSheet> {
   Future<void> _forceSync() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
+      Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please sign in to sync data.')),
       );
@@ -72,12 +74,13 @@ class _SyncDetailsSheetState extends ConsumerState<SyncDetailsSheet> {
     setState(() => _isSyncing = true);
     
     try {
-      await SyncService.syncOfflineDataToCloud();
-      await SyncService.syncCloudDataToLocal();
+      await SyncService.syncOfflineDataToCloud().timeout(const Duration(seconds: 15));
+      await SyncService.syncCloudDataToLocal().timeout(const Duration(seconds: 15));
       
       if (mounted) {
         _loadSyncDetails();
         setState(() => _isSyncing = false);
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Sync complete!')),
         );
@@ -85,11 +88,16 @@ class _SyncDetailsSheetState extends ConsumerState<SyncDetailsSheet> {
     } catch (e) {
       if (mounted) {
         setState(() => _isSyncing = false);
+        Navigator.pop(context);
+        String errorMsg = e.toString().replaceAll('Exception: ', '');
+        if (e is TimeoutException) {
+          errorMsg = 'Connection timed out. Please check your internet.';
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Sync failed: ${e.toString().replaceAll('Exception: ', '')}'),
+            content: Text('Sync failed: $errorMsg'),
             backgroundColor: Colors.red,
-            duration: const Duration(seconds: 4),
+            duration: const Duration(seconds: 5),
           ),
         );
       }
