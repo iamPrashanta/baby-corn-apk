@@ -4,10 +4,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/local_storage/hive_manager.dart';
 import '../../../../core/services/sync_service.dart';
 import '../../../../core/constants/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../auth/presentation/providers/baby_provider.dart';
+import '../../../records/presentation/providers/records_provider.dart';
+import '../../../guide/presentation/providers/sanskar_provider.dart';
+import '../../../development/presentation/providers/moments_provider.dart';
 
 class SyncDetailsSheet extends ConsumerStatefulWidget {
   const SyncDetailsSheet({super.key});
@@ -74,10 +79,17 @@ class _SyncDetailsSheetState extends ConsumerState<SyncDetailsSheet> {
     setState(() => _isSyncing = true);
     
     try {
-      await SyncService.syncOfflineDataToCloud().timeout(const Duration(seconds: 15));
+      // Pull first so fresh installs retrieve cloud data before pushing anything
       await SyncService.syncCloudDataToLocal().timeout(const Duration(seconds: 15));
+      await SyncService.syncOfflineDataToCloud().timeout(const Duration(seconds: 15));
       
       if (mounted) {
+        // Refresh UI providers with new Hive data
+        ref.invalidate(activeBabyProvider);
+        ref.invalidate(recordsProvider);
+        ref.invalidate(sanskarsProvider);
+        ref.invalidate(momentsProvider);
+        
         _loadSyncDetails();
         setState(() => _isSyncing = false);
         Navigator.pop(context);
@@ -205,13 +217,19 @@ class _SyncDetailsSheetState extends ConsumerState<SyncDetailsSheet> {
                 disabledBackgroundColor: Colors.blue.withOpacity(0.5),
               ),
               child: _isSyncing
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.cloud_upload_outlined, color: Colors.white)
+                            .animate(onPlay: (controller) => controller.repeat())
+                            .moveY(begin: 2, end: -2, duration: 600.ms, curve: Curves.easeInOut)
+                            .then()
+                            .moveY(begin: -2, end: 2, duration: 600.ms, curve: Curves.easeInOut),
+                        const SizedBox(width: 12),
+                        const Text('Uploading to Cloud...', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
+                            .animate(onPlay: (controller) => controller.repeat(reverse: true))
+                            .fade(begin: 0.5, end: 1.0, duration: 800.ms),
+                      ],
                     )
                   : const Text(
                       'Force Sync Now',

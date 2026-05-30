@@ -165,6 +165,13 @@ class _PinScreenState extends State<PinScreen> {
   Future<void> _setupPin(String finalPin) async {
     if (finalPin == _confirmPin) {
       await SecureStorageManager.savePin(finalPin);
+      
+      // Auto-enable biometrics if device supports it
+      final isAvailable = await BiometricService.isAvailable();
+      if (isAvailable) {
+        await SecureStorageManager.setBiometricEnabled(true);
+      }
+      
       if (mounted) {
         final box = HiveManager.getSettingsBox();
         final isOnboarded = box.get('onboarding_complete', defaultValue: false) as bool;

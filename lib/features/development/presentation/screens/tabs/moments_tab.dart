@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../../core/constants/app_colors.dart';
@@ -184,10 +187,20 @@ class _MomentsTabState extends ConsumerState<MomentsTab> {
                     // Image
                     Hero(
                       tag: 'moment_${moment.id}',
-                      child: Image.file(
-                        File(moment.imagePath),
-                        fit: BoxFit.cover,
-                      ),
+                      child: moment.imagePath.startsWith('http')
+                        ? CachedNetworkImage(
+                            imageUrl: moment.imagePath,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              color: isDark ? Colors.black26 : Colors.black12,
+                              child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                            ),
+                            errorWidget: (context, url, error) => const Icon(Icons.broken_image, color: Colors.grey),
+                          )
+                        : Image.file(
+                            File(moment.imagePath),
+                            fit: BoxFit.cover,
+                          ),
                     ),
                     // Gradient overlay
                     Container(
@@ -293,7 +306,24 @@ class _MomentViewerScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.download_rounded),
             onPressed: () async {
-              await Share.shareXFiles([XFile(moment.imagePath)], text: moment.title);
+              if (moment.imagePath.startsWith('http')) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Downloading image...')));
+                try {
+                  final request = await HttpClient().getUrl(Uri.parse(moment.imagePath));
+                  final response = await request.close();
+                  final bytes = await consolidateHttpClientResponseBytes(response);
+                  final tempDir = await getTemporaryDirectory();
+                  final tempFile = File('${tempDir.path}/share_${moment.id}.jpg');
+                  await tempFile.writeAsBytes(bytes);
+                  await Share.shareXFiles([XFile(tempFile.path)], text: moment.title);
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to download: $e')));
+                  }
+                }
+              } else {
+                await Share.shareXFiles([XFile(moment.imagePath)], text: moment.title);
+              }
             },
           ),
           const SizedBox(width: 8),
@@ -303,9 +333,21 @@ class _MomentViewerScreen extends StatelessWidget {
       body: Center(
         child: Hero(
           tag: 'moment_${moment.id}',
-          child: Image.file(
-            File(moment.imagePath),
-            fit: BoxFit.contain,
+          child: InteractiveViewer(
+            panEnabled: true,
+            minScale: 0.5,
+            maxScale: 4,
+            child: moment.imagePath.startsWith('http')
+              ? CachedNetworkImage(
+                  imageUrl: moment.imagePath,
+                  fit: BoxFit.contain,
+                  placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                  errorWidget: (context, url, error) => const Icon(Icons.broken_image, color: Colors.grey, size: 64),
+                )
+              : Image.file(
+                  File(moment.imagePath),
+                  fit: BoxFit.contain,
+                ),
           ),
         ),
       ),
