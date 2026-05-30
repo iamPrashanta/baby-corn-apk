@@ -26,7 +26,7 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _pageController = PageController();
   int _currentPage = 0;
-  final int _totalPages = 9;
+  int get _totalPages => widget.isAddingBaby ? 7 : 9;
 
   // Form State
   final _nameController = TextEditingController();
@@ -128,24 +128,34 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             child: Column(
           children: [
             // Top App Bar area with Back button and Progress
-            if (_currentPage > 0)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Row(
-                  children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                children: [
+                  if (_currentPage > 0)
                     IconButton(
                       icon: const Icon(Icons.arrow_back_ios_new, size: 20),
                       onPressed: _prevPage,
+                    )
+                  else
+                    const SizedBox(width: 48),
+                    
+                  Expanded(
+                    child: Center(
+                      child: _buildProgressIndicator(),
                     ),
-                    Expanded(
-                      child: Center(
-                        child: _buildProgressIndicator(),
-                      ),
-                    ),
-                    const SizedBox(width: 48), // Balance for back button
-                  ],
-                ),
+                  ),
+                  
+                  if (widget.isAddingBaby)
+                    TextButton(
+                      onPressed: () => context.pop(),
+                      child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    )
+                  else
+                    const SizedBox(width: 48),
+                ],
               ),
+            ),
             
             Expanded(
               child: PageView(
@@ -162,8 +172,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   _buildWeightStep(),
                   _buildHeightStep(),
                   _buildFeedingStep(),
-                  _buildReminderIntroStep(),
-                  _buildPrivacyStep(),
+                  if (!widget.isAddingBaby) ...[
+                    _buildReminderIntroStep(),
+                    _buildPrivacyStep(),
+                  ],
                 ],
               ),
             ),

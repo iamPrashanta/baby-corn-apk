@@ -2,11 +2,11 @@
 
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../features/records/presentation/providers/active_session_provider.dart';
 import '../constants/app_colors.dart';
+import '../services/haptic_service.dart';
 import 'timer_full_sheet.dart';
 import 'save_success_overlay.dart';
 
@@ -80,7 +80,7 @@ class _FloatingTimerOverlayState extends ConsumerState<FloatingTimerOverlay>
   }
 
   void _openFullSheet() {
-    HapticFeedback.lightImpact();
+    HapticService.lightImpact();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -211,7 +211,7 @@ class _FloatingTimerOverlayState extends ConsumerState<FloatingTimerOverlay>
                           color: isDark ? Colors.white : AppColors.textPrimary,
                         ),
                         onPressed: () {
-                          HapticFeedback.selectionClick();
+                          HapticService.selectionClick();
                           if (isPaused) {
                             ref.read(activeSessionProvider.notifier).resumeSession();
                           } else {
@@ -222,7 +222,7 @@ class _FloatingTimerOverlayState extends ConsumerState<FloatingTimerOverlay>
                       IconButton(
                         icon: const Icon(Icons.stop_rounded, color: Colors.redAccent),
                         onPressed: () {
-                          HapticFeedback.mediumImpact();
+                          HapticService.mediumImpact();
                           _handleStop();
                         },
                       ),

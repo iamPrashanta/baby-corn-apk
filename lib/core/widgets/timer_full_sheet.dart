@@ -3,11 +3,11 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../features/records/presentation/providers/active_session_provider.dart';
 import '../constants/app_colors.dart';
+import '../services/haptic_service.dart';
 import 'app_bottom_sheet.dart';
 import 'save_success_overlay.dart';
 
@@ -105,7 +105,7 @@ class _TimerFullSheetState extends ConsumerState<TimerFullSheet>
     final session = ref.read(activeSessionProvider);
     if (session == null) return;
 
-    HapticFeedback.selectionClick();
+    HapticService.selectionClick();
     final currentSide = session.metadata['side'] as String? ?? 'Left Breast';
     final newSide =
         currentSide == 'Left Breast' ? 'Right Breast' : 'Left Breast';
@@ -273,7 +273,7 @@ class _TimerFullSheetState extends ConsumerState<TimerFullSheet>
                   isDark: isDark,
                   size: 64,
                   onTap: () {
-                    HapticFeedback.mediumImpact();
+                    HapticService.mediumImpact();
                     if (activeSession.isRunning) {
                       ref.read(activeSessionProvider.notifier).pauseSession();
                     } else {

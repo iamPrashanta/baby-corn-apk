@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../../core/constants/app_colors.dart';
@@ -168,96 +169,146 @@ class _MomentsTabState extends ConsumerState<MomentsTab> {
                 ],
               ),
               clipBehavior: Clip.antiAlias,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // Image
-                  Image.file(
-                    File(moment.imagePath),
-                    fit: BoxFit.cover,
-                  ),
-                  // Gradient overlay
-                  Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Colors.transparent, Colors.black87],
-                        stops: [0.5, 1.0],
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => _MomentViewerScreen(moment: moment),
+                    ),
+                  );
+                },
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Image
+                    Hero(
+                      tag: 'moment_${moment.id}',
+                      child: Image.file(
+                        File(moment.imagePath),
+                        fit: BoxFit.cover,
                       ),
                     ),
-                  ),
-                  // Text
-                  Positioned(
-                    bottom: 12,
-                    left: 12,
-                    right: 12,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          moment.title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 15,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                    // Gradient overlay
+                    Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Colors.transparent, Colors.black87],
+                          stops: [0.5, 1.0],
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          DateFormat.yMMMd().format(moment.timestamp),
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Delete Button
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: GestureDetector(
-                      onTap: () async {
-                        final confirm = await showDialog<bool>(
-                          context: context,
-                          builder: (ctx) => AlertDialog(
-                            title: const Text('Delete Moment'),
-                            content: const Text('Are you sure?'),
-                            actions: [
-                              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                                onPressed: () => Navigator.pop(ctx, true),
-                                child: const Text('Delete', style: TextStyle(color: Colors.white)),
-                              ),
-                            ],
-                          ),
-                        );
-                        if (confirm == true) {
-                          ref.read(momentsProvider.notifier).deleteMoment(moment.id);
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(
-                          color: Colors.black45,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.delete_outline, color: Colors.white, size: 18),
                       ),
                     ),
-                  ),
-                ],
+                    // Text
+                    Positioned(
+                      bottom: 12,
+                      left: 12,
+                      right: 12,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            moment.title,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            DateFormat.yMMMd().format(moment.timestamp),
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Delete Button
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: GestureDetector(
+                        onTap: () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text('Delete Moment'),
+                              content: const Text('Are you sure?'),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                  onPressed: () => Navigator.pop(ctx, true),
+                                  child: const Text('Delete', style: TextStyle(color: Colors.white)),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirm == true) {
+                            ref.read(momentsProvider.notifier).deleteMoment(moment.id);
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(
+                            color: Colors.black45,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.delete_outline, color: Colors.white, size: 18),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ).animate().fadeIn(duration: 400.ms, delay: (index * 50).ms).slideY(begin: 0.1, end: 0);
           },
         );
       },
+    );
+  }
+}
+
+class _MomentViewerScreen extends StatelessWidget {
+  final dynamic moment;
+  
+  const _MomentViewerScreen({required this.moment});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.download_rounded),
+            onPressed: () async {
+              await Share.shareXFiles([XFile(moment.imagePath)], text: moment.title);
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      extendBodyBehindAppBar: true,
+      body: Center(
+        child: Hero(
+          tag: 'moment_${moment.id}',
+          child: Image.file(
+            File(moment.imagePath),
+            fit: BoxFit.contain,
+          ),
+        ),
+      ),
     );
   }
 }

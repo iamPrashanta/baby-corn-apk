@@ -54,7 +54,7 @@ class SyncService {
         }, SetOptions(merge: true));
       }
 
-      await batch.commit();
+      await batch.commit().timeout(const Duration(seconds: 15));
       settingsBox.put('last_sync_time', DateTime.now().toIso8601String());
       debugPrint('Sync: Offline data successfully merged to Cloud');
     } catch (e) {
@@ -70,7 +70,7 @@ class SyncService {
 
     try {
       // Sync Babies
-      final babiesSnapshot = await _db.collection('users').doc(user.uid).collection('babies').get();
+      final babiesSnapshot = await _db.collection('users').doc(user.uid).collection('babies').get().timeout(const Duration(seconds: 15));
       final settingsBox = HiveManager.getSettingsBox();
       final babiesJson = settingsBox.get('babies_list');
       List<BabyModel> localBabies = [];
@@ -104,9 +104,16 @@ class SyncService {
         final encoded = jsonEncode(localBabies.map((b) => b.toJson()).toList());
         await settingsBox.put('babies_list', encoded);
       }
+      
+      if (localBabies.isNotEmpty) {
+        await settingsBox.put('onboarding_complete', true);
+        if (settingsBox.get('active_baby_id') == null) {
+          await settingsBox.put('active_baby_id', localBabies.first.id);
+        }
+      }
 
       // Sync Records
-      final recordsSnapshot = await _db.collection('users').doc(user.uid).collection('records').get();
+      final recordsSnapshot = await _db.collection('users').doc(user.uid).collection('records').get().timeout(const Duration(seconds: 15));
       final recordsBox = HiveManager.getRecordsBox();
       
       for (final doc in recordsSnapshot.docs) {
@@ -141,7 +148,7 @@ class SyncService {
         'type': record.type,
         'timestamp': record.timestamp.toIso8601String(),
         'metadata': record.metadata,
-      }, SetOptions(merge: true));
+      }, SetOptions(merge: true)).timeout(const Duration(seconds: 15));
     } catch (e) {
       debugPrint('Sync Error pushing record: $e');
     }

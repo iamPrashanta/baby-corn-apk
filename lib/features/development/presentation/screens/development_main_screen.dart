@@ -23,9 +23,14 @@ class DevelopmentMainScreen extends ConsumerWidget {
         appBar: AppBar(
           title: Text(
             l10n.development,
-            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 24),
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: isDark ? Colors.white : AppColors.textPrimary,
+              letterSpacing: -0.5,
+            ),
           ),
-          centerTitle: false,
+          centerTitle: true,
           elevation: 0,
           backgroundColor: Colors.transparent,
           bottom: TabBar(

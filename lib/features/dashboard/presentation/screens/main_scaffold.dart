@@ -79,7 +79,7 @@ class _MainScaffoldState extends State<MainScaffold> {
             },
             items: [
               PremiumNavItem(icon: Icons.home_rounded, label: l10n.launchpad),
-              PremiumNavItem(icon: Icons.child_care_rounded, label: l10n.development),
+              PremiumNavItem(icon: Icons.developer_mode_rounded, label: l10n.development),
               PremiumNavItem(icon: Icons.add_circle_rounded, label: l10n.records), // Add record uses records label or can be hardcoded 'Add'
               PremiumNavItem(icon: Icons.menu_book_rounded, label: l10n.guides),
               PremiumNavItem(icon: Icons.person_rounded, label: l10n.account),

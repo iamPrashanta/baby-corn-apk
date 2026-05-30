@@ -1,8 +1,8 @@
 // core/widgets/bouncing_button.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../constants/app_motion.dart';
+import '../services/haptic_service.dart';
 
 class BouncingButton extends StatefulWidget {
   final Widget child;
@@ -52,7 +52,7 @@ class _BouncingButtonState extends State<BouncingButton> with SingleTickerProvid
   void _onTapUp(TapUpDetails details) {
     if (widget.onPressed != null) {
       _controller.reverse();
-      HapticFeedback.lightImpact();
+      HapticService.lightImpact();
       widget.onPressed!();
     }
   }

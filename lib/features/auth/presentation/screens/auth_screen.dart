@@ -7,6 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/glass_system/glass_colors.dart';
+import '../../../../core/services/sync_service.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -46,6 +47,10 @@ class _AuthScreenState extends State<AuthScreen> {
 
       // 4. Sign in to Firebase with the credential
       await FirebaseAuth.instance.signInWithCredential(credential);
+
+      // 4.5 Restore Cloud Data Immediately on Login
+      await SyncService.syncCloudDataToLocal();
+      await SyncService.syncOfflineDataToCloud();
 
       // 5. Navigate to PIN setup upon success
       if (mounted) {

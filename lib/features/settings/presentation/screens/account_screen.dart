@@ -12,6 +12,8 @@ import '../../../../core/local_storage/secure_storage_manager.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../../core/services/backup_service.dart';
 import '../../../../core/services/sync_service.dart';
+import '../../../auth/presentation/providers/baby_provider.dart';
+import '../../../records/presentation/providers/records_provider.dart';
 import '../../../../core/providers/locale_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../providers/theme_provider.dart';
@@ -84,9 +86,14 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Successfully signed in with Google!')),
         );
-        // Sync local offline data to cloud and fetch cloud data
-        await SyncService.syncOfflineDataToCloud();
+        // Sync cloud data FIRST so a fresh install pulls the old data
         await SyncService.syncCloudDataToLocal();
+        // Then sync any local data up to cloud
+        await SyncService.syncOfflineDataToCloud();
+        
+        // Invalidate providers to force UI refresh with new Hive data
+        ref.invalidate(activeBabyProvider);
+        ref.invalidate(recordsProvider);
       }
     } catch (e) {
       if (mounted) {
@@ -225,6 +232,14 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                   } else {
                     context.push('/manage_babies');
                   }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.workspace_premium),
+                title: const Text('Manage Subscription'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () {
+                  context.push('/subscription');
                 },
               ),
             ],

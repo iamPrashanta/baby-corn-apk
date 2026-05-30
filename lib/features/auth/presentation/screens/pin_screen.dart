@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../../../core/local_storage/secure_storage_manager.dart';
 import '../../../../core/local_storage/hive_manager.dart';
+import '../../../../core/services/biometric_service.dart';
 
 class PinScreen extends StatefulWidget {
   final bool isSetup;
@@ -26,14 +27,46 @@ class _PinScreenState extends State<PinScreen> {
   Timer? _lockoutTimer;
   DateTime? _lockoutUntil;
   int _failedAttempts = 0;
+  bool _isBiometricAvailable = false;
 
   @override
   void initState() {
     super.initState();
     if (!widget.isSetup) {
       _checkLockoutState();
+      _checkAndPromptBiometric();
     }
     // Removed auto-focus to prevent Android 14 Emulator crash with InteractionJankMonitor
+  }
+
+  Future<void> _checkAndPromptBiometric() async {
+    final isAvailable = await BiometricService.isAvailable();
+    if (isAvailable && mounted) {
+      setState(() {
+        _isBiometricAvailable = true;
+      });
+      // Small delay for UI to build before showing the prompt
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) _promptBiometric();
+      });
+    }
+  }
+
+  Future<void> _promptBiometric() async {
+    if (_lockoutUntil != null && DateTime.now().isBefore(_lockoutUntil!)) {
+      return; // Do not allow biometric if locked out
+    }
+    final result = await BiometricService.authenticateWithResult(
+      reason: 'Unlock Baby Corn with your fingerprint or face',
+    );
+    if (result.success && mounted) {
+      await SecureStorageManager.resetPinFailedAttempts();
+      context.go('/home');
+    } else if (result.error != null && mounted && result.error != 'Authentication cancelled') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.error!)),
+      );
+    }
   }
 
   @override
@@ -279,7 +312,25 @@ class _PinScreenState extends State<PinScreen> {
                   const SizedBox(height: 20),
                   
                 const SizedBox(height: 32),
-                if (!widget.isSetup)
+                if (!widget.isSetup) ...[
+                  if (_isBiometricAvailable && !_isLoading)
+                    Column(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.fingerprint, size: 56),
+                          color: Theme.of(context).colorScheme.primary,
+                          onPressed: _lockoutUntil == null ? _promptBiometric : null,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Use Biometrics',
+                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
                   _isLoading 
                     ? const CircularProgressIndicator()
                     : TextButton.icon(
@@ -290,6 +341,7 @@ class _PinScreenState extends State<PinScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                         ),
                       ),
+                ],
               ],
             ),
           ),

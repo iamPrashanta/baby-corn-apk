@@ -1,7 +1,6 @@
 // features/records/presentation/providers/active_session_provider.dart
 
 import 'dart:async';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/local_storage/hive_manager.dart';
@@ -10,6 +9,7 @@ import '../../domain/models/record_model.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
 import '../../../../core/services/sync_service.dart';
 import '../../../../core/config/app_config.dart';
+import '../../../../core/services/haptic_service.dart';
 import 'records_provider.dart';
 
 final activeSessionProvider =
@@ -68,7 +68,7 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
     state = session;
     _saveSession(session);
     _startTick();
-    HapticFeedback.vibrate();
+    HapticService.vibrate();
   }
 
   void pauseSession() {
@@ -80,7 +80,7 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
       );
       state = updated;
       _saveSession(updated);
-      HapticFeedback.lightImpact();
+      HapticService.lightImpact();
     }
   }
 
@@ -96,7 +96,7 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
       state = updated;
       _saveSession(updated);
       _startTick();
-      HapticFeedback.lightImpact();
+      HapticService.lightImpact();
     }
   }
 
@@ -156,7 +156,7 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
       _ref.invalidate(recordsProvider);
 
       // Haptic success
-      HapticFeedback.vibrate();
+      HapticService.vibrate();
 
       return record;
     } catch (e) {

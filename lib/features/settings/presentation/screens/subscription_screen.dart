@@ -12,6 +12,7 @@ class SubscriptionScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isPremium = ref.watch(premiumProvider);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -67,12 +68,13 @@ class SubscriptionScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Unlock the ultimate parenting experience.',
+                Text(
+                  isPremium ? 'You are already a Pro member.' : 'Unlock the ultimate parenting experience.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.grey,
+                    color: isPremium ? Colors.green : Colors.grey,
+                    fontWeight: isPremium ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),
                 const SizedBox(height: 48),
@@ -169,22 +171,28 @@ class SubscriptionScreen extends ConsumerWidget {
 
                 const SizedBox(height: 24),
 
-                // Subscribe Button
+                // Subscribe / Manage Button
                 ElevatedButton(
                   onPressed: () {
-                    // MOCK PURCHASE LOGIC
-                    ref.read(premiumProvider.notifier).unlockPremium();
-                    
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('🎉 Welcome to Baby Corn Pro! Features unlocked.'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
+                    if (isPremium) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Manage subscriptions via Google Play Store or App Store.')),
+                      );
+                    } else {
+                      // MOCK PURCHASE LOGIC
+                      ref.read(premiumProvider.notifier).unlockPremium();
+                      
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('🎉 Welcome to Baby Corn Pro! Features unlocked.'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: isPremium ? Colors.grey.shade800 : AppColors.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     shape: RoundedRectangleBorder(
@@ -192,16 +200,16 @@ class SubscriptionScreen extends ConsumerWidget {
                     ),
                     elevation: 5,
                   ),
-                  child: const Text(
-                    'Subscribe Now',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  child: Text(
+                    isPremium ? 'Manage Subscription' : 'Subscribe Now',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Cancel anytime. Auto-renews monthly.',
+                Text(
+                  isPremium ? 'Your subscription is active.' : 'Cancel anytime. Auto-renews monthly.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
                 const SizedBox(height: 24),
               ],

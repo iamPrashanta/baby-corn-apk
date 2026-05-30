@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/local_storage/secure_storage_manager.dart';
 import '../../data/repositories/baby_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -76,14 +77,19 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.child_care, size: 100, color: Color(0xFFFFB2A6)),
-            SizedBox(height: 24),
-            CircularProgressIndicator(color: Color(0xFFFFB2A6)),
+            Image.asset(
+              'assets/images/logo.png',
+              width: 150,
+            ).animate()
+             .fade(duration: 800.ms)
+             .scale(begin: const Offset(0.8, 0.8), curve: Curves.easeOutBack, duration: 800.ms),
+            const SizedBox(height: 32),
+            const CircularProgressIndicator(color: Color(0xFFFFB2A6)),
           ],
         ),
       ),

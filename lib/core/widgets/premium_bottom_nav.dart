@@ -1,7 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../constants/app_colors.dart';
+import '../services/haptic_service.dart';
+
 class PremiumBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -62,7 +63,7 @@ class PremiumBottomNav extends StatelessWidget {
                       child: GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTap: () {
-                          HapticFeedback.mediumImpact();
+                          HapticService.mediumImpact();
                           onTap(index);
                         },
                         child: Container(
@@ -95,7 +96,7 @@ class PremiumBottomNav extends StatelessWidget {
                       isActive: isActive,
                       isDark: isDark,
                       onTap: () {
-                        HapticFeedback.lightImpact();
+                        HapticService.lightImpact();
                         onTap(index);
                       },
                     ),
