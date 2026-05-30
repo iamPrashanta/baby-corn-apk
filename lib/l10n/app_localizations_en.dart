@@ -58,4 +58,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get syncData => 'Sync Data';
+
+  @override
+  String get guides => 'Guides';
+
+  @override
+  String get spiritualJourney => 'Spiritual Journey';
+
+  @override
+  String get cryLanguage => 'Cry Language';
+
+  @override
+  String get babyRashes => 'Baby Rashes';
 }

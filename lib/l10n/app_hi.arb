@@ -15,5 +15,9 @@
   "signOut": "साइन आउट करें",
   "signInWithGoogle": "Google के साथ साइन इन करें",
   "offlineMode": "ऑफ़लाइन मोड",
-  "syncData": "डेटा सिंक करें"
+  "syncData": "डेटा सिंक करें",
+  "guides": "मार्गदर्शिका",
+  "spiritualJourney": "आध्यात्मिक यात्रा",
+  "cryLanguage": "रोने की भाषा",
+  "babyRashes": "शिशु के चकत्ते"
 }

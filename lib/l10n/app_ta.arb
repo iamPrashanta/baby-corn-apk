@@ -15,5 +15,9 @@
   "signOut": "வெளியேறு",
   "signInWithGoogle": "Google உடன் உள்நுழைக",
   "offlineMode": "ஆஃப்லைன் பயன்முறை",
-  "syncData": "தரவை ஒத்திசைக்கவும்"
+  "syncData": "தரவை ஒத்திசைக்கவும்",
+  "guides": "வழிகாட்டிகள்",
+  "spiritualJourney": "ஆன்மீகப் பயணம்",
+  "cryLanguage": "அழும் மொழி",
+  "babyRashes": "குழந்தை தடிப்புகள்"
 }

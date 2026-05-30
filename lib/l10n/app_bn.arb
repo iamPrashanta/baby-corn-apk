@@ -15,5 +15,9 @@
   "signOut": "সাইন আউট করুন",
   "signInWithGoogle": "Google এর সাথে সাইন ইন করুন",
   "offlineMode": "অফলাইন মোড",
-  "syncData": "ডেটা সিঙ্ক করুন"
+  "syncData": "ডেটা সিঙ্ক করুন",
+  "guides": "গাইড",
+  "spiritualJourney": "আধ্যাত্মিক যাত্রা",
+  "cryLanguage": "কান্নার ভাষা",
+  "babyRashes": "শিশুর ফুসকুড়ি"
 }

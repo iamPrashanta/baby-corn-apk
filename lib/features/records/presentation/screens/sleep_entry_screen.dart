@@ -21,6 +21,8 @@ class _SleepEntryScreenState extends ConsumerState<SleepEntryScreen> {
   DateTime _endTime = DateTime.now();
 
   Future<void> _save() async {
+    final notifier = ref.read(recordsProvider.notifier);
+    
     final record = RecordModel(
       id: const Uuid().v4(),
       type: 'sleep',
@@ -34,7 +36,61 @@ class _SleepEntryScreenState extends ConsumerState<SleepEntryScreen> {
       },
     );
     
-    await ref.read(recordsProvider.notifier).addRecord(record);
+    final mergeable = notifier.findMergeableRecord(record, const Duration(minutes: 60));
+
+    if (mergeable != null) {
+      final shouldMerge = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Merge Records?'),
+          content: const Text(
+            'You have another sleep record logged around this time. Would you like to merge them into a single continuous sleep session?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Keep Separate'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('Merge'),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldMerge == true) {
+        // Perform merge
+        final oldStartTime = DateTime.parse(mergeable.metadata['startTime'] as String);
+        final oldEndTime = DateTime.parse(mergeable.metadata['endTime'] as String);
+        
+        final newStart = oldStartTime.isBefore(_startTime) ? oldStartTime : _startTime;
+        final newEnd = oldEndTime.isAfter(_endTime) ? oldEndTime : _endTime;
+
+        final mergedNote = [
+          if ((mergeable.metadata['note'] as String?)?.isNotEmpty == true) mergeable.metadata['note'],
+          if (_noteController.text.isNotEmpty) _noteController.text,
+        ].join(' | ');
+
+        final mergedRecord = mergeable.copyWith(
+          timestamp: newEnd,
+          metadata: {
+            ...mergeable.metadata,
+            'startTime': newStart.toIso8601String(),
+            'endTime': newEnd.toIso8601String(),
+            'durationMinutes': newEnd.difference(newStart).inMinutes,
+            'durationSeconds': newEnd.difference(newStart).inSeconds,
+            'note': mergedNote,
+          },
+        );
+
+        await notifier.updateRecord(mergedRecord);
+        if (mounted) context.pop();
+        return;
+      }
+    }
+
+    await notifier.addRecord(record);
     if (mounted) context.pop();
   }
 

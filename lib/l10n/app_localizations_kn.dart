@@ -58,4 +58,16 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get syncData => 'ಡೇಟಾ ಸಿಂಕ್ ಮಾಡಿ';
+
+  @override
+  String get guides => 'ಮಾರ್ಗದರ್ಶಿಗಳು';
+
+  @override
+  String get spiritualJourney => 'ಆಧ್ಯಾತ್ಮಿಕ ಪ್ರಯಾಣ';
+
+  @override
+  String get cryLanguage => 'ಅಳುವ ಭಾಷೆ';
+
+  @override
+  String get babyRashes => 'ಮಗುವಿನ ದದ್ದುಗಳು';
 }

@@ -58,4 +58,16 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get syncData => 'தரவை ஒத்திசைக்கவும்';
+
+  @override
+  String get guides => 'வழிகாட்டிகள்';
+
+  @override
+  String get spiritualJourney => 'ஆன்மீகப் பயணம்';
+
+  @override
+  String get cryLanguage => 'அழும் மொழி';
+
+  @override
+  String get babyRashes => 'குழந்தை தடிப்புகள்';
 }

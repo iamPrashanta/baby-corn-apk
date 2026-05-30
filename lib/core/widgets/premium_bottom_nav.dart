@@ -133,28 +133,33 @@ class _NavItemWidgetState extends State<_NavItemWidget>
         widget.onTap();
       },
       onTapCancel: () => _scaleController.reverse(),
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 400),
-          curve: Curves.easeOutBack,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: widget.isActive
-                ? activeColor.withOpacity(0.12)
-                : Colors.transparent,
-            shape: BoxShape.circle,
-          ),
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            transitionBuilder: (child, animation) {
-              return ScaleTransition(scale: animation, child: child);
-            },
-            child: Icon(
-              widget.item.icon,
-              key: ValueKey(widget.isActive),
-              size: 24,
-              color: widget.isActive ? activeColor : inactiveColor,
+      child: Tooltip(
+        message: widget.item.label,
+        preferBelow: false,
+        verticalOffset: 32,
+        child: ScaleTransition(
+          scale: _scaleAnimation,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeOutBack,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: widget.isActive
+                  ? activeColor.withOpacity(0.12)
+                  : Colors.transparent,
+              shape: BoxShape.circle,
+            ),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              transitionBuilder: (child, animation) {
+                return ScaleTransition(scale: animation, child: child);
+              },
+              child: Icon(
+                widget.item.icon,
+                key: ValueKey(widget.isActive),
+                size: 24,
+                color: widget.isActive ? activeColor : inactiveColor,
+              ),
             ),
           ),
         ),

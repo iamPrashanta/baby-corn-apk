@@ -31,11 +31,11 @@ Baby Corn helps parents log feeding sessions, sleep durations, diaper changes, b
 - **Active Session Tracking** — Timers persist while navigating across screens
 - **Session Guard** — Warns before switching baby profiles when a timer is running
 
-### 📅 Records Timeline
+### 📅 Records Timeline & Smart Logging
 
-- Full chronological activity log
-- Filterable by activity type
+- Full chronological activity log filterable by activity type
 - Detailed metadata per record (duration, side, diaper type, etc.)
+- **Smart Record Merging** — Intelligently detects and merges overlapping feed and sleep records (e.g., combines 'Left Breast' and 'Right Breast' if logged consecutively)
 
 ### 🔔 Smart Reminders
 
@@ -59,11 +59,12 @@ Baby Corn helps parents log feeding sessions, sleep durations, diaper changes, b
 - **Background Cloud Sync Engine** — Syncs unsynced records to Firestore with exponential backoff retry logic (configurable via `AppConfig`)
 - **Offline-First Architecture** — App is fully functional with no internet connection; cloud sync is optional
 
-### 🎨 App Customization
+### 🎨 App Customization & Social
 
 - **Dark / Light / System Theme** — Full dark mode support
 - **Manage Babies** — Add, edit, or remove baby profiles (name, birth date, weight, gender, feeding type)
 - **Overlay Permission Toggle** — Enable/disable the floating timer overlay from settings
+- **Family Sharing** — Share baby milestones and logs via native SMS directly to contacts
 
 ### 🌍 Localization
 
@@ -76,6 +77,7 @@ Supported languages out of the box:
 | Bengali | `bn` |
 | Tamil | `ta` |
 | Telugu | `te` |
+| Kannada | `kn` |
 
 ---
 
@@ -104,7 +106,7 @@ Baby Corn is being built to become:
 | **Sleep Entry** | Log a sleep session with live timer |
 | **Diaper Entry** | Log diaper type |
 | **Bath Entry** | Log bath details |
-| **Guide** | Parenting guide content (Indian parenting focus) |
+| **Guide** | Parenting hub featuring the 16 Sanskars, Baby Cry Language, and Baby Rashes guides |
 | **Statistics** | Activity statistics and trends |
 | **Account & Settings** | Profile, theme, PIN, backup, family management |
 | **Manage Babies** | Add and manage multiple baby profiles |

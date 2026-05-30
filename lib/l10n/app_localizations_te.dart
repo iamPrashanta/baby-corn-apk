@@ -58,4 +58,16 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get syncData => 'డేటా సింక్ చేయండి';
+
+  @override
+  String get guides => 'మార్గదర్శకాలు';
+
+  @override
+  String get spiritualJourney => 'ఆధ్యాత్మిక ప్రయాణం';
+
+  @override
+  String get cryLanguage => 'ఏడుపు భాష';
+
+  @override
+  String get babyRashes => 'శిశువు దద్దుర్లు';
 }

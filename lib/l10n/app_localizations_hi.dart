@@ -58,4 +58,16 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get syncData => 'डेटा सिंक करें';
+
+  @override
+  String get guides => 'मार्गदर्शिका';
+
+  @override
+  String get spiritualJourney => 'आध्यात्मिक यात्रा';
+
+  @override
+  String get cryLanguage => 'रोने की भाषा';
+
+  @override
+  String get babyRashes => 'शिशु के चकत्ते';
 }

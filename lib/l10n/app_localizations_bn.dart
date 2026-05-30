@@ -58,4 +58,16 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get syncData => 'ডেটা সিঙ্ক করুন';
+
+  @override
+  String get guides => 'গাইড';
+
+  @override
+  String get spiritualJourney => 'আধ্যাত্মিক যাত্রা';
+
+  @override
+  String get cryLanguage => 'কান্নার ভাষা';
+
+  @override
+  String get babyRashes => 'শিশুর ফুসকুড়ি';
 }

@@ -15,5 +15,9 @@
   "signOut": "Sign Out",
   "signInWithGoogle": "Sign In with Google",
   "offlineMode": "Offline Mode",
-  "syncData": "Sync Data"
+  "syncData": "Sync Data",
+  "guides": "Guides",
+  "spiritualJourney": "Spiritual Journey",
+  "cryLanguage": "Cry Language",
+  "babyRashes": "Baby Rashes"
 }

@@ -30,32 +30,29 @@ class SanskarJourneyScreen extends ConsumerWidget {
         return dateA.compareTo(dateB);
       });
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: _buildHeroHeader(context, completedCount, total, isDark),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final sanskar = sortedSanskars[index];
-                  final effectiveDate = SanskarDateEngine.getEffectiveDate(sanskar, birthDate);
-                  return _buildTimelineCard(context, ref, sanskar, effectiveDate, index, isDark)
-                      .animate()
-                      .fadeIn(duration: 200.ms)
-                      .slideY(begin: 0.05, end: 0, duration: 200.ms);
-                },
-                childCount: sortedSanskars.length,
-              ),
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: _buildHeroHeader(context, completedCount, total, isDark),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final sanskar = sortedSanskars[index];
+                final effectiveDate = SanskarDateEngine.getEffectiveDate(sanskar, birthDate);
+                return _buildTimelineCard(context, ref, sanskar, effectiveDate, index, isDark)
+                    .animate()
+                    .fadeIn(duration: 200.ms)
+                    .slideY(begin: 0.05, end: 0, duration: 200.ms);
+              },
+              childCount: sortedSanskars.length,
             ),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: 120)), // Bottom nav padding
-        ],
-      ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 120)), // Bottom nav padding
+      ],
     );
   }
 

@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import '../../../records/presentation/widgets/add_record_modal.dart';
 import 'launchpad_screen.dart';
 import '../../../records/presentation/screens/records_timeline_screen.dart';
-import '../../../guide/presentation/screens/sanskar_journey_screen.dart';
+import '../../../guide/presentation/screens/guide_main_screen.dart';
 import '../../../settings/presentation/screens/account_screen.dart';
 import '../../../../core/widgets/premium_bottom_nav.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
@@ -22,7 +23,7 @@ class _MainScaffoldState extends State<MainScaffold> {
     const LaunchpadScreen(), // 0: Home
     const RecordsTimelineScreen(), // 1: Timeline
     const SizedBox.shrink(), // 2: Record (Never shown, handled via modal)
-    const SanskarJourneyScreen(), // 3: Guide/Sanskars
+    const GuideMainScreen(), // 3: Guide/Sanskars
     const AccountScreen(), // 4: Profile
   ];
 
@@ -37,6 +38,8 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
@@ -51,12 +54,12 @@ class _MainScaffoldState extends State<MainScaffold> {
               setState(() => _currentIndex = index);
             }
           },
-          items: const [
-            PremiumNavItem(icon: Icons.home_rounded, label: 'Home'),
-            PremiumNavItem(icon: Icons.view_timeline_rounded, label: 'Timeline'),
-            PremiumNavItem(icon: Icons.add_circle_rounded, label: 'Record'),
-            PremiumNavItem(icon: Icons.menu_book_rounded, label: 'Guide'),
-            PremiumNavItem(icon: Icons.person_rounded, label: 'Profile'),
+          items: [
+            PremiumNavItem(icon: Icons.home_rounded, label: l10n.launchpad),
+            PremiumNavItem(icon: Icons.view_timeline_rounded, label: l10n.records),
+            PremiumNavItem(icon: Icons.add_circle_rounded, label: l10n.records), // Add record uses records label or can be hardcoded 'Add'
+            PremiumNavItem(icon: Icons.menu_book_rounded, label: l10n.guides),
+            PremiumNavItem(icon: Icons.person_rounded, label: l10n.account),
           ],
         ),
     );

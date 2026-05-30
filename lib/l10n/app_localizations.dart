@@ -207,6 +207,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sync Data'**
   String get syncData;
+
+  /// No description provided for @guides.
+  ///
+  /// In en, this message translates to:
+  /// **'Guides'**
+  String get guides;
+
+  /// No description provided for @spiritualJourney.
+  ///
+  /// In en, this message translates to:
+  /// **'Spiritual Journey'**
+  String get spiritualJourney;
+
+  /// No description provided for @cryLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Cry Language'**
+  String get cryLanguage;
+
+  /// No description provided for @babyRashes.
+  ///
+  /// In en, this message translates to:
+  /// **'Baby Rashes'**
+  String get babyRashes;
 }
 
 class _AppLocalizationsDelegate

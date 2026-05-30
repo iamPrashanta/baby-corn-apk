@@ -77,4 +77,31 @@ class RecordsNotifier extends StateNotifier<AsyncValue<List<RecordModel>>> {
       state = AsyncValue.error(e, st);
     }
   }
+
+  Future<void> updateRecord(RecordModel record) async {
+    try {
+      await _repository.updateRecord(record);
+      loadRecords(); // Refresh the list
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  RecordModel? findMergeableRecord(RecordModel newRecord, Duration threshold) {
+    if (!state.hasValue) return null;
+    final records = state.value!;
+    
+    for (final r in records) {
+      // Must be same type and same baby
+      if (r.type != newRecord.type) continue;
+      if (r.metadata['babyId'] != newRecord.metadata['babyId']) continue;
+
+      // Ensure we have a valid timestamp to compare against
+      final diff = r.timestamp.difference(newRecord.timestamp).abs();
+      if (diff <= threshold) {
+        return r;
+      }
+    }
+    return null;
+  }
 }
