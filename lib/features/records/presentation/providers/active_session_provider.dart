@@ -191,10 +191,8 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
     _timer?.cancel();
     if (state != null && state!.isRunning) {
       try {
-        if (!await FlutterOverlayWindow.isPermissionGranted()) {
-          await FlutterOverlayWindow.requestPermission();
-        }
-
+        // Only show the overlay if the user already granted permission.
+        // We do not force a permission request here so users can optionally turn it off.
         if (await FlutterOverlayWindow.isPermissionGranted()) {
           await FlutterOverlayWindow.showOverlay(
             enableDrag: true,

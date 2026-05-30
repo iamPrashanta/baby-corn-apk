@@ -12,7 +12,20 @@
           "package_name": "com.babycorn.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1089979205044-3d6j5qnqcdq0lj7s64q0dnhvvjs2cmhp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.babycorn.app",
+            "certificate_hash": "5fedffabdd3270e1dff8d59b1ab2ea7b648f5508"
+          }
+        },
+        {
+          "client_id": "1089979205044-g2c9sdm9ek153dbk7vphld50p2gkt9ha.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAS0_7nAvm_jVivIRK6TIndIO1W2LQPZ-c"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1089979205044-g2c9sdm9ek153dbk7vphld50p2gkt9ha.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

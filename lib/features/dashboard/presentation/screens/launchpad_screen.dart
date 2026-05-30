@@ -9,6 +9,7 @@ import '../../../records/domain/models/record_model.dart';
 import '../../../auth/domain/models/baby_model.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/app_bottom_sheet.dart';
 import '../../../records/presentation/widgets/add_record_modal.dart';
 
 import '../../../records/presentation/providers/active_session_provider.dart';
@@ -324,14 +325,8 @@ class LaunchpadScreen extends ConsumerWidget {
 
   void _logRecord(BuildContext context, WidgetRef ref, String initialType) async {
     if (initialType == 'sleep' || initialType == 'feeding') {
-      try {
-        final isGranted = await FlutterOverlayWindow.isPermissionGranted();
-        if (!isGranted) {
-          await FlutterOverlayWindow.requestPermission();
-        }
-      } catch (e) {
-        // Ignore if plugin fails
-      }
+      // Removed forced permission request.
+      // The user can optionally enable the overlay from Settings.
       // Instantly start the timer globally
       ref.read(activeSessionProvider.notifier).startSession(initialType);
     } else if (initialType == 'diaper') {
@@ -647,29 +642,11 @@ class _ProfileSwitcherSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sheetBg = isDark ? const Color(0xFF1A1820) : const Color(0xFFFDFBF7);
     final cardBg = isDark ? const Color(0xFF252229) : Colors.white;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: sheetBg,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-      ),
-      padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+    return AppBottomSheet(
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: isDark ? Colors.white24 : Colors.black12,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 20),
-
           // Title
           Text(
             'Switch Baby',

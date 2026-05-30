@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../domain/models/sanskar_model.dart';
 import '../providers/sanskar_provider.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/app_bottom_sheet.dart';
 
 class SanskarDetailSheet extends ConsumerStatefulWidget {
   final SanskarModel sanskar;
@@ -71,34 +72,15 @@ class _SanskarDetailSheetState extends ConsumerState<SanskarDetailSheet> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final sanskar = ref.watch(sanskarsProvider).firstWhere((s) => s.id == widget.sanskar.id);
 
-    return Material(
-      color: isDark ? const Color(0xFF1E1C20) : Colors.white,
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-      child: Padding(
-        padding: EdgeInsets.only(
-          left: 24,
-          right: 24,
-          top: 24,
-          bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom + 24,
-        ),
-        child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.white24 : Colors.black12,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
+    return AppBottomSheet(
+      padding: const EdgeInsets.only(left: 24, right: 24, top: 24),
+      solidColorDark: const Color(0xFF1E1C20),
+      solidColorLight: Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
                 Container(
                   width: 64,
                   height: 64,
@@ -232,8 +214,6 @@ class _SanskarDetailSheetState extends ConsumerState<SanskarDetailSheet> {
             ),
           ],
         ),
-      ),
-      ),
     );
   }
 }

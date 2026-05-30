@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../features/records/presentation/providers/active_session_provider.dart';
 import '../constants/app_colors.dart';
+import 'app_bottom_sheet.dart';
 import 'save_success_overlay.dart';
 
 class TimerFullSheet extends ConsumerStatefulWidget {
@@ -140,44 +141,13 @@ class _TimerFullSheetState extends ConsumerState<TimerFullSheet>
     final currentSide =
         activeSession.metadata['side'] as String? ?? 'Left Breast';
 
-    return BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark
-              ? const Color(0xFF1A1820).withOpacity(0.92)
-              : const Color(0xFFFFFDF9).withOpacity(0.92),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-          border: Border(
-            top: BorderSide(
-              color: accentColor.withOpacity(0.2),
-              width: 1,
-            ),
-          ),
-        ),
-        padding: EdgeInsets.only(
-          left: 28,
-          right: 28,
-          top: 16,
-          bottom: MediaQuery.of(context).padding.bottom + 24,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Drag handle
-            Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.white.withOpacity(0.15)
-                    : Colors.black.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 28),
-
-            // Activity icon + title
+    return AppBottomSheet(
+      useGlass: true,
+      borderColor: accentColor.withOpacity(0.2),
+      padding: const EdgeInsets.only(left: 28, right: 28, top: 16),
+      child: Column(
+        children: [
+          // Activity icon + title
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -380,7 +350,6 @@ class _TimerFullSheetState extends ConsumerState<TimerFullSheet>
             const SizedBox(height: 8),
           ],
         ),
-      ),
     );
   }
 }

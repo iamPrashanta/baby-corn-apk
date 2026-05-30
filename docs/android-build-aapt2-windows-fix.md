@@ -265,6 +265,43 @@ Each AGP version is developed and tested against a specific range of Gradle vers
 
 ---
 
+## 🔄 Update: May 2026 (AGP 8.9.1 Requirement & Cache Corruption)
+
+### The New Error (Dependencies Require Newer AGP)
+If you update your packages (like `androidx.activity` or `androidx.core`), you will hit this error when using AGP 8.7.3:
+```text
+Execution failed for task ':app:checkReleaseAarMetadata'.
+> A failure occurred while executing com.android.build.gradle.internal.tasks.CheckAarMetadataWorkAction
+   > Dependency 'androidx.activity:activity:1.12.4' requires Android Gradle plugin 8.9.1 or higher.
+```
+
+### The Solution
+You must update AGP to `8.9.1`. AGP `8.9.1` works successfully on Windows (unlike `8.11.1` which crashes AAPT2).
+
+**Step 1:** In `android/settings.gradle.kts`, change AGP to `8.9.1`:
+```kotlin
+id("com.android.application") version "8.9.1" apply false
+```
+
+### The Catch: Gradle Cache Corruption
+After upgrading AGP from `8.7.3` to `8.9.1`, you will likely encounter a secondary build failure deep in Kotlin compilation for external plugins (like `image_picker_android`):
+```text
+Execution failed for task ':image_picker_android:compileReleaseKotlin'.
+> Cannot access output property 'destinationDirectory'...
+  > Failed to create MD5 hash for file '.../CacheRetrievalError$Companion.class' as it does not exist.
+```
+This is because Gradle's incremental build cache is left in a corrupted state by the AGP version switch.
+
+**Step 2:** Clean the build cache and rebuild:
+```bash
+flutter clean
+flutter pub get
+flutter build apk --release
+```
+This completely clears the old caches and compiles cleanly with the new AGP version.
+
+---
+
 ## 🔗 Related Resources
 
 - [AGP Release Notes](https://developer.android.com/build/releases/gradle-plugin)

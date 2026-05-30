@@ -236,7 +236,7 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
       ),
       child: Column(
         children: [
-          // Current avatar preview
+          // Current avatar preview / input
           Container(
             width: 80,
             height: 80,
@@ -245,39 +245,35 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
               shape: BoxShape.circle,
             ),
             child: Center(
-              child: Text(_avatarEmoji, style: const TextStyle(fontSize: 44)),
+              child: TextField(
+                textAlign: TextAlign.center,
+                maxLength: 2,
+                style: const TextStyle(fontSize: 40),
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  counterText: "",
+                  contentPadding: EdgeInsets.zero,
+                ),
+                controller: TextEditingController(text: _avatarEmoji)
+                  ..selection = TextSelection.fromPosition(
+                    TextPosition(offset: _avatarEmoji.length),
+                  ),
+                onChanged: (val) {
+                  if (val.isNotEmpty) {
+                    _avatarEmoji = val;
+                  }
+                },
+              ),
             ),
           ),
-          const SizedBox(height: 20),
-          // Emoji grid
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            alignment: WrapAlignment.center,
-            children: _avatarOptions.map((emoji) {
-              final isSelected = _avatarEmoji == emoji;
-              return GestureDetector(
-                onTap: () => setState(() => _avatarEmoji = emoji),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: 52,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppColors.primary.withOpacity(0.2)
-                        : (isDark ? Colors.white.withOpacity(0.06) : Colors.black.withOpacity(0.04)),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isSelected ? AppColors.primary : Colors.transparent,
-                      width: 2.5,
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(emoji, style: const TextStyle(fontSize: 26)),
-                  ),
-                ),
-              );
-            }).toList(),
+          const SizedBox(height: 16),
+          Text(
+            'Tap the emoji above to pick your own!',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white54 : Colors.black54,
+            ),
           ),
         ],
       ),

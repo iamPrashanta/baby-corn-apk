@@ -7,8 +7,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:ui';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/bouncing_button.dart';
+import '../../../../core/widgets/bouncing_button.dart';
+import '../../../../core/widgets/app_bottom_sheet.dart';
 import '../providers/active_session_provider.dart';
-import '../../../../core/theme/glass_system/glass_blur.dart';
 
 class AddRecordModal extends ConsumerWidget {
   final String? initialType;
@@ -18,47 +19,11 @@ class AddRecordModal extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: GlassBlur.heavyX, sigmaY: GlassBlur.heavyY),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark
-              ? const Color(0xFF1A1820).withOpacity(0.92)
-              : const Color(0xFFFFFDF9).withOpacity(0.92),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-          border: Border(
-            top: BorderSide(
-              color: isDark
-                  ? Colors.white.withOpacity(0.08)
-                  : Colors.white.withOpacity(0.5),
-              width: 0.5,
-            ),
-          ),
-        ),
-        padding: EdgeInsets.only(
-          left: 24,
-          right: 24,
-          top: 16,
-          bottom: MediaQuery.of(context).padding.bottom + 24,
-        ),
+    return AppBottomSheet(
+      useGlass: true,
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Drag handle
-          Center(
-            child: Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.white.withOpacity(0.12)
-                    : Colors.black.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
           Text(
             'Log an activity',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -246,7 +211,6 @@ class AddRecordModal extends ConsumerWidget {
               .fadeIn(duration: 200.ms, delay: 450.ms),
         ],
       ),
-    ),
     );
   }
 }
