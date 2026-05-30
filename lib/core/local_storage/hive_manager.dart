@@ -20,13 +20,25 @@ class HiveManager {
   static Future<void> init() async {
     await Hive.initFlutter();
     
-    // Register Adapters
-    Hive.registerAdapter(RecordModelAdapter());
-    Hive.registerAdapter(ActiveSessionModelAdapter());
-    Hive.registerAdapter(SanskarModelAdapter());
-    Hive.registerAdapter(SanskarRuleAdapter());
-    Hive.registerAdapter(SanskarOffsetUnitAdapter());
-    Hive.registerAdapter(MomentModelAdapter());
+    // Register Adapters safely
+    if (!Hive.isAdapterRegistered(0)) {
+      Hive.registerAdapter(RecordModelAdapter());
+    }
+    if (!Hive.isAdapterRegistered(1)) {
+      Hive.registerAdapter(ActiveSessionModelAdapter());
+    }
+    if (!Hive.isAdapterRegistered(2)) {
+      Hive.registerAdapter(SanskarModelAdapter());
+    }
+    if (!Hive.isAdapterRegistered(3)) {
+      Hive.registerAdapter(SanskarRuleAdapter());
+    }
+    if (!Hive.isAdapterRegistered(4)) {
+      Hive.registerAdapter(SanskarOffsetUnitAdapter());
+    }
+    if (!Hive.isAdapterRegistered(20)) {
+      Hive.registerAdapter(MomentModelAdapter());
+    }
     
     // Open Boxes
     await Future.wait([

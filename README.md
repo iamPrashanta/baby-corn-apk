@@ -235,6 +235,7 @@ The `SyncEngine` runs in the background and syncs unsynced Hive records to Fires
 git clone https://github.com/iamPrashanta/baby-corn-apk.git
 cd baby-corn-apk
 flutter pub get
+dart run build_runner build --delete-conflicting-outputs
 ```
 
 ### Firebase Setup (Optional)

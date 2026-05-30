@@ -2,8 +2,8 @@ import 'package:hive/hive.dart';
 
 part 'moment_model.g.dart';
 
-@HiveType(typeId: 4)
-class MomentModel {
+@HiveType(typeId: 20)
+class MomentModel extends HiveObject {
   @HiveField(0)
   final String id;
 

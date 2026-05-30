@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/safe_scrollable_wrapper.dart';
 import '../providers/premium_provider.dart';
 
 class SubscriptionScreen extends ConsumerWidget {
@@ -33,13 +34,12 @@ class SubscriptionScreen extends ConsumerWidget {
                 : [Colors.blue.shade50, Colors.white],
           ),
         ),
-        child: SafeArea(
+        child: SafeScrollableWrapper(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 20),
                 // Icon Header
                 Center(
                   child: Container(

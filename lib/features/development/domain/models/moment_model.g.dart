@@ -8,7 +8,7 @@ part of 'moment_model.dart';
 
 class MomentModelAdapter extends TypeAdapter<MomentModel> {
   @override
-  final int typeId = 4;
+  final int typeId = 20;
 
   @override
   MomentModel read(BinaryReader reader) {
