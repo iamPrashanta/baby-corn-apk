@@ -133,6 +133,35 @@ class RemindersSettingScreen extends ConsumerWidget {
           if (category == 'feeding') notifier.updateFeeding(updated);
           if (category == 'sleep') notifier.updateSleep(updated);
           if (category == 'diaper') notifier.updateDiaper(updated);
+          
+          if (val) {
+            final now = DateTime.now();
+            DateTime ringTime;
+            if (catSettings.isRepeat) {
+              ringTime = now.add(Duration(hours: catSettings.repeatHours));
+            } else {
+              final parts = catSettings.exactTime.split(':');
+              if (parts.length == 2) {
+                final h = int.tryParse(parts[0]) ?? 0;
+                final m = int.tryParse(parts[1]) ?? 0;
+                ringTime = DateTime(now.year, now.month, now.day, h, m);
+                if (ringTime.isBefore(now)) {
+                  ringTime = ringTime.add(const Duration(days: 1));
+                }
+              } else {
+                ringTime = now;
+              }
+            }
+            final timeString = "${ringTime.hour.toString().padLeft(2, '0')}:${ringTime.minute.toString().padLeft(2, '0')}";
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('$emoji $title set to ring at $timeString'),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            );
+          }
         },
       ),
       onTap: () {

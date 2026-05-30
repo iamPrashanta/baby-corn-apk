@@ -55,6 +55,7 @@ class SyncService {
       }
 
       await batch.commit();
+      settingsBox.put('last_sync_time', DateTime.now().toIso8601String());
       debugPrint('Sync: Offline data successfully merged to Cloud');
     } catch (e) {
       debugPrint('Sync Error: $e');
@@ -120,6 +121,7 @@ class SyncService {
         }
       }
 
+      settingsBox.put('last_sync_time', DateTime.now().toIso8601String());
       debugPrint('Sync: Cloud data successfully merged to Local');
     } catch (e) {
       debugPrint('Sync Error: $e');

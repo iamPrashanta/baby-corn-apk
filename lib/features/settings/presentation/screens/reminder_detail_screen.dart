@@ -59,6 +59,28 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
     if (widget.category == 'feeding') notifier.updateFeeding(updated);
     if (widget.category == 'sleep') notifier.updateSleep(updated);
     if (widget.category == 'diaper') notifier.updateDiaper(updated);
+    
+    if (updated.isEnabled) {
+      final now = DateTime.now();
+      DateTime ringTime;
+      if (_isRepeat) {
+        ringTime = now.add(Duration(hours: _repeatHours));
+      } else {
+        ringTime = DateTime(now.year, now.month, now.day, _exactTime.hour, _exactTime.minute);
+        if (ringTime.isBefore(now)) {
+          ringTime = ringTime.add(const Duration(days: 1));
+        }
+      }
+      final timeString = "${ringTime.hour.toString().padLeft(2, '0')}:${ringTime.minute.toString().padLeft(2, '0')}";
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${_getCategoryTitle()} set to ring at $timeString'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+    }
 
     context.pop();
   }

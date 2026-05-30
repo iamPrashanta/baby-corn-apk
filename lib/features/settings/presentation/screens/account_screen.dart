@@ -3,10 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_overlay_window/flutter_overlay_window.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../widgets/sync_details_sheet.dart';
 import '../../../../core/local_storage/secure_storage_manager.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../../core/services/backup_service.dart';
@@ -27,8 +28,7 @@ class AccountScreen extends ConsumerStatefulWidget {
 
 class _AccountScreenState extends ConsumerState<AccountScreen>
     with WidgetsBindingObserver {
-  int _timeoutMinutes = 5;
-  bool _hasOverlayPermission = false;
+  int _timeoutMinutes = 0;
 
   // Firebase user (null if offline)
   User? get _firebaseUser =>
@@ -39,7 +39,6 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _loadTimeout();
-    _checkOverlayPermission();
   }
 
   @override
@@ -51,18 +50,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      _checkOverlayPermission();
-    }
-  }
-
-  Future<void> _checkOverlayPermission() async {
-    try {
-      final isGranted = await FlutterOverlayWindow.isPermissionGranted();
-      if (mounted) {
-        setState(() => _hasOverlayPermission = isGranted);
-      }
-    } catch (e) {
-      // Ignore
+      // Refresh state if needed
     }
   }
 
@@ -217,16 +205,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                   ],
                 ),
               ),
-              SwitchListTile(
-                secondary: const Icon(Icons.layers_rounded),
-                title: const Text('Floating Timer (Overlay)'),
-                subtitle: const Text('Draw over other apps'),
-                value: _hasOverlayPermission,
-                onChanged: (val) async {
-                  await FlutterOverlayWindow.requestPermission();
-                  _checkOverlayPermission();
-                },
-              ),
+
             ],
           ),
           const SizedBox(height: 16),
@@ -284,25 +263,14 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                 ListTile(
                   leading: const Icon(Icons.cloud_sync, color: Colors.blue),
                   title: const Text('Sync Data'),
-                  subtitle: const Text('Force sync with cloud'),
-                  onTap: () async {
-                    if (_firebaseUser == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Please sign in to sync data.')),
-                      );
-                      return;
-                    }
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Syncing...')),
+                  subtitle: const Text('Manage cloud sync and backups'),
+                  onTap: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (ctx) => const SyncDetailsSheet(),
                     );
-                    await SyncService.syncOfflineDataToCloud();
-                    await SyncService.syncCloudDataToLocal();
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Sync complete!')),
-                      );
-                    }
                   },
                 ),
               if (!AppConfig.enableCloudBackup)
@@ -424,6 +392,12 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                   title: const Text('Log Out',
                       style: TextStyle(color: Colors.red)),
                   onTap: _signOut,
+                )
+              else if (AppConfig.enableFirebaseAuth)
+                ListTile(
+                  leading: const Icon(Icons.g_mobiledata, size: 32, color: Colors.blue),
+                  title: Text(AppLocalizations.of(context)?.signInWithGoogle ?? 'Sign in with Google'),
+                  onTap: _signInWithGoogle,
                 ),
             ],
           ),
@@ -524,35 +498,6 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                     ],
                   ),
                 ),
-                if (!isGoogleUser && AppConfig.enableFirebaseAuth) ...[
-                  const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    onPressed: _signInWithGoogle,
-                    icon: const Icon(Icons.g_mobiledata, size: 24),
-                    label: Text(
-                        AppLocalizations.of(context)?.signInWithGoogle ??
-                            'Sign in with Google'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isDark ? Colors.white : Colors.black,
-                      foregroundColor: isDark ? Colors.black : Colors.white,
-                      minimumSize: const Size(double.infinity, 40),
-                    ),
-                  ),
-                ],
-                if (isGoogleUser) ...[
-                  const SizedBox(height: 16),
-                  OutlinedButton.icon(
-                    onPressed: _signOut,
-                    icon: const Icon(Icons.logout, size: 20),
-                    label: Text(
-                        AppLocalizations.of(context)?.signOut ?? 'Sign Out'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      side: const BorderSide(color: Colors.red),
-                      minimumSize: const Size(double.infinity, 40),
-                    ),
-                  ),
-                ],
               ],
             ),
           ),

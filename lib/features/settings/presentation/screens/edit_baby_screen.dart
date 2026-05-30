@@ -1,7 +1,7 @@
 // features/settings/presentation/screens/edit_baby_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../auth/domain/models/baby_model.dart';
@@ -28,9 +28,6 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
 
   bool _isSaving = false;
 
-  static const List<String> _avatarOptions = [
-    '👶', '🌟', '🦁', '🐻', '🐼', '🌸', '🦊', '🐧', '🐨', '🌈',
-  ];
 
   static const List<Map<String, dynamic>> _genderOptions = [
     {'label': 'Girl', 'icon': Icons.face_3, 'color': Color(0xFFFFD8D3)},

@@ -30,9 +30,9 @@ class RecordsNotifier extends StateNotifier<AsyncValue<List<RecordModel>>> {
       
       final filtered = records.where((r) {
         if (_filterDate != null) {
-          if (r.timestamp.year != _filterDate!.year ||
-              r.timestamp.month != _filterDate!.month ||
-              r.timestamp.day != _filterDate!.day) {
+          if (r.timestamp.year != _filterDate.year ||
+              r.timestamp.month != _filterDate.month ||
+              r.timestamp.day != _filterDate.day) {
             return false;
           }
         }

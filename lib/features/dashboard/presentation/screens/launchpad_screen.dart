@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -37,11 +36,11 @@ class LaunchpadScreen extends ConsumerWidget {
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 const SizedBox(height: 16),
-                _buildQuickLogSection(context, ref, isDark),
-                const SizedBox(height: 48),
                 _buildSummaryCard(context, recordsAsync, isDark),
                 const SizedBox(height: 48),
                 _buildRecentActivitySection(context, recordsAsync, isDark),
+                const SizedBox(height: 48),
+                _buildQuickLogSection(context, ref, isDark),
                 const SizedBox(height: 120), // Padding for bottom nav
               ]),
             ),
@@ -206,8 +205,11 @@ class LaunchpadScreen extends ConsumerWidget {
           if (type.contains('sleep')) {
              final dur = r.metadata['durationSeconds'];
              final min = r.metadata['durationMinutes'];
-             if (dur != null) sleepMinutes += (dur as int) ~/ 60;
-             else if (min != null) sleepMinutes += min as int;
+             if (dur != null) {
+               sleepMinutes += (dur as int) ~/ 60;
+             } else if (min != null) {
+               sleepMinutes += min as int;
+             }
           } else if (type.contains('feed')) {
              feedsCount++;
           } else if (type == 'diaper') {
@@ -459,6 +461,7 @@ class _QuickActionButtonState extends State<_QuickActionButton> with SingleTicke
       onTapDown: (_) => _scaleController.forward(),
       onTapUp: (_) {
         _scaleController.reverse();
+        HapticFeedback.lightImpact();
         widget.onTap();
       },
       onTapCancel: () => _scaleController.reverse(),

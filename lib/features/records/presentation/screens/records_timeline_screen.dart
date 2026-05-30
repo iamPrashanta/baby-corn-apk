@@ -160,76 +160,116 @@ class _TimelineTile extends ConsumerWidget {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: AppRadius.cardBorder,
-                border: Border.all(color: color.withOpacity(0.2), width: 1),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+            child: Dismissible(
+              key: Key(record.id),
+              direction: DismissDirection.endToStart,
+              confirmDismiss: (direction) async {
+                bool? confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text('Delete Activity'),
+                      content: const Text('Are you sure you want to delete this activity? This cannot be undone.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancel'),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text('Delete', style: TextStyle(color: Colors.white)),
+                        ),
+                      ],
+                    );
+                  },
+                );
+                return confirm;
+              },
+              onDismissed: (_) {
+                ref.read(recordsProvider.notifier).deleteRecord(record.id);
+              },
+              background: Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.only(right: 20),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: AppRadius.cardBorder,
+                ),
+                alignment: Alignment.centerRight,
+                child: const Icon(Icons.delete, color: Colors.white),
               ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 46,
-                    height: 46,
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.15),
-                      shape: BoxShape.circle,
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: AppRadius.cardBorder,
+                  border: Border.all(color: color.withOpacity(0.2), width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
-                    child: Center(child: Text(emoji, style: const TextStyle(fontSize: 22))),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-                        if (subtitle.isNotEmpty)
-                          Text(subtitle, style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
-                        if (record.metadata['note'] != null &&
-                            record.metadata['note'].toString().isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              '"${record.metadata['note']}"',
-                              style: TextStyle(
-                                fontStyle: FontStyle.italic,
-                                color: Colors.grey.shade500,
-                                fontSize: 12,
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(child: Text(emoji, style: const TextStyle(fontSize: 22))),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                          if (subtitle.isNotEmpty)
+                            Text(subtitle, style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
+                          if (record.metadata['note'] != null &&
+                              record.metadata['note'].toString().isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Text(
+                                '"${record.metadata['note']}"',
+                                style: TextStyle(
+                                  fontStyle: FontStyle.italic,
+                                  color: Colors.grey.shade500,
+                                  fontSize: 12,
+                                ),
                               ),
                             ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          timeStr,
+                          style: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
                           ),
+                        ),
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: () => _showDeleteConfirm(context, ref),
+                          child: Icon(Icons.delete_outline, color: Colors.red.withOpacity(0.7), size: 20),
+                        ),
                       ],
                     ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        timeStr,
-                        style: TextStyle(
-                          color: Colors.grey.shade400,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      GestureDetector(
-                        onTap: () => _showDeleteConfirm(context, ref),
-                        child: Icon(Icons.delete_outline, color: Colors.red.withOpacity(0.7), size: 20),
-                      ),
-                    ],
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

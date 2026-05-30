@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
-import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import '../../../../core/local_storage/hive_manager.dart';
 import '../../domain/models/active_session_model.dart';
 import '../../domain/models/record_model.dart';
@@ -118,16 +117,7 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
     if (state == null) return null;
 
     try {
-      _timer?.cancel();
-      try {
-        if (await FlutterOverlayWindow.isActive()) {
-          await FlutterOverlayWindow.closeOverlay();
-        }
-      } catch (e) {
-        debugPrint('Overlay close error: $e');
-      }
-
-      // Calculate final duration
+      _timer?.cancel();      // Calculate final duration
       final duration = state!.currentDuration;
       final metadata = Map<String, dynamic>.from(state!.metadata);
       metadata['durationSeconds'] = duration.inSeconds;
@@ -181,13 +171,6 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
 
   void cancelSession() async {
     _timer?.cancel();
-    try {
-      if (await FlutterOverlayWindow.isActive()) {
-        await FlutterOverlayWindow.closeOverlay();
-      }
-    } catch (e) {
-      debugPrint('Overlay close error: $e');
-    }
     state = null;
     final box = HiveManager.getActiveSessionBox();
     await box.clear();
@@ -196,42 +179,10 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
   /// Pauses the ticker (call when app goes to background)
   void pauseTicker() async {
     _timer?.cancel();
-    if (state != null && state!.isRunning) {
-      try {
-        // Only show the overlay if the user already granted permission.
-        // We do not force a permission request here so users can optionally turn it off.
-        if (await FlutterOverlayWindow.isPermissionGranted()) {
-          await FlutterOverlayWindow.showOverlay(
-            enableDrag: true,
-            overlayTitle: "Baby Corn Timer",
-            overlayContent: "Timer running",
-            flag: OverlayFlag.defaultFlag,
-            alignment: OverlayAlignment.center,
-            visibility: NotificationVisibility.visibilityPublic,
-            positionGravity: PositionGravity.auto,
-            height: 150,
-            width: WindowSize.matchParent,
-          );
-          FlutterOverlayWindow.shareData({
-            'type': 'timer_sync',
-            'startTimeMs': state!.startTime.millisecondsSinceEpoch,
-          });
-        }
-      } catch (e) {
-        debugPrint("Overlay failed to show: $e");
-      }
-    }
   }
 
   /// Resumes the ticker (call when app comes to foreground)
   void resumeTicker() async {
-    try {
-      if (await FlutterOverlayWindow.isActive()) {
-        await FlutterOverlayWindow.closeOverlay();
-      }
-    } catch (e) {
-      debugPrint('Overlay close error: $e');
-    }
     if (state != null && state!.isRunning) {
       _startTick();
     } else if (state != null) {

@@ -1,7 +1,6 @@
 // core/widgets/floating_timer_overlay.dart
 
-
-
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,12 +20,7 @@ class FloatingTimerOverlay extends ConsumerStatefulWidget {
 
 class _FloatingTimerOverlayState extends ConsumerState<FloatingTimerOverlay>
     with SingleTickerProviderStateMixin {
-  // Position state for dragging
-  double _xPos = 16;
-  double _yPos = 100;
-  bool _isDragging = false;
   bool _showSuccess = false;
-
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
@@ -35,10 +29,10 @@ class _FloatingTimerOverlayState extends ConsumerState<FloatingTimerOverlay>
     super.initState();
     _pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2200),
+      duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.025).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOutSine),
+    _pulseAnimation = Tween<double>(begin: 0.4, end: 1.0).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
   }
 
@@ -74,17 +68,6 @@ class _FloatingTimerOverlayState extends ConsumerState<FloatingTimerOverlay>
     return AppColors.primary;
   }
 
-  void _snapToEdge(Size screenSize) {
-    final centerX = _xPos + 90; // half of capsule width ~180
-    setState(() {
-      if (centerX < screenSize.width / 2) {
-        _xPos = 12;
-      } else {
-        _xPos = screenSize.width - 192; // capsule width + margin
-      }
-    });
-  }
-
   Future<void> _handleStop() async {
     final record = await ref
         .read(activeSessionProvider.notifier)
@@ -109,10 +92,9 @@ class _FloatingTimerOverlayState extends ConsumerState<FloatingTimerOverlay>
   @override
   Widget build(BuildContext context) {
     final activeSession = ref.watch(activeSessionProvider);
-    final screenSize = MediaQuery.of(context).size;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final topPadding = MediaQuery.of(context).padding.top;
 
-    // Show success overlay
     if (_showSuccess) {
       return const SaveSuccessOverlay();
     }
@@ -125,170 +107,133 @@ class _FloatingTimerOverlayState extends ConsumerState<FloatingTimerOverlay>
     final durationStr = _formatDuration(duration);
     final accentColor = _getColorForType(activeSession.type);
     final icon = _getIconForType(activeSession.type);
+    final isPaused = !activeSession.isRunning;
 
     return Positioned(
-      left: _xPos,
-      top: _yPos,
+      top: topPadding + 8,
+      left: 16,
+      right: 16,
       child: GestureDetector(
-        onPanStart: (_) => setState(() => _isDragging = true),
-        onPanUpdate: (details) {
-          setState(() {
-            _xPos = (_xPos + details.delta.dx)
-                .clamp(0, screenSize.width - 192);
-            _yPos = (_yPos + details.delta.dy)
-                .clamp(MediaQuery.of(context).padding.top + 8,
-                    screenSize.height - 200);
-          });
-        },
-        onPanEnd: (_) {
-          setState(() => _isDragging = false);
-          _snapToEdge(screenSize);
-        },
         onTap: _openFullSheet,
-        child: RepaintBoundary(
-          child: AnimatedBuilder(
-            animation: _pulseAnimation,
-            builder: (context, child) {
-              final scale = activeSession.isRunning
-                  ? _pulseAnimation.value
-                  : 1.0;
-
-              return Transform.scale(
-                scale: _isDragging ? 1.08 : scale,
-                child: child,
-              );
-            },
-            child: _buildCapsule(
-              isDark: isDark,
-              accentColor: accentColor,
-              icon: icon,
-              durationStr: durationStr,
-              isRunning: activeSession.isRunning,
-              activeSession: activeSession,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(
+              height: 60,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.black.withOpacity(0.6)
+                    : Colors.white.withOpacity(0.85),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: accentColor.withOpacity(0.3),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: accentColor.withOpacity(0.15),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  // Icon with pulsing dot
+                  Stack(
+                    alignment: Alignment.topRight,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: accentColor.withOpacity(0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(icon, color: accentColor, size: 20),
+                      ),
+                      if (!isPaused)
+                        Positioned(
+                          top: 2,
+                          right: 2,
+                          child: FadeTransition(
+                            opacity: _pulseAnimation,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Colors.redAccent,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(width: 12),
+                  // Title & Timer
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          isPaused ? '${activeSession.type} (Paused)' : activeSession.type,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white70 : AppColors.textSecondary,
+                            letterSpacing: 0.5,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          durationStr,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? Colors.white : AppColors.textPrimary,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Quick Actions
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          isPaused ? Icons.play_arrow_rounded : Icons.pause_rounded,
+                          color: isDark ? Colors.white : AppColors.textPrimary,
+                        ),
+                        onPressed: () {
+                          HapticFeedback.selectionClick();
+                          if (isPaused) {
+                            ref.read(activeSessionProvider.notifier).resumeSession();
+                          } else {
+                            ref.read(activeSessionProvider.notifier).pauseSession();
+                          }
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.stop_rounded, color: Colors.redAccent),
+                        onPressed: () {
+                          HapticFeedback.mediumImpact();
+                          _handleStop();
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-      )
-          .animate()
-          .scaleXY(begin: 0.5, end: 1.0, duration: 300.ms,
-              curve: Curves.easeOutBack)
-          .fadeIn(duration: 200.ms),
-    );
-  }
-
-  Widget _buildCapsule({
-    required bool isDark,
-    required Color accentColor,
-    required IconData icon,
-    required String durationStr,
-    required bool isRunning,
-    required dynamic activeSession,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        color: isDark
-            ? const Color(0xFF1E1C20).withOpacity(0.92)
-            : const Color(0xFFFFFEFB).withOpacity(0.92),
-        border: Border.all(
-          width: 0.8,
-          color: accentColor.withOpacity(isDark ? 0.3 : 0.25),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: accentColor.withOpacity(isRunning ? 0.15 : 0.08),
-            blurRadius: isRunning ? 20 : 12,
-            spreadRadius: isRunning ? 1 : -2,
-          ),
-          BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.4 : 0.1),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Activity icon
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: accentColor.withOpacity(0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, size: 16, color: accentColor),
-          ),
-          const SizedBox(width: 8),
-
-          // Timer display
-          Text(
-            durationStr,
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white : AppColors.textPrimary,
-              fontFeatures: const [FontFeature.tabularFigures()],
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(width: 8),
-
-          // Pause/Play button
-          _MiniButton(
-            icon: isRunning
-                ? Icons.pause_rounded
-                : Icons.play_arrow_rounded,
-            color: accentColor,
-            onTap: () {
-              HapticFeedback.selectionClick();
-              if (isRunning) {
-                ref.read(activeSessionProvider.notifier).pauseSession();
-              } else {
-                ref.read(activeSessionProvider.notifier).resumeSession();
-              }
-            },
-          ),
-          const SizedBox(width: 4),
-
-          // Stop button
-          _MiniButton(
-            icon: Icons.stop_rounded,
-            color: const Color(0xFFFF6B6B),
-            onTap: _handleStop,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MiniButton extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _MiniButton({
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 28,
-        height: 28,
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.12),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(icon, size: 15, color: color),
-      ),
+      ).animate().slideY(begin: -1.0, duration: 400.ms, curve: Curves.easeOutBack).fadeIn(),
     );
   }
 }
