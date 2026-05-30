@@ -26,13 +26,15 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _pageController = PageController();
   int _currentPage = 0;
-  final int _totalPages = 8;
+  final int _totalPages = 9;
 
   // Form State
   final _nameController = TextEditingController();
   DateTime? _birthDate;
   String _gender = 'Prefer not to say';
   double _birthWeight = 3.2;
+  double _birthHeight = 50.0;
+  bool _isHeightInCm = true;
   String _feedingType = 'Breastmilk';
 
   @override
@@ -78,6 +80,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       feedingType: _feedingType,
       gender: _gender,
       birthWeight: _birthWeight,
+      birthHeight: _birthHeight,
     );
 
     await ref.read(babyRepositoryProvider).addBaby(baby);
@@ -157,6 +160,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   _buildBirthDateStep(),
                   _buildGenderStep(),
                   _buildWeightStep(),
+                  _buildHeightStep(),
                   _buildFeedingStep(),
                   _buildReminderIntroStep(),
                   _buildPrivacyStep(),
@@ -399,11 +403,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   Widget _buildWeightStep() {
-    int currentKg = _birthWeight.floor();
-    int currentGrams = ((_birthWeight - currentKg) * 1000).round();
-    if (currentKg < 1) currentKg = 1;
-    if (currentKg > 10) currentKg = 10;
-
     return _buildStepContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -421,49 +420,131 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const SizedBox(height: 40),
           
           Container(
-            height: 200,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
               borderRadius: BorderRadius.circular(24),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: Column(
               children: [
-                // KG Picker
-                SizedBox(
-                  width: 80,
-                  child: CupertinoPicker(
-                    scrollController: FixedExtentScrollController(initialItem: currentKg - 1),
-                    itemExtent: 50,
-                    onSelectedItemChanged: (index) {
-                      setState(() {
-                        final kg = index + 1;
-                        final grams = ((_birthWeight - _birthWeight.floor()) * 1000).round();
-                        _birthWeight = kg + (grams / 1000);
-                      });
-                    },
-                    children: List.generate(10, (index) => Center(child: Text('${index + 1}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)))),
+                Text(
+                  '${_birthWeight.toStringAsFixed(2)} kg',
+                  style: TextStyle(
+                    fontSize: 48,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
-                const Text('kg', style: TextStyle(fontSize: 20, color: Colors.grey)),
-                const SizedBox(width: 24),
-                // Grams Picker
-                SizedBox(
-                  width: 100,
-                  child: CupertinoPicker(
-                    scrollController: FixedExtentScrollController(initialItem: (currentGrams / 100).round()),
-                    itemExtent: 50,
-                    onSelectedItemChanged: (index) {
-                      setState(() {
-                        final kg = _birthWeight.floor();
-                        final grams = index * 100;
-                        _birthWeight = kg + (grams / 1000);
-                      });
+                const SizedBox(height: 24),
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    activeTrackColor: Theme.of(context).colorScheme.primary,
+                    inactiveTrackColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                    thumbColor: Theme.of(context).colorScheme.primary,
+                    overlayColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    trackHeight: 8,
+                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 16),
+                  ),
+                  child: Slider(
+                    value: _birthWeight,
+                    min: 1.0,
+                    max: 10.0,
+                    divisions: 90,
+                    onChanged: (val) {
+                      setState(() => _birthWeight = val);
                     },
-                    children: List.generate(10, (index) => Center(child: Text('${index * 100}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)))),
                   ),
                 ),
-                const Text('g', style: TextStyle(fontSize: 20, color: Colors.grey)),
+              ],
+            ),
+          ),
+          const Spacer(flex: 2),
+          _buildPrimaryButton('Continue', _nextPage),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeightStep() {
+    final displayValue = _isHeightInCm ? _birthHeight : _birthHeight * 0.393701;
+    final displayUnit = _isHeightInCm ? 'cm' : 'in';
+
+    return _buildStepContainer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Spacer(flex: 1),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Birth Height',
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'You can change this later.',
+                      style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
+              SegmentedButton<bool>(
+                showSelectedIcon: false,
+                segments: const [
+                  ButtonSegment(value: true, label: Text('cm')),
+                  ButtonSegment(value: false, label: Text('in')),
+                ],
+                selected: {_isHeightInCm},
+                onSelectionChanged: (val) {
+                  setState(() => _isHeightInCm = val.first);
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 40),
+          
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  '${displayValue.toStringAsFixed(1)} $displayUnit',
+                  style: TextStyle(
+                    fontSize: 48,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    activeTrackColor: Theme.of(context).colorScheme.primary,
+                    inactiveTrackColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                    thumbColor: Theme.of(context).colorScheme.primary,
+                    overlayColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    trackHeight: 8,
+                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 16),
+                  ),
+                  child: Slider(
+                    value: _birthHeight,
+                    min: 30.0,
+                    max: 100.0,
+                    divisions: 70,
+                    onChanged: (val) {
+                      setState(() => _birthHeight = val);
+                    },
+                  ),
+                ),
               ],
             ),
           ),

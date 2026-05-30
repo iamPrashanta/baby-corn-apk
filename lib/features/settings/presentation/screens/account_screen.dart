@@ -6,11 +6,14 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import '../providers/theme_provider.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/local_storage/secure_storage_manager.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../../core/services/backup_service.dart';
-import '../../../../core/constants/app_colors.dart';
+import '../../../../core/services/sync_service.dart';
+import '../../../../core/providers/locale_provider.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../providers/theme_provider.dart';
 
 class AccountScreen extends ConsumerStatefulWidget {
   const AccountScreen({super.key});
@@ -88,11 +91,33 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Successfully signed in with Google!')),
         );
+        // Sync local offline data to cloud and fetch cloud data
+        await SyncService.syncOfflineDataToCloud();
+        await SyncService.syncCloudDataToLocal();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Sign in failed: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _signOut() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      await GoogleSignIn().signOut();
+      if (mounted) {
+        setState(() {});
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Signed out. You are now in Offline Mode.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Sign out failed: $e')),
         );
       }
     }
@@ -114,8 +139,36 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
 
           _buildSettingsSection(
             context,
-            'App Settings',
+            AppLocalizations.of(context)?.appTitle ?? 'App Settings',
             [
+              ListTile(
+                leading: const Icon(Icons.language),
+                title: Text(AppLocalizations.of(context)?.language ?? 'Language'),
+                trailing: DropdownButton<Locale>(
+                  value: ref.watch(localeProvider),
+                  onChanged: (newLocale) {
+                    if (newLocale != null) {
+                      ref.read(localeProvider.notifier).setLocale(newLocale);
+                    }
+                  },
+                  items: const [
+                    DropdownMenuItem(value: Locale('en'), child: Text('English')),
+                    DropdownMenuItem(value: Locale('hi'), child: Text('हिन्दी')),
+                    DropdownMenuItem(value: Locale('bn'), child: Text('বাংলা')),
+                    DropdownMenuItem(value: Locale('te'), child: Text('తెలుగు')),
+                    DropdownMenuItem(value: Locale('ta'), child: Text('தமிழ்')),
+                    DropdownMenuItem(value: Locale('kn'), child: Text('ಕನ್ನಡ')),
+                  ],
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.notifications_active),
+                title: const Text('Reminders'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () {
+                  context.push('/settings/reminders');
+                },
+              ),
               ListTile(
                 leading: const Icon(Icons.dark_mode),
                 title: const Text('Theme'),
@@ -207,15 +260,28 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
                   }
                 },
               ),
-              if (!AppConfig.enableCloudSync)
+              if (AppConfig.enableCloudSync)
                 ListTile(
-                  leading: const Icon(Icons.cloud_sync, color: Colors.grey),
-                  title: const Text('Cloud Sync', style: TextStyle(color: Colors.grey)),
-                  trailing: const Icon(Icons.lock, color: Colors.grey, size: 16),
-                  onTap: () {
+                  leading: const Icon(Icons.cloud_sync, color: Colors.blue),
+                  title: const Text('Sync Data'),
+                  subtitle: const Text('Force sync with cloud'),
+                  onTap: () async {
+                    if (_firebaseUser == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Please sign in to sync data.')),
+                      );
+                      return;
+                    }
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Cloud Sync is coming in a future update!')),
+                      const SnackBar(content: Text('Syncing...')),
                     );
+                    await SyncService.syncOfflineDataToCloud();
+                    await SyncService.syncCloudDataToLocal();
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Sync complete!')),
+                      );
+                    }
                   },
                 ),
               if (!AppConfig.enableCloudBackup)
@@ -349,10 +415,23 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with WidgetsBindi
                   ElevatedButton.icon(
                     onPressed: _signInWithGoogle,
                     icon: const Icon(Icons.g_mobiledata, size: 24),
-                    label: const Text('Sign in with Google'),
+                    label: Text(AppLocalizations.of(context)?.signInWithGoogle ?? 'Sign in with Google'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: isDark ? Colors.white : Colors.black,
                       foregroundColor: isDark ? Colors.black : Colors.white,
+                      minimumSize: const Size(double.infinity, 40),
+                    ),
+                  ),
+                ],
+                if (isGoogleUser) ...[
+                  const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    onPressed: _signOut,
+                    icon: const Icon(Icons.logout, size: 20),
+                    label: Text(AppLocalizations.of(context)?.signOut ?? 'Sign Out'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
                       minimumSize: const Size(double.infinity, 40),
                     ),
                   ),

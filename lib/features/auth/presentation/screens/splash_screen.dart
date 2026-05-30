@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/local_storage/secure_storage_manager.dart';
 import '../../data/repositories/baby_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/config/app_config.dart';
 
@@ -26,10 +27,18 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     await Future.delayed(const Duration(seconds: 2));
 
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final hasSelectedLanguage = prefs.getBool('has_selected_language') ?? false;
+
       final hasPin = await SecureStorageManager.hasPin();
       final isOnboarded = ref.read(babyRepositoryProvider).isOnboardingComplete();
 
       if (!mounted) return;
+
+      if (!hasSelectedLanguage) {
+        context.go('/language');
+        return;
+      }
 
       if (AppConfig.enableFirebaseAuth) {
         if (!hasPin) {

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/auth/presentation/screens/auth_screen.dart';
 import '../../features/auth/presentation/screens/pin_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
+import '../../features/auth/presentation/screens/language_selection_screen.dart';
 
 import '../../features/dashboard/presentation/screens/main_scaffold.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
@@ -16,6 +17,8 @@ import '../../features/records/presentation/screens/diaper_entry_screen.dart';
 import '../../features/records/presentation/screens/bath_entry_screen.dart';
 import '../../features/settings/presentation/screens/manage_babies_screen.dart';
 import '../../features/settings/presentation/screens/edit_baby_screen.dart';
+import '../../features/settings/presentation/screens/reminders_setting_screen.dart';
+import '../../features/settings/presentation/screens/reminder_detail_screen.dart';
 import '../../features/auth/presentation/providers/baby_provider.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -25,6 +28,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/',
         builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: '/language',
+        builder: (context, state) => const LanguageSelectionScreen(),
       ),
       GoRoute(
         path: '/auth',
@@ -82,6 +89,17 @@ final routerProvider = Provider<GoRouter>((ref) {
             orElse: () => babies.first,
           );
           return EditBabyScreen(baby: baby);
+        },
+      ),
+      GoRoute(
+        path: '/settings/reminders',
+        builder: (context, state) => const RemindersSettingScreen(),
+      ),
+      GoRoute(
+        path: '/settings/reminders/detail',
+        builder: (context, state) {
+          final category = state.extra as String;
+          return ReminderDetailScreen(category: category);
         },
       ),
     ],

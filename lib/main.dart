@@ -8,12 +8,14 @@ import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'core/local_storage/hive_manager.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'core/widgets/app_lifecycle_wrapper.dart';
-import 'core/widgets/floating_timer_overlay.dart';
 import 'features/settings/presentation/providers/theme_provider.dart';
 import 'core/services/reminder_service.dart';
 import 'core/config/app_config.dart';
 import 'core/widgets/background_timer_overlay.dart';
+import 'core/widgets/app_lifecycle_wrapper.dart';
+import 'core/widgets/floating_timer_overlay.dart';
+import 'core/providers/locale_provider.dart';
+import 'l10n/app_localizations.dart';
 
 // Firebase imports — conditionally used based on AppConfig flags
 import 'package:firebase_core/firebase_core.dart';
@@ -108,6 +110,7 @@ class BabyCornApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(themeModeProvider);
+    final locale = ref.watch(localeProvider);
 
     return AppLifecycleWrapper(
       child: MaterialApp.router(
@@ -115,6 +118,7 @@ class BabyCornApp extends ConsumerWidget {
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: themeMode,
+        locale: locale,
         builder: (context, child) {
           // Global overlay layer: floating timer appears on ALL screens
           return GestureDetector(
@@ -132,17 +136,12 @@ class BabyCornApp extends ConsumerWidget {
         routeInformationParser: router.routeInformationParser,
         routerDelegate: router.routerDelegate,
         localizationsDelegates: const [
+          AppLocalizations.delegate,
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        supportedLocales: const [
-          Locale('en'),
-          Locale('hi'),
-          Locale('bn'),
-          Locale('ta'),
-          Locale('te'),
-        ],
+        supportedLocales: AppLocalizations.supportedLocales,
         debugShowCheckedModeBanner: false,
       ),
     );

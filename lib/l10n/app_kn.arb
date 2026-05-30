@@ -1,0 +1,19 @@
+{
+  "appTitle": "Baby Corn",
+  "launchpad": "ಲಾಂಚ್‌ಪ್ಯಾಡ್",
+  "records": "ದಾಖಲೆಗಳು",
+  "statistics": "ಅಂಕಿಅಂಶಗಳು",
+  "development": "ಅಭಿವೃದ್ಧಿ",
+  "account": "ಖಾತೆ",
+  "feeding": "ಆಹಾರ ನೀಡುವುದು",
+  "sleep": "ನಿದ್ರೆ",
+  "urination": "ಮೂತ್ರ ವಿಸರ್ಜನೆ",
+  "stool": "ಮಲ",
+  "diaper": "ಡೈಪರ್",
+  "language": "ಭಾಷೆ",
+  "selectLanguage": "ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+  "signOut": "ಸೈನ್ ಔಟ್ ಮಾಡಿ",
+  "signInWithGoogle": "Google ನೊಂದಿಗೆ ಸೈನ್ ಇನ್ ಮಾಡಿ",
+  "offlineMode": "ಆಫ್‌ಲೈನ್ ಮೋಡ್",
+  "syncData": "ಡೇಟಾ ಸಿಂಕ್ ಮಾಡಿ"
+}

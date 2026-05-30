@@ -6,7 +6,7 @@ class AppConfig {
   static const bool enableFirebase = true;
   
   /// Master switch for the background SyncEngine
-  static const bool enableCloudSync = false;
+  static const bool enableCloudSync = true;
   
   /// Master switch for Google Authentication requirement
   /// If false, the app will skip login and rely purely on local Hive database.

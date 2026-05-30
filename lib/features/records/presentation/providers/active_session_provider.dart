@@ -10,6 +10,8 @@ import '../../../../core/local_storage/hive_manager.dart';
 import '../../domain/models/active_session_model.dart';
 import '../../domain/models/record_model.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
+import '../../../../core/services/sync_service.dart';
+import '../../../../core/config/app_config.dart';
 import 'records_provider.dart';
 
 final activeSessionProvider =
@@ -150,6 +152,11 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
       // Atomic save: write record, then clear session
       final recordsBox = HiveManager.getRecordsBox();
       await recordsBox.put(record.id, record);
+
+      // Cloud Sync (if enabled and online)
+      if (AppConfig.enableCloudSync) {
+        SyncService.pushRecord(record);
+      }
 
       // Clear active session
       state = null;

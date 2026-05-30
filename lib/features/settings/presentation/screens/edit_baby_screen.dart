@@ -21,6 +21,8 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
   late DateTime _birthDate;
   late String _gender;
   late double _birthWeight;
+  late double? _birthHeight;
+  bool _isHeightInCm = true;
   late String _feedingType;
   late String _avatarEmoji;
 
@@ -49,6 +51,7 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
     _birthDate = widget.baby.birthDate;
     _gender = widget.baby.gender;
     _birthWeight = widget.baby.birthWeight;
+    _birthHeight = widget.baby.birthHeight ?? 50.0;
     _feedingType = widget.baby.feedingType;
     _avatarEmoji = widget.baby.avatarEmoji;
   }
@@ -74,6 +77,7 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
       birthDate: _birthDate,
       gender: _gender,
       birthWeight: _birthWeight,
+      birthHeight: _birthHeight,
       feedingType: _feedingType,
       avatarEmoji: _avatarEmoji,
     );
@@ -174,7 +178,16 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
             context,
             label: 'BIRTH WEIGHT',
             labelColor: sectionLabelColor,
-            child: _buildWeightPicker(cardBg, isDark),
+            child: _buildWeightSlider(cardBg, isDark),
+          ),
+          const SizedBox(height: 24),
+
+          // ── Birth Height ──────────────────────────────────────
+          _buildSection(
+            context,
+            label: 'BIRTH HEIGHT',
+            labelColor: sectionLabelColor,
+            child: _buildHeightSlider(cardBg, isDark),
           ),
           const SizedBox(height: 24),
 
@@ -412,56 +425,130 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
     );
   }
 
-  // ─── Weight picker ────────────────────────────────────────────────────────
+  // ─── Weight Slider ────────────────────────────────────────────────────────
 
-  Widget _buildWeightPicker(Color cardBg, bool isDark) {
-    int kg = _birthWeight.floor().clamp(1, 10);
-    int grams = ((_birthWeight - _birthWeight.floor()) * 1000).round();
-    // Round to nearest 100g
-    grams = ((grams / 100).round() * 100).clamp(0, 900);
-
+  Widget _buildWeightSlider(Color cardBg, bool isDark) {
     return Container(
-      height: 160,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(24),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Column(
         children: [
-          SizedBox(
-            width: 80,
-            child: CupertinoPicker(
-              scrollController: FixedExtentScrollController(initialItem: kg - 1),
-              itemExtent: 50,
-              onSelectedItemChanged: (index) {
-                final g = ((_birthWeight - _birthWeight.floor()) * 1000).round();
-                setState(() => _birthWeight = (index + 1) + (g / 1000));
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Weight', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+              Text(
+                '${_birthWeight.toStringAsFixed(2)} kg',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: AppColors.primary,
+              inactiveTrackColor: AppColors.primary.withOpacity(0.2),
+              thumbColor: AppColors.primary,
+              overlayColor: AppColors.primary.withOpacity(0.1),
+              trackHeight: 6,
+            ),
+            child: Slider(
+              value: _birthWeight,
+              min: 1.0,
+              max: 10.0,
+              divisions: 90, // increments of 0.1 kg
+              onChanged: (val) {
+                setState(() => _birthWeight = val);
               },
-              children: List.generate(10, (i) => Center(
-                child: Text('${i + 1}',
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-              )),
             ),
           ),
-          Text('kg', style: TextStyle(fontSize: 18, color: isDark ? Colors.white54 : Colors.black45)),
-          const SizedBox(width: 20),
-          SizedBox(
-            width: 100,
-            child: CupertinoPicker(
-              scrollController: FixedExtentScrollController(initialItem: (grams / 100).round()),
-              itemExtent: 50,
-              onSelectedItemChanged: (index) {
-                final currentKg = _birthWeight.floor();
-                setState(() => _birthWeight = currentKg + (index * 100 / 1000));
+        ],
+      ),
+    );
+  }
+
+  // ─── Height Slider ────────────────────────────────────────────────────────
+
+  Widget _buildHeightSlider(Color cardBg, bool isDark) {
+    // If not in cm, we show inches
+    final displayValue = _isHeightInCm ? _birthHeight! : _birthHeight! * 0.393701;
+    final displayUnit = _isHeightInCm ? 'cm' : 'in';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Height', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+              Row(
+                children: [
+                  Text(
+                    '${displayValue.toStringAsFixed(1)} $displayUnit',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  SegmentedButton<bool>(
+                    showSelectedIcon: false,
+                    segments: const [
+                      ButtonSegment(value: true, label: Text('cm')),
+                      ButtonSegment(value: false, label: Text('in')),
+                    ],
+                    selected: {_isHeightInCm},
+                    onSelectionChanged: (val) {
+                      setState(() => _isHeightInCm = val.first);
+                    },
+                    style: ButtonStyle(
+                      visualDensity: VisualDensity.compact,
+                      backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                        (Set<WidgetState> states) {
+                          if (states.contains(WidgetState.selected)) {
+                            return AppColors.primary.withOpacity(0.2);
+                          }
+                          return Colors.transparent;
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: AppColors.primary,
+              inactiveTrackColor: AppColors.primary.withOpacity(0.2),
+              thumbColor: AppColors.primary,
+              overlayColor: AppColors.primary.withOpacity(0.1),
+              trackHeight: 6,
+            ),
+            child: Slider(
+              value: _birthHeight!,
+              min: 30.0,
+              max: 100.0,
+              divisions: 70, // increments of 1 cm
+              onChanged: (val) {
+                setState(() => _birthHeight = val);
               },
-              children: List.generate(10, (i) => Center(
-                child: Text('${i * 100}',
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-              )),
             ),
           ),
-          Text('g', style: TextStyle(fontSize: 18, color: isDark ? Colors.white54 : Colors.black45)),
         ],
       ),
     );

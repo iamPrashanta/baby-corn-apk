@@ -7,6 +7,7 @@ class BabyModel {
   final String feedingType;
   final String gender;
   final double birthWeight;
+  final double? birthHeight;
   /// Optional emoji avatar for visual identity across multiple baby profiles.
   /// Defaults to '👶' when not set (backward-compatible).
   final String avatarEmoji;
@@ -18,6 +19,7 @@ class BabyModel {
     required this.feedingType,
     required this.gender,
     required this.birthWeight,
+    this.birthHeight,
     this.avatarEmoji = '👶',
   });
 
@@ -29,6 +31,7 @@ class BabyModel {
       'feedingType': feedingType,
       'gender': gender,
       'birthWeight': birthWeight,
+      'birthHeight': birthHeight,
       'avatarEmoji': avatarEmoji,
     };
   }
@@ -41,6 +44,7 @@ class BabyModel {
       feedingType: json['feedingType'] as String? ?? 'Mixed',
       gender: json['gender'] as String? ?? 'Prefer not to say',
       birthWeight: (json['birthWeight'] as num?)?.toDouble() ?? 3.2,
+      birthHeight: (json['birthHeight'] as num?)?.toDouble(),
       avatarEmoji: json['avatarEmoji'] as String? ?? '👶',
     );
   }
@@ -52,6 +56,7 @@ class BabyModel {
     String? feedingType,
     String? gender,
     double? birthWeight,
+    double? birthHeight,
     String? avatarEmoji,
   }) {
     return BabyModel(
@@ -61,6 +66,7 @@ class BabyModel {
       feedingType: feedingType ?? this.feedingType,
       gender: gender ?? this.gender,
       birthWeight: birthWeight ?? this.birthWeight,
+      birthHeight: birthHeight ?? this.birthHeight,
       avatarEmoji: avatarEmoji ?? this.avatarEmoji,
     );
   }

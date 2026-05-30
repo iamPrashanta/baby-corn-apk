@@ -1,8 +1,5 @@
 {
   "appTitle": "Baby Corn",
-  "@appTitle": {
-    "description": "The title of the application"
-  },
   "launchpad": "Launchpad",
   "records": "Records",
   "statistics": "Statistics",
@@ -12,5 +9,11 @@
   "sleep": "Sleep",
   "urination": "Urination",
   "stool": "Stool",
-  "diaper": "Diaper"
+  "diaper": "Diaper",
+  "language": "Language",
+  "selectLanguage": "Select Language",
+  "signOut": "Sign Out",
+  "signInWithGoogle": "Sign In with Google",
+  "offlineMode": "Offline Mode",
+  "syncData": "Sync Data"
 }

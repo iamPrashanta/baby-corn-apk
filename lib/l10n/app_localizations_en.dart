@@ -40,4 +40,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diaper => 'Diaper';
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get selectLanguage => 'Select Language';
+
+  @override
+  String get signOut => 'Sign Out';
+
+  @override
+  String get signInWithGoogle => 'Sign In with Google';
+
+  @override
+  String get offlineMode => 'Offline Mode';
+
+  @override
+  String get syncData => 'Sync Data';
 }

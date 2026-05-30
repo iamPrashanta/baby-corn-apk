@@ -1,0 +1,19 @@
+{
+  "appTitle": "Baby Corn",
+  "launchpad": "লঞ্চপ্যাড",
+  "records": "রেকর্ড",
+  "statistics": "পরিসংখ্যান",
+  "development": "উন্নয়ন",
+  "account": "অ্যাকাউন্ট",
+  "feeding": "খাওয়ানো",
+  "sleep": "ঘুম",
+  "urination": "প্রস্রাব",
+  "stool": "মল",
+  "diaper": "ডায়াপার",
+  "language": "ভাষা",
+  "selectLanguage": "ভাষা নির্বাচন করুন",
+  "signOut": "সাইন আউট করুন",
+  "signInWithGoogle": "Google এর সাথে সাইন ইন করুন",
+  "offlineMode": "অফলাইন মোড",
+  "syncData": "ডেটা সিঙ্ক করুন"
+}
