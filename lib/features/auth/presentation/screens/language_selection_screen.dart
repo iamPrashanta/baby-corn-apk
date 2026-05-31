@@ -19,6 +19,7 @@ class LanguageSelectionScreen extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final languages = [
+      {'code': 'sa', 'name': 'संस्कृतम्'},
       {'code': 'en', 'name': 'English'},
       {'code': 'hi', 'name': 'हिन्दी'},
       {'code': 'bn', 'name': 'বাংলা'},

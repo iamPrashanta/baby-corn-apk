@@ -1,0 +1,53 @@
+{
+  "appTitle": "शिशु धान",
+  "launchpad": "आरम्भम्",
+  "records": "अभिलेखानि",
+  "statistics": "साङ्ख्यिकी",
+  "development": "विकासः",
+  "account": "खाता",
+  "feeding": "आहारः",
+  "sleep": "निद्रा",
+  "urination": "मूत्रोत्सर्गः",
+  "stool": "मलत्यागः",
+  "diaper": "वस्त्रम्",
+  "language": "भाषा",
+  "selectLanguage": "भाषां चिनोतु",
+  "signOut": "बहिर्गच्छतु",
+  "signInWithGoogle": "गूगल द्वारा प्रविशतु",
+  "offlineMode": "जालहीन स्थितिः",
+  "syncData": "दत्तांशं सङ्गमयतु",
+  "guides": "मार्गदर्शिकाः",
+  "spiritualJourney": "आध्यात्मिकयात्रा",
+  "cryLanguage": "रुदनभाषा",
+  "babyRashes": "शिशुत्वग्रोगाः",
+  "spiritualJourneyDesc": "परम्परागतसंस्काराणां सुन्दरः मार्गः। जीवनस्य १८ संस्कारेषु प्रविशतु।",
+  "moments": "क्षणानि",
+  "growth": "वृद्धिः",
+  "teething": "दन्तोद्गमः",
+  "addMoment": "क्षणं योजयतु",
+  "comingSoon": "शीघ्रमेव आगमिष्यति",
+  "completedStatus": "पूर्णम्",
+  "pastDueStatus": "अतीतम्",
+  "todayStatus": "अद्य!",
+  "inDaysStatus": "{days} दिनेषु",
+  "@inDaysStatus": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "title": "शीर्षकम्",
+  "description": "विवरणम्",
+  "saveMoment": "क्षणं रक्षतु",
+  "noMoments": "अद्यापि क्षणानि न सन्ति",
+  "startCapturing": "स्मृतीनां सङ्ग्रहणं प्रारभस्व",
+  "milestones": "महत्वपूर्णपदक्षेपाः",
+  "photos": "चित्राणि",
+  "memories": "स्मृतयः",
+  "favorites": "प्रियाणि",
+  "firstSmile": "प्रथमहास्यम्",
+  "firstRoll": "प्रथमपरिवर्तनम्",
+  "firstCrawl": "प्रथमसर्पणम्",
+  "firstSteps": "प्रथमपदानि"
+}
