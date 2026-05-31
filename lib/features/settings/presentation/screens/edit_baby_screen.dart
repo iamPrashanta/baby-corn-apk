@@ -111,7 +111,7 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? const Color(0xFF1E1C20) : Colors.white;
+    final cardBg = Theme.of(context).cardColor;
     final sectionLabelColor = isDark ? Colors.white54 : const Color(0xFF9A8C98);
 
     return Scaffold(

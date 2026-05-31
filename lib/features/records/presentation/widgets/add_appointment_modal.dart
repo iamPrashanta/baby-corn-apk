@@ -53,7 +53,7 @@ class _AddAppointmentModalState extends ConsumerState<AddAppointmentModal> {
         right: 24,
       ),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1C20) : Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(

@@ -19,7 +19,7 @@ class SaveSuccessOverlay extends StatelessWidget {
         height: 120,
         decoration: BoxDecoration(
           color: isDark
-              ? const Color(0xFF1E1C20).withOpacity(0.95)
+              ? Theme.of(context).cardColor.withOpacity(0.95)
               : Colors.white.withOpacity(0.95),
           shape: BoxShape.circle,
           boxShadow: [

@@ -86,7 +86,7 @@ class _SanskarDetailSheetState extends ConsumerState<SanskarDetailSheet> {
 
     return AppBottomSheet(
       padding: const EdgeInsets.only(left: 24, right: 24, top: 24),
-      solidColorDark: const Color(0xFF1E1C20),
+      solidColorDark: Theme.of(context).cardColor,
       solidColorLight: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

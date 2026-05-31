@@ -49,5 +49,17 @@
   "firstSmile": "प्रथमहास्यम्",
   "firstRoll": "प्रथमपरिवर्तनम्",
   "firstCrawl": "प्रथमसर्पणम्",
-  "firstSteps": "प्रथमपदानि"
+  "firstSteps": "प्रथमपदानि",
+  "foodTracker": "Food Tracker",
+  "medication": "Medication",
+  "appointments": "Appointments",
+  "vaccines": "Vaccines",
+  "familySharing": "Family Sharing",
+  "nextAppointment": "Next Appointment",
+  "firstFoods": "First Foods",
+  "manageBabies": "Manage Babies",
+  "reminders": "Reminders",
+  "subscription": "Subscription",
+  "doctorAppointments": "Doctor Appointments",
+  "medicationHistory": "Medication History"
 }

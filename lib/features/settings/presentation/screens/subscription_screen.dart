@@ -118,7 +118,7 @@ class SubscriptionScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF2C2C3E) : Colors.white,
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                         color: AppColors.primary.withOpacity(0.5), width: 2),

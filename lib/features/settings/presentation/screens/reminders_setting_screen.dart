@@ -28,7 +28,7 @@ class RemindersSettingScreen extends ConsumerWidget {
           // Master Toggle
           Container(
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E1C20) : Colors.white,
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: AppColors.primary.withOpacity(isDark ? 0.15 : 0.08),
@@ -127,7 +127,7 @@ class RemindersSettingScreen extends ConsumerWidget {
             ),
             Container(
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1C20) : Colors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: AppColors.primary.withOpacity(isDark ? 0.15 : 0.08),

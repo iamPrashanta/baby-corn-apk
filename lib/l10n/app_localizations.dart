@@ -371,6 +371,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'First Steps'**
   String get firstSteps;
+
+  /// No description provided for @foodTracker.
+  ///
+  /// In en, this message translates to:
+  /// **'Food Tracker'**
+  String get foodTracker;
+
+  /// No description provided for @medication.
+  ///
+  /// In en, this message translates to:
+  /// **'Medication'**
+  String get medication;
+
+  /// No description provided for @appointments.
+  ///
+  /// In en, this message translates to:
+  /// **'Appointments'**
+  String get appointments;
+
+  /// No description provided for @vaccines.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccines'**
+  String get vaccines;
+
+  /// No description provided for @familySharing.
+  ///
+  /// In en, this message translates to:
+  /// **'Family Sharing'**
+  String get familySharing;
+
+  /// No description provided for @nextAppointment.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Appointment'**
+  String get nextAppointment;
+
+  /// No description provided for @firstFoods.
+  ///
+  /// In en, this message translates to:
+  /// **'First Foods'**
+  String get firstFoods;
+
+  /// No description provided for @manageBabies.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Babies'**
+  String get manageBabies;
+
+  /// No description provided for @reminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get reminders;
+
+  /// No description provided for @subscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription'**
+  String get subscription;
+
+  /// No description provided for @doctorAppointments.
+  ///
+  /// In en, this message translates to:
+  /// **'Doctor Appointments'**
+  String get doctorAppointments;
+
+  /// No description provided for @medicationHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Medication History'**
+  String get medicationHistory;
 }
 
 class _AppLocalizationsDelegate

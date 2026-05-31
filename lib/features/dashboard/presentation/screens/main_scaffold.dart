@@ -9,6 +9,8 @@ import '../../../guide/presentation/screens/guide_main_screen.dart';
 import '../../../settings/presentation/screens/account_screen.dart';
 import '../../../../core/design/layouts/premium_bottom_nav.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../core/services/permission_service.dart';
+import '../../../../core/local_storage/hive_manager.dart';
 
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
@@ -20,6 +22,24 @@ class MainScaffold extends StatefulWidget {
 class _MainScaffoldState extends State<MainScaffold> {
   int _currentIndex = 0;
   DateTime? _lastPressedAt;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndRequestNotifications();
+    });
+  }
+
+  Future<void> _checkAndRequestNotifications() async {
+    if (!mounted) return;
+    final settingsBox = HiveManager.getSettingsBox();
+    final hasAsked = settingsBox.get('asked_notifications', defaultValue: false);
+    if (!hasAsked) {
+      await PermissionService.requestNotifications(context);
+      await settingsBox.put('asked_notifications', true);
+    }
+  }
 
   final List<Widget> _screens = [
     const LaunchpadScreen(), // 0: Home
@@ -46,6 +66,13 @@ class _MainScaffoldState extends State<MainScaffold> {
       canPop: false,
       onPopInvoked: (didPop) {
         if (didPop) return;
+
+        if (_currentIndex != 0) {
+          setState(() {
+            _currentIndex = 0;
+          });
+          return;
+        }
 
         final now = DateTime.now();
         final maxDuration = const Duration(seconds: 2);

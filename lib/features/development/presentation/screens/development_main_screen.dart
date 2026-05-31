@@ -347,7 +347,7 @@ class _TimelineNodeItem extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E1C20) : Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(24),
           border: isNextUp ? Border.all(color: AppColors.primary.withOpacity(0.5), width: 2) : null,
           boxShadow: [
@@ -420,7 +420,7 @@ class _TimelineNodeItem extends StatelessWidget {
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1C20) : Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(

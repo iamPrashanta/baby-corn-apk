@@ -191,7 +191,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1C20) : Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -269,7 +269,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1C20) : Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -485,7 +485,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
                 right: 24,
               ),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1C20) : Colors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: Column(
@@ -665,7 +665,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
                 right: 24,
               ),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1C20) : Colors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: Column(
@@ -919,7 +919,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
                 right: 24,
               ),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1C20) : Colors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: Column(

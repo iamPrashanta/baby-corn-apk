@@ -42,5 +42,17 @@
   "firstSmile": "First Smile",
   "firstRoll": "First Roll",
   "firstCrawl": "First Crawl",
-  "firstSteps": "First Steps"
+  "firstSteps": "First Steps",
+  "foodTracker": "Food Tracker",
+  "medication": "Medication",
+  "appointments": "Appointments",
+  "vaccines": "Vaccines",
+  "familySharing": "Family Sharing",
+  "nextAppointment": "Next Appointment",
+  "firstFoods": "First Foods",
+  "manageBabies": "Manage Babies",
+  "reminders": "Reminders",
+  "subscription": "Subscription",
+  "doctorAppointments": "Doctor Appointments",
+  "medicationHistory": "Medication History"
 }

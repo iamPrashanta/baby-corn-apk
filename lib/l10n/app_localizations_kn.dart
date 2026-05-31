@@ -142,4 +142,40 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get firstSteps => 'First Steps';
+
+  @override
+  String get foodTracker => 'Food Tracker';
+
+  @override
+  String get medication => 'Medication';
+
+  @override
+  String get appointments => 'Appointments';
+
+  @override
+  String get vaccines => 'Vaccines';
+
+  @override
+  String get familySharing => 'Family Sharing';
+
+  @override
+  String get nextAppointment => 'Next Appointment';
+
+  @override
+  String get firstFoods => 'First Foods';
+
+  @override
+  String get manageBabies => 'Manage Babies';
+
+  @override
+  String get reminders => 'Reminders';
+
+  @override
+  String get subscription => 'Subscription';
+
+  @override
+  String get doctorAppointments => 'Doctor Appointments';
+
+  @override
+  String get medicationHistory => 'Medication History';
 }

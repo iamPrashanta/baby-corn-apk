@@ -43,7 +43,7 @@ class PremiumBottomNav extends StatelessWidget {
                 bottom: bottomPadding + 12, top: 12, left: 4, right: 4),
             decoration: BoxDecoration(
               color: isDark
-                  ? const Color(0xFF1E1C20).withOpacity(0.95)
+                  ? Theme.of(context).cardColor.withOpacity(0.95)
                   : Colors.white.withOpacity(0.95),
               border: Border(
                 top: BorderSide(

@@ -371,7 +371,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
     final user = _firebaseUser;
     final isGoogleUser = user != null;
 
-    final cardBg = isDark ? const Color(0xFF1E1C20) : Colors.white;
+    final cardBg = Theme.of(context).cardColor;
     final subtitleColor = isDark ? Colors.white54 : Colors.black45;
 
     return Container(

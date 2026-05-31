@@ -172,7 +172,7 @@ class _BabyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cardBg = isDark ? const Color(0xFF1E1C20) : Colors.white;
+    final cardBg = Theme.of(context).cardColor;
     final age = _formatAge(baby.birthDate);
 
     return Container(
