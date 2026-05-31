@@ -18,9 +18,9 @@ class MedicationHistoryScreen extends ConsumerStatefulWidget {
 
 class _MedicationHistoryScreenState
     extends ConsumerState<MedicationHistoryScreen> {
-  String _selectedFilter = '7 Days';
+  String _selectedFilter = 'Today';
   DateTimeRange? _customDateRange;
-  final List<String> _filters = ['7 Days', '30 Days', 'Custom'];
+  final List<String> _filters = ['Today', '7 Days', '30 Days', 'Custom'];
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +42,11 @@ class _MedicationHistoryScreenState
 
     // 3. Apply Filter
     final now = DateTime.now();
-    if (_selectedFilter == '7 Days') {
+    if (_selectedFilter == 'Today') {
+      final startOfDay = DateTime(now.year, now.month, now.day);
+      final endOfDay = startOfDay.add(const Duration(days: 1));
+      logs = logs.where((l) => l.scheduledTime.isAfter(startOfDay.subtract(const Duration(milliseconds: 1))) && l.scheduledTime.isBefore(endOfDay)).toList();
+    } else if (_selectedFilter == '7 Days') {
       final cutoff = now.subtract(const Duration(days: 7));
       logs = logs.where((l) => l.scheduledTime.isAfter(cutoff)).toList();
     } else if (_selectedFilter == '30 Days') {

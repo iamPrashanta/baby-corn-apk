@@ -435,11 +435,19 @@ class LaunchpadScreen extends ConsumerWidget {
   Widget _buildUpcomingAppointmentCard(BuildContext context, AsyncValue<List<RecordModel>> recordsAsync, bool isDark) {
     return recordsAsync.when(
       data: (records) {
-        final appointments = records.where((r) => r.type == 'appointment' && r.timestamp.isAfter(DateTime.now())).toList();
+        final now = DateTime.now();
+        final appointments = records.where((r) => r.type == 'appointment' && (r.metadata['status'] == 'Upcoming' || r.metadata['status'] == null) && r.timestamp.isAfter(now)).toList();
         if (appointments.isEmpty) return const SizedBox.shrink();
         
         appointments.sort((a, b) => a.timestamp.compareTo(b.timestamp));
         final nextAppointment = appointments.first;
+        
+        final daysRemaining = nextAppointment.timestamp.difference(now).inDays;
+        final remainingText = daysRemaining == 0 
+            ? 'Today' 
+            : daysRemaining == 1 
+                ? 'Tomorrow' 
+                : '$daysRemaining days remaining';
         
         return GestureDetector(
           onTap: () => context.push('/appointments'),
@@ -479,13 +487,23 @@ class LaunchpadScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Upcoming Appointment',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF6A4C93),
-                        ),
+                      Row(
+                        children: [
+                          const Text(
+                            'Next Appointment',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF6A4C93),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(color: const Color(0xFF6A4C93).withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                            child: Text(remainingText, style: const TextStyle(color: Color(0xFF6A4C93), fontSize: 10, fontWeight: FontWeight.bold)),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -498,7 +516,7 @@ class LaunchpadScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${DateFormat('MMM d').format(nextAppointment.timestamp)} at ${DateFormat('h:mm a').format(nextAppointment.timestamp)}',
+                        '${DateFormat('d MMM yyyy').format(nextAppointment.timestamp)}, ${DateFormat('h:mm a').format(nextAppointment.timestamp)}',
                         style: TextStyle(
                           fontSize: 14,
                           color: isDark ? Colors.white60 : Colors.black54,

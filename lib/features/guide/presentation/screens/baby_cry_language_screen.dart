@@ -186,10 +186,7 @@ class BabyCryLanguageScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                  )
-                      .animate()
-                      .fadeIn(delay: Duration(milliseconds: 100 * index))
-                      .slideY(begin: 0.1),
+                  ),
                 );
               },
               childCount: cries.length,

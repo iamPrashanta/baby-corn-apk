@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/glass_system/glass_colors.dart';
@@ -121,10 +122,21 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
-  void _continueOffline() {
+  void _continueOffline() async {
     // Skip Firebase authentication and PIN entirely for offline mode
-    context.go(
-        '/onboarding'); // Splash screen will redirect to /home if already onboarded
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('is_offline_mode', true);
+    
+    if (!mounted) return;
+    
+    final repo = BabyRepository();
+    final hasBabies = repo.getBabies().isNotEmpty;
+    
+    if (hasBabies) {
+      context.go('/home');
+    } else {
+      context.go('/onboarding');
+    }
   }
 
   @override

@@ -175,10 +175,7 @@ class BabyRashesScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                  )
-                      .animate()
-                      .fadeIn(delay: Duration(milliseconds: 50 * index))
-                      .slideY(begin: 0.1),
+                  ),
                 );
               },
               childCount: rashes.length,

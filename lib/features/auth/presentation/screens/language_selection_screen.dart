@@ -69,7 +69,9 @@ class LanguageSelectionScreen extends ConsumerWidget {
 
                         if (!context.mounted) return;
 
-                        if (AppConfig.enableFirebaseAuth) {
+                        final isOfflineMode = prefs.getBool('is_offline_mode') ?? false;
+
+                        if (AppConfig.enableFirebaseAuth && !isOfflineMode) {
                           // FIX #2: Check Firebase auth state BEFORE routing.
                           // Previously this always routed to /auth even for
                           // signed-in users whose SharedPrefs were cleared.

@@ -42,23 +42,48 @@ class DoctorAppointmentsScreen extends ConsumerWidget {
             return const Center(child: Text('No appointments scheduled.'));
           }
 
-          final now = DateTime.now();
-          final upcoming = appointments.where((a) => a.timestamp.isAfter(now)).toList();
-          final past = appointments.where((a) => a.timestamp.isBefore(now) || a.timestamp.isAtSameMomentAs(now)).toList();
+          final Map<String, List<RecordModel>> grouped = {
+            'Upcoming': [],
+            'Completed': [],
+            'Missed': [],
+            'Cancelled': [],
+          };
+          
+          for (final a in appointments) {
+            String status = a.metadata['status'] ?? '';
+            if (status.isEmpty) {
+               status = a.timestamp.isAfter(DateTime.now()) ? 'Upcoming' : 'Completed';
+            }
+            if (grouped.containsKey(status)) {
+              grouped[status]!.add(a);
+            } else {
+              grouped['Upcoming']!.add(a);
+            }
+          }
 
-          upcoming.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-          past.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+          grouped['Upcoming']!.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+          grouped['Completed']!.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+          grouped['Missed']!.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+          grouped['Cancelled']!.sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
           return ListView(
             padding: const EdgeInsets.only(bottom: 100),
             children: [
-              if (upcoming.isNotEmpty) ...[
+              if (grouped['Upcoming']!.isNotEmpty) ...[
                 _buildHeader('Upcoming', isDark),
-                ...upcoming.map((a) => _buildAppointmentCard(context, ref, a, isDark, true)),
+                ...grouped['Upcoming']!.map((a) => _buildAppointmentCard(context, ref, a, isDark, 'Upcoming')),
               ],
-              if (past.isNotEmpty) ...[
-                _buildHeader('Past', isDark),
-                ...past.map((a) => _buildAppointmentCard(context, ref, a, isDark, false)),
+              if (grouped['Completed']!.isNotEmpty) ...[
+                _buildHeader('Completed', isDark),
+                ...grouped['Completed']!.map((a) => _buildAppointmentCard(context, ref, a, isDark, 'Completed')),
+              ],
+              if (grouped['Missed']!.isNotEmpty) ...[
+                _buildHeader('Missed', isDark),
+                ...grouped['Missed']!.map((a) => _buildAppointmentCard(context, ref, a, isDark, 'Missed')),
+              ],
+              if (grouped['Cancelled']!.isNotEmpty) ...[
+                _buildHeader('Cancelled', isDark),
+                ...grouped['Cancelled']!.map((a) => _buildAppointmentCard(context, ref, a, isDark, 'Cancelled')),
               ],
             ],
           );
@@ -83,11 +108,13 @@ class DoctorAppointmentsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildAppointmentCard(BuildContext context, WidgetRef ref, RecordModel record, bool isDark, bool isUpcoming) {
+  Widget _buildAppointmentCard(BuildContext context, WidgetRef ref, RecordModel record, bool isDark, String currentStatus) {
     final docName = record.metadata['doctorName'] ?? 'Doctor';
     final specialization = record.metadata['specialization'] ?? '';
     final clinic = record.metadata['location'] ?? '';
     final note = record.metadata['notes'] ?? '';
+    
+    final isUpcoming = currentStatus == 'Upcoming';
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
@@ -168,11 +195,27 @@ class DoctorAppointmentsScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline, color: Colors.red),
-                      onPressed: () {
-                        _showDeleteConfirm(context, ref, record);
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert, color: Colors.grey),
+                      onSelected: (value) {
+                        if (value == 'delete') {
+                          _showDeleteConfirm(context, ref, record);
+                        } else {
+                          // Change status
+                          final updatedMeta = Map<String, dynamic>.from(record.metadata);
+                          updatedMeta['status'] = value;
+                          final updatedRecord = record.copyWith(metadata: updatedMeta);
+                          ref.read(recordsProvider.notifier).updateRecord(updatedRecord);
+                        }
                       },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(value: 'Upcoming', child: Text('Mark Upcoming')),
+                        const PopupMenuItem(value: 'Completed', child: Text('Mark Completed')),
+                        const PopupMenuItem(value: 'Missed', child: Text('Mark Missed')),
+                        const PopupMenuItem(value: 'Cancelled', child: Text('Mark Cancelled')),
+                        const PopupMenuDivider(),
+                        const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
+                      ],
                     ),
                   ],
                 ),
@@ -217,6 +260,30 @@ class DoctorAppointmentsScreen extends ConsumerWidget {
                     ],
                   ),
                 ],
+                const SizedBox(height: 16),
+                const Divider(),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (ctx) => AddAppointmentModal(
+                          initialDoctor: docName,
+                          initialSpecialization: specialization,
+                          initialClinic: clinic,
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.refresh, size: 18),
+                    label: const Text('Create Follow-up'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFF6A4C93),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

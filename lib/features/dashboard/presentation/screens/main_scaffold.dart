@@ -81,7 +81,7 @@ class _MainScaffoldState extends State<MainScaffold> {
           items: [
             PremiumNavItem(icon: Icons.home_rounded, label: l10n.launchpad),
             PremiumNavItem(
-                icon: Icons.developer_mode_rounded, label: l10n.development),
+                icon: Icons.timeline_rounded, label: l10n.development),
             PremiumNavItem(
                 icon: Icons.add_circle_rounded,
                 label: l10n

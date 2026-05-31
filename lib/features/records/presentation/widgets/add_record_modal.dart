@@ -255,7 +255,21 @@ class AddRecordModal extends ConsumerWidget {
                     .scaleXY(begin: 0.9, end: 1.0, duration: 250.ms, delay: 550.ms, curve: Curves.easeOutBack),
               ),
               const SizedBox(width: 12),
-              const Expanded(child: SizedBox()),
+              Expanded(
+                child: _CategoryTile(
+                  emoji: '🩺',
+                  label: 'Doctor',
+                  color: const Color(0xFF6A4C93),
+                  isActive: true,
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/appointments');
+                  },
+                )
+                    .animate()
+                    .fadeIn(duration: 200.ms, delay: 550.ms)
+                    .scaleXY(begin: 0.9, end: 1.0, duration: 250.ms, delay: 550.ms, curve: Curves.easeOutBack),
+              ),
               const SizedBox(width: 12),
               const Expanded(child: SizedBox()),
             ],

@@ -8,7 +8,16 @@ import '../providers/records_provider.dart';
 import '../../../../core/services/reminder_service.dart';
 
 class AddAppointmentModal extends ConsumerStatefulWidget {
-  const AddAppointmentModal({super.key});
+  final String? initialDoctor;
+  final String? initialSpecialization;
+  final String? initialClinic;
+
+  const AddAppointmentModal({
+    super.key,
+    this.initialDoctor,
+    this.initialSpecialization,
+    this.initialClinic,
+  });
 
   @override
   ConsumerState<AddAppointmentModal> createState() => _AddAppointmentModalState();
@@ -24,6 +33,14 @@ class _AddAppointmentModalState extends ConsumerState<AddAppointmentModal> {
   final _notesController = TextEditingController();
   
   bool _enableReminder = true;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialDoctor != null) _docNameController.text = widget.initialDoctor!;
+    if (widget.initialSpecialization != null) _specializationController.text = widget.initialSpecialization!;
+    if (widget.initialClinic != null) _clinicController.text = widget.initialClinic!;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -167,6 +184,7 @@ class _AddAppointmentModalState extends ConsumerState<AddAppointmentModal> {
                   'location': _clinicController.text.trim(),
                   'notes': _notesController.text.trim(),
                   'reminderEnabled': _enableReminder,
+                  'status': 'Upcoming',
                 },
               );
               

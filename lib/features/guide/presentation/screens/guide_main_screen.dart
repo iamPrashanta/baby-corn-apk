@@ -19,7 +19,7 @@ class GuideMainScreen extends StatelessWidget {
       appBar: CustomAppBar(title: l10n.guides),
       body: GridView.count(
         crossAxisCount: 2,
-        padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 120),
+        padding: const EdgeInsets.only(left: 16, right: 16, top: 32, bottom: 120),
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
         childAspectRatio: 0.9,
@@ -107,9 +107,11 @@ class GuideMainScreen extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ],

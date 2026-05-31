@@ -19,6 +19,7 @@ class VaccineDisplayItem {
   final bool isCustom;
   final RecordModel? loggedRecord;
   final RecordModel? customPendingRecord; // the record representing the custom schedule
+  final String categoryAge;
 
   VaccineDisplayItem({
     required this.name,
@@ -27,6 +28,7 @@ class VaccineDisplayItem {
     this.isCustom = false,
     this.loggedRecord,
     this.customPendingRecord,
+    required this.categoryAge,
   });
   
   VaccineStatus get status {
@@ -36,7 +38,7 @@ class VaccineDisplayItem {
     final dueDay = DateTime(dueDate.year, dueDate.month, dueDate.day);
     
     if (dueDay.isBefore(today)) return VaccineStatus.overdue;
-    if (dueDay.isAtSameMomentAs(today)) return VaccineStatus.dueToday;
+    if (dueDay.year == today.year && dueDay.month == today.month && dueDay.day == today.day) return VaccineStatus.dueToday;
     return VaccineStatus.upcoming;
   }
 }
@@ -91,6 +93,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
               dueDate: dueDate,
               isCustom: false,
               loggedRecord: loggedRecord,
+              categoryAge: item.categoryAge,
             ));
           }
 
@@ -110,6 +113,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
                 dueDate: dueDate,
                 isCustom: true,
                 customPendingRecord: record,
+                categoryAge: 'Custom',
               ));
             } else {
               // It's a completed custom vaccine
@@ -121,6 +125,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
                 dueDate: dueDate,
                 isCustom: true,
                 loggedRecord: record,
+                categoryAge: 'Custom',
               ));
             }
           }
@@ -146,7 +151,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
           final sections = [
             if (grouped[VaccineStatus.overdue]!.isNotEmpty) _buildSection(context, 'Overdue', grouped[VaccineStatus.overdue]!, Colors.red, isDark, ref),
             if (grouped[VaccineStatus.dueToday]!.isNotEmpty) _buildSection(context, 'Due Today', grouped[VaccineStatus.dueToday]!, Colors.orange, isDark, ref),
-            if (grouped[VaccineStatus.upcoming]!.isNotEmpty) _buildSection(context, 'Upcoming', grouped[VaccineStatus.upcoming]!, AppColors.vaccine, isDark, ref),
+            if (grouped[VaccineStatus.upcoming]!.isNotEmpty) _buildUpcomingSection(context, 'Upcoming', grouped[VaccineStatus.upcoming]!, AppColors.vaccine, isDark, ref),
             if (grouped[VaccineStatus.completed]!.isNotEmpty) _buildSection(context, 'Completed', grouped[VaccineStatus.completed]!, Colors.green, isDark, ref),
           ];
 
@@ -224,6 +229,99 @@ class VaccinationTrackerScreen extends ConsumerWidget {
               children: items.map((item) => _buildItem(context, item, isDark, ref)).toList(),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUpcomingSection(BuildContext context, String title, List<VaccineDisplayItem> items, Color accentColor, bool isDark, WidgetRef ref) {
+    // Group by categoryAge
+    final Map<String, List<VaccineDisplayItem>> groups = {};
+    for (var item in items) {
+      groups.putIfAbsent(item.categoryAge, () => []).add(item);
+    }
+
+    // Sort groups by the earliest dueDate in that group
+    final sortedKeys = groups.keys.toList()..sort((a, b) {
+      if (a == 'Custom') return 1;
+      if (b == 'Custom') return -1;
+      return groups[a]!.first.dueDate.compareTo(groups[b]!.first.dueDate);
+    });
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1C20) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black26 : const Color(0x0A000000),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          )
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            decoration: BoxDecoration(
+              color: accentColor.withOpacity(isDark ? 0.2 : 0.1),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: accentColor,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: accentColor.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    '${items.length}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: accentColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ...sortedKeys.map((key) {
+            final groupItems = groups[key]!;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 20, top: 16, bottom: 4),
+                  child: Text(
+                    key,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white70 : Colors.grey.shade700,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+                ...groupItems.map((item) => _buildItem(context, item, isDark, ref)),
+              ],
+            );
+          }),
+          const SizedBox(height: 8),
         ],
       ),
     );
@@ -335,6 +433,11 @@ class VaccinationTrackerScreen extends ConsumerWidget {
                 ],
               ),
             ),
+            if (item.isCustom && !isDone)
+              IconButton(
+                icon: const Icon(Icons.delete_outline, color: Colors.red),
+                onPressed: () => _showDeletePendingCustomDialog(context, ref, item),
+              ),
           ],
         ),
       ),
@@ -343,6 +446,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
 
   void _showAddCustomDialog(BuildContext context, WidgetRef ref) {
     DateTime selectedDate = DateTime.now();
+    TimeOfDay selectedTime = const TimeOfDay(hour: 10, minute: 0);
     final nameController = TextEditingController();
     final noteController = TextEditingController();
     bool enableReminder = true;
@@ -383,26 +487,46 @@ class VaccinationTrackerScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Date Picker
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.calendar_today, color: AppColors.vaccine),
-                    title: const Text('Due Date'),
-                    subtitle: Text(DateFormat('MMM d, yyyy').format(selectedDate)),
-                    trailing: TextButton(
-                      child: const Text('Change'),
-                      onPressed: () async {
-                        final d = await showDatePicker(
-                          context: ctx,
-                          initialDate: selectedDate,
-                          firstDate: DateTime.now().subtract(const Duration(days: 365)),
-                          lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
-                        );
-                        if (d != null) {
-                          setState(() => selectedDate = d);
-                        }
-                      },
-                    ),
+                  // Date & Time Picker
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.calendar_today, color: AppColors.vaccine),
+                          title: const Text('Date'),
+                          subtitle: Text(DateFormat('MMM d, yyyy').format(selectedDate)),
+                          onTap: () async {
+                            final d = await showDatePicker(
+                              context: ctx,
+                              initialDate: selectedDate,
+                              firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                              lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                            );
+                            if (d != null) {
+                              setState(() => selectedDate = d);
+                            }
+                          },
+                        ),
+                      ),
+                      Expanded(
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.access_time, color: AppColors.vaccine),
+                          title: const Text('Time'),
+                          subtitle: Text(selectedTime.format(context)),
+                          onTap: () async {
+                            final t = await showTimePicker(
+                              context: ctx,
+                              initialTime: selectedTime,
+                            );
+                            if (t != null) {
+                              setState(() => selectedTime = t);
+                            }
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                   const Divider(),
                   SwitchListTile(
@@ -431,15 +555,23 @@ class VaccinationTrackerScreen extends ConsumerWidget {
                     onPressed: () async {
                       if (nameController.text.trim().isEmpty) return;
                       final id = const Uuid().v4();
+                      final dueDateTime = DateTime(
+                        selectedDate.year,
+                        selectedDate.month,
+                        selectedDate.day,
+                        selectedTime.hour,
+                        selectedTime.minute,
+                      );
+                      
                       final record = RecordModel(
                         id: id,
                         type: 'vaccine', // store as generic vaccine
-                        timestamp: selectedDate,
+                        timestamp: dueDateTime,
                         metadata: {
                           'vaccineName': nameController.text.trim(),
                           'isCustom': true,
                           'status': 'pending',
-                          'dueDate': selectedDate.toIso8601String(),
+                          'dueDate': dueDateTime.toIso8601String(),
                           'note': noteController.text.trim(),
                           'reminderEnabled': enableReminder,
                         },
@@ -447,14 +579,34 @@ class VaccinationTrackerScreen extends ConsumerWidget {
                       await ref.read(recordsProvider.notifier).addRecord(record);
                       
                       if (enableReminder) {
-                         // Schedule reminder
-                         final daysDiff = selectedDate.difference(DateTime.now()).inDays;
-                         if (daysDiff >= 1) {
+                         final now = DateTime.now();
+                         final t24h = dueDateTime.subtract(const Duration(hours: 24));
+                         final t2h = dueDateTime.subtract(const Duration(hours: 2));
+                         
+                         final baseId = id.hashCode.abs() % 100000;
+                         
+                         if (t24h.isAfter(now)) {
                            await ReminderService.scheduleReminder(
-                             id: id.hashCode.abs() % 100000,
+                             id: baseId,
+                             title: 'Upcoming Vaccine Tomorrow',
+                             body: '${nameController.text.trim()} is due tomorrow at ${selectedTime.format(context)}.',
+                             delay: t24h.difference(now),
+                           );
+                         }
+                         if (t2h.isAfter(now)) {
+                           await ReminderService.scheduleReminder(
+                             id: baseId + 1,
                              title: 'Upcoming Vaccine',
-                             body: '${nameController.text.trim()} is due tomorrow.',
-                             delay: Duration(days: daysDiff - 1, hours: 8), // 8 AM day before
+                             body: '${nameController.text.trim()} is due in 2 hours.',
+                             delay: t2h.difference(now),
+                           );
+                         }
+                         if (dueDateTime.isAfter(now)) {
+                           await ReminderService.scheduleReminder(
+                             id: baseId + 2,
+                             title: 'Vaccine Due Now',
+                             body: '${nameController.text.trim()} is due now.',
+                             delay: dueDateTime.difference(now),
                            );
                          }
                       }
@@ -620,8 +772,50 @@ class VaccinationTrackerScreen extends ConsumerWidget {
           TextButton(
             child: const Text('Delete Log', style: TextStyle(color: Colors.red)),
             onPressed: () {
-              ref.read(recordsProvider.notifier).deleteRecord(record.id);
               Navigator.pop(ctx);
+              showDialog(
+                context: context,
+                builder: (confirmCtx) => AlertDialog(
+                  title: const Text('Confirm Delete'),
+                  content: const Text('Are you sure you want to delete this vaccine log?'),
+                  actions: [
+                    TextButton(child: const Text('Cancel'), onPressed: () => Navigator.pop(confirmCtx)),
+                    TextButton(
+                      child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                      onPressed: () {
+                        ref.read(recordsProvider.notifier).deleteRecord(record.id);
+                        Navigator.pop(confirmCtx);
+                      },
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeletePendingCustomDialog(BuildContext context, WidgetRef ref, VaccineDisplayItem item) {
+    showDialog(
+      context: context,
+      builder: (confirmCtx) => AlertDialog(
+        title: const Text('Delete Custom Vaccine'),
+        content: Text('Are you sure you want to delete ${item.name}?'),
+        actions: [
+          TextButton(child: const Text('Cancel'), onPressed: () => Navigator.pop(confirmCtx)),
+          TextButton(
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            onPressed: () {
+              if (item.customPendingRecord != null) {
+                ref.read(recordsProvider.notifier).deleteRecord(item.customPendingRecord!.id);
+                final baseId = item.customPendingRecord!.id.hashCode.abs() % 100000;
+                ReminderService.cancelReminder(baseId);
+                ReminderService.cancelReminder(baseId + 1);
+                ReminderService.cancelReminder(baseId + 2);
+              }
+              Navigator.pop(confirmCtx);
             },
           ),
         ],

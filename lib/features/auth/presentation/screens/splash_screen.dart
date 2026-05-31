@@ -71,7 +71,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       debugPrint(
           '🔍 [Splash] babies.count=${babies.length}, hasBabies=$hasBabies, activeBabyId=$activeBabyId');
 
-      if (AppConfig.enableFirebaseAuth) {
+      final isOfflineMode = prefs.getBool('is_offline_mode') ?? false;
+
+      if (AppConfig.enableFirebaseAuth && !isOfflineMode) {
         // FIX #1: Await full Firebase auth state restoration before reading currentUser.
         // FirebaseAuth.instance.currentUser is synchronous and may be null on cold
         // start even for signed-in users — the SDK hasn't finished restoring the
