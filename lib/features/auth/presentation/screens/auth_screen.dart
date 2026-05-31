@@ -27,37 +27,42 @@ class _AuthScreenState extends State<AuthScreen> {
     });
 
     try {
-      // 1. Trigger Google Sign In flow
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      final googleSignIn = GoogleSignIn();
+
+      // Try silent sign-in first (for returning users — no dialog, no error)
+      GoogleSignInAccount? googleUser = await googleSignIn.signInSilently();
+
+      // If silent failed (first time or signed out), show the full sign-in dialog
+      googleUser ??= await googleSignIn.signIn();
 
       if (googleUser == null) {
-        // User canceled the sign-in flow
+        // User cancelled the sign-in dialog
         setState(() => _isLoading = false);
         return;
       }
 
-      // 2. Obtain auth details from the request
+      // Obtain auth details
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
-      // 3. Create a new credential for Firebase
+      // Create Firebase credential
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      // 4. Sign in to Firebase with the credential
+      // Sign in to Firebase
       await FirebaseAuth.instance.signInWithCredential(credential);
 
-      // 4.5 Restore Cloud Data Immediately on Login
+      // Sync cloud data
       await SyncService.syncCloudDataToLocal();
       await SyncService.syncOfflineDataToCloud();
 
-      // 5. Navigate to PIN setup upon success
-      if (mounted) {
-        setState(() => _isLoading = false);
-        context.go('/pin_setup');
-      }
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      // Go directly to home — biometric re-auth will trigger on next session expiry
+      context.go('/home');
     } on FirebaseAuthException catch (e) {
       setState(() {
         _isLoading = false;
@@ -66,8 +71,9 @@ class _AuthScreenState extends State<AuthScreen> {
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _errorMessage = 'An unexpected error occurred. Please try again.';
+        _errorMessage = 'Sign-in failed. Please try again.';
       });
+      debugPrint('🔴 [Auth] Google sign-in error: $e');
     }
   }
 

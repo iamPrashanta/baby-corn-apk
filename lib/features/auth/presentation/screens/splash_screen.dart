@@ -8,6 +8,7 @@ import '../../../../core/local_storage/secure_storage_manager.dart';
 import '../../data/repositories/baby_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../core/config/app_config.dart';
 
@@ -29,6 +30,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     await Future.delayed(const Duration(seconds: 2));
 
     try {
+      // Check if app was launched from a notification alarm
       final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
           FlutterLocalNotificationsPlugin();
       final NotificationAppLaunchDetails? notificationAppLaunchDetails =
@@ -43,50 +45,55 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         context.go('/alarm', extra: payload);
         return;
       }
-      final prefs = await SharedPreferences.getInstance();
-      final hasSelectedLanguage =
-          prefs.getBool('has_selected_language') ?? false;
 
-      final hasPin = await SecureStorageManager.hasPin();
+      // --- Check language selection ---
+      final prefs = await SharedPreferences.getInstance();
+      final hasSelectedLanguage = prefs.getBool('has_selected_language') ?? false;
+
+      if (!hasSelectedLanguage) {
+        if (mounted) context.go('/language');
+        return;
+      }
+
+      // --- Read baby list (migration already complete by this point) ---
       final babies = ref.read(babyRepositoryProvider).getBabies();
       final hasBabies = babies.isNotEmpty;
       debugPrint("🔍 [Splash] hasSelectedLanguage=$hasSelectedLanguage, hasBabies=$hasBabies (count=${babies.length})");
 
-      if (!hasSelectedLanguage) {
-        context.go('/language');
-        return;
-      }
-
       if (AppConfig.enableFirebaseAuth) {
-        if (!hasPin) {
-          context.go('/auth');
-        } else {
+        // Check if already signed in to Firebase
+        final currentUser = FirebaseAuth.instance.currentUser;
+        debugPrint("🔍 [Splash] currentUser=${currentUser?.email}");
+
+        if (currentUser != null) {
+          // ✅ Returning user: already authenticated with Firebase
+          // Check session expiry for biometric re-verification
+          if (!mounted) return;
           final isExpired = await SecureStorageManager.isSessionExpired();
           if (!mounted) return;
           if (isExpired) {
+            // Ask for biometric re-authentication
             context.go('/pin_verify');
           } else {
             await SecureStorageManager.updateLastActiveTime();
-            if (hasBabies) {
-              context.go('/home');
-            } else {
-              context.go('/onboarding');
-            }
+            context.go(hasBabies ? '/home' : '/onboarding');
           }
+        } else {
+          // Not signed in → show auth/Google sign-in screen
+          if (mounted) context.go('/auth');
         }
       } else {
-        // Local-First Offline Logic - NO PIN required
+        // Local-First Offline mode — no Firebase auth required
         if (!hasBabies) {
-          context.go('/onboarding');
+          if (mounted) context.go('/onboarding');
         } else {
-          // Update last active time for consistency, though session doesn't expire without PIN
           await SecureStorageManager.updateLastActiveTime();
-          context.go('/home');
+          if (mounted) context.go('/home');
         }
       }
     } catch (e) {
-      // Safe fallback: go to onboarding if anything fails during startup routing
-      debugPrint('SplashScreen routing error: $e');
+      debugPrint('🔴 [Splash] Routing error: $e');
+      // Safe fallback: show onboarding (never show auth on error to avoid loop)
       if (mounted) context.go('/onboarding');
     }
   }
