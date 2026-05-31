@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/glass_system/glass_colors.dart';
 import '../../domain/models/food_library_item.dart';
 

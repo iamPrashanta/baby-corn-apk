@@ -1,4 +1,4 @@
-// core/constants/app_motion.dart
+// core/theme/app_motion.dart
 
 import 'package:flutter/material.dart';
 

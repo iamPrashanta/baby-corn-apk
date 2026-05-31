@@ -9,7 +9,7 @@ import '../../domain/models/sanskar_model.dart';
 import '../../domain/services/sanskar_date_engine.dart';
 import '../providers/sanskar_provider.dart';
 import '../widgets/sanskar_detail_sheet.dart';
-import '../../../../core/constants/app_colors.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/locale_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/widgets/custom_app_bar.dart';

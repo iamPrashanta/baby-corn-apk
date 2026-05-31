@@ -1,9 +1,10 @@
 // core/theme/app_theme.dart
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../constants/app_colors.dart';
-import '../constants/app_radius.dart';
+import 'app_colors.dart';
+import 'app_radius.dart';
+import 'app_typography.dart';
+import 'app_shadows.dart';
 
 class AppTheme {
   static ThemeData get lightTheme {
@@ -22,12 +23,7 @@ class AppTheme {
         onSurface: AppColors.textPrimary,
       ),
       scaffoldBackgroundColor: AppColors.background,
-      textTheme: GoogleFonts.nunitoTextTheme().copyWith(
-        displayLarge: GoogleFonts.nunito(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
-        displayMedium: GoogleFonts.nunito(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
-        bodyLarge: GoogleFonts.nunito(color: AppColors.textPrimary),
-        bodyMedium: GoogleFonts.nunito(color: AppColors.textSecondary),
-      ),
+      textTheme: AppTypography.getTextTheme(isDark: false),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.background,
         elevation: 0,
@@ -55,7 +51,7 @@ class AppTheme {
           ),
         ),
       ),
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 4,
@@ -66,7 +62,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: AppColors.surface,
         elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.05),
+        shadowColor: AppShadows.lightCardShadow.first.color,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.cardBorder,
         ),
@@ -97,12 +93,7 @@ class AppTheme {
         onSurface: AppColors.darkTextPrimary,
       ),
       scaffoldBackgroundColor: AppColors.darkBackground,
-      textTheme: GoogleFonts.nunitoTextTheme(ThemeData.dark().textTheme).copyWith(
-        displayLarge: GoogleFonts.nunito(color: AppColors.darkTextPrimary, fontWeight: FontWeight.bold),
-        displayMedium: GoogleFonts.nunito(color: AppColors.darkTextPrimary, fontWeight: FontWeight.bold),
-        bodyLarge: GoogleFonts.nunito(color: AppColors.darkTextPrimary),
-        bodyMedium: GoogleFonts.nunito(color: AppColors.darkTextSecondary),
-      ),
+      textTheme: AppTypography.getTextTheme(isDark: true),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.darkBackground,
         elevation: 0,
@@ -121,7 +112,7 @@ class AppTheme {
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: AppRadius.buttonBorder,
           ),
           textStyle: const TextStyle(
             fontSize: 17,
@@ -130,18 +121,18 @@ class AppTheme {
           ),
         ),
       ),
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 4,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(20)),
+          borderRadius: AppRadius.buttonBorder,
         ),
       ),
       cardTheme: CardThemeData(
         color: AppColors.darkSurface,
         elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.2),
+        shadowColor: AppShadows.darkCardShadow.first.color,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.cardBorder,
         ),

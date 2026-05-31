@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../providers/reminder_settings_provider.dart';
 import '../../domain/models/reminder_settings_model.dart';
-import '../../../../core/constants/app_colors.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/reminder_service.dart';
 
 class RemindersSettingScreen extends ConsumerWidget {

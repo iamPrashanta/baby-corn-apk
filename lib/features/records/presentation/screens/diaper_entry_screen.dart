@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../providers/records_provider.dart';
 import '../../domain/models/record_model.dart';
-import '../../../../core/constants/app_colors.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class DiaperEntryScreen extends ConsumerStatefulWidget {
   final String? initialStatus;

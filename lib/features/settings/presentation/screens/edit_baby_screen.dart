@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../auth/domain/models/baby_model.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
-import '../../../../core/constants/app_colors.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class EditBabyScreen extends ConsumerStatefulWidget {
   final BabyModel baby;

@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import '../../../../core/constants/app_colors.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../widgets/sync_details_sheet.dart';
 import '../../../../core/local_storage/secure_storage_manager.dart';
 import '../../../../core/config/app_config.dart';

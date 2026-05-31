@@ -7,7 +7,7 @@ import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
 import '../providers/records_provider.dart';
 import '../../domain/models/record_model.dart';
-import '../../../../core/constants/app_colors.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class MoodEntryScreen extends ConsumerStatefulWidget {
   const MoodEntryScreen({super.key});

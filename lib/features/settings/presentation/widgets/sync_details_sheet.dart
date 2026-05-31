@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/local_storage/hive_manager.dart';
 import '../../../../core/services/sync_service.dart';
-import '../../../../core/constants/app_colors.dart';
+import '../../../../core/theme/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
 import '../../../records/presentation/providers/records_provider.dart';
