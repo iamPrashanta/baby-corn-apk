@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import '../providers/reminder_settings_provider.dart';
 import '../../domain/models/reminder_settings_model.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -18,9 +19,10 @@ class ReminderDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
-  late bool _isRepeat;
+  late String _mode;
   late int _repeatHours;
   late TimeOfDay _exactTime;
+  DateTime? _nextScheduledTime;
 
   @override
   void initState() {
@@ -28,13 +30,14 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
     final settings = ref.read(reminderSettingsProvider);
     final catSettings = _getCatSettings(settings);
 
-    _isRepeat = catSettings.isRepeat;
+    _mode = catSettings.mode;
     _repeatHours = catSettings.repeatHours;
+    _nextScheduledTime = catSettings.nextScheduledTime;
 
     final parts = catSettings.exactTime.split(':');
     _exactTime = TimeOfDay(
-      hour: int.tryParse(parts[0]) ?? 8,
-      minute: int.tryParse(parts[1]) ?? 0,
+      hour: parts.isNotEmpty ? (int.tryParse(parts[0]) ?? 8) : 8,
+      minute: parts.length > 1 ? (int.tryParse(parts[1]) ?? 0) : 0,
     );
   }
 
@@ -53,7 +56,7 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
         '${_exactTime.hour.toString().padLeft(2, '0')}:${_exactTime.minute.toString().padLeft(2, '0')}';
 
     final updated = currentSettings.copyWith(
-      isRepeat: _isRepeat,
+      mode: _mode,
       repeatHours: _repeatHours,
       exactTime: formattedTime,
     );
@@ -62,30 +65,14 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
     if (widget.category == 'sleep') notifier.updateSleep(updated);
     if (widget.category == 'diaper') notifier.updateDiaper(updated);
 
-    if (updated.isEnabled) {
-      final now = DateTime.now();
-      DateTime ringTime;
-      if (_isRepeat) {
-        ringTime = now.add(Duration(hours: _repeatHours));
-      } else {
-        ringTime = DateTime(
-            now.year, now.month, now.day, _exactTime.hour, _exactTime.minute);
-        if (ringTime.isBefore(now)) {
-          ringTime = ringTime.add(const Duration(days: 1));
-        }
-      }
-      final timeString =
-          "${ringTime.hour.toString().padLeft(2, '0')}:${ringTime.minute.toString().padLeft(2, '0')}";
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${_getCategoryTitle()} set to ring at $timeString'),
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
-    }
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${_getCategoryTitle()} settings saved!'),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
 
     context.pop();
   }
@@ -119,15 +106,17 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
           children: [
             // Segmented Control
             Center(
-              child: SegmentedButton<bool>(
-                segments: const [
-                  ButtonSegment(value: true, label: Text('Repeat Interval')),
-                  ButtonSegment(value: false, label: Text('Exact Time')),
+              child: SegmentedButton<String>(
+                segments: [
+                  const ButtonSegment(value: 'exact', label: Text('Exact')),
+                  const ButtonSegment(value: 'repeat', label: Text('Repeat')),
+                  if (widget.category == 'feeding') // Show Smart only for feeding currently
+                    const ButtonSegment(value: 'smart', label: Text('Smart')),
                 ],
-                selected: {_isRepeat},
-                onSelectionChanged: (Set<bool> newSelection) {
+                selected: {_mode},
+                onSelectionChanged: (Set<String> newSelection) {
                   setState(() {
-                    _isRepeat = newSelection.first;
+                    _mode = newSelection.first;
                   });
                 },
                 style: ButtonStyle(
@@ -142,13 +131,64 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: 32),
 
-            if (_isRepeat) ...[
-              const Text(
-                'Repeat Every',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            if (_nextScheduledTime != null) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Next Scheduled Trigger:',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      DateFormat('MMM d, yyyy • hh:mm a').format(_nextScheduledTime!),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (_mode == 'exact' && _nextScheduledTime!.day != DateTime.now().day) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        "Today's reminder time has passed. Next reminder scheduled for tomorrow.",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
+              const SizedBox(height: 32),
+            ],
+
+            if (_mode == 'repeat' || _mode == 'smart') ...[
+              Text(
+                _mode == 'smart' ? 'Wait Between Feeds' : 'Repeat Every',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              if (_mode == 'smart') ...[
+                const SizedBox(height: 8),
+                Text(
+                  'Calculated automatically from your last feeding record.',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -179,7 +219,7 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
                   ),
                 ],
               ),
-            ] else ...[
+            ] else if (_mode == 'exact') ...[
               const Text(
                 'Remind At',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),

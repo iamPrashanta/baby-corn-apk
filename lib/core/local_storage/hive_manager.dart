@@ -5,6 +5,9 @@ import '../../features/records/domain/models/record_model.dart';
 import '../../features/records/domain/models/active_session_model.dart';
 import '../../features/guide/domain/models/sanskar_model.dart';
 import '../../features/development/domain/models/moment_model.dart';
+import '../../features/medication/domain/models/medication_model.dart';
+import '../../features/medication/domain/models/medication_log_model.dart';
+import '../../features/settings/domain/models/family_member_model.dart';
 
 class HiveManager {
   static const String babyProfileBox = 'baby_profile';
@@ -16,6 +19,9 @@ class HiveManager {
   static const String activeSessionBox = 'active_session';
   static const String sanskarsBox = 'sanskars';
   static const String momentsBox = 'moments';
+  static const String medicationsBox = 'medications';
+  static const String medicationLogsBox = 'medication_logs';
+  static const String familyMembersBox = 'family_members';
 
   static Future<void> init() async {
     await Hive.initFlutter();
@@ -39,6 +45,15 @@ class HiveManager {
     if (!Hive.isAdapterRegistered(20)) {
       Hive.registerAdapter(MomentModelAdapter());
     }
+    if (!Hive.isAdapterRegistered(30)) {
+      Hive.registerAdapter(MedicationModelAdapter());
+    }
+    if (!Hive.isAdapterRegistered(31)) {
+      Hive.registerAdapter(MedicationLogModelAdapter());
+    }
+    if (!Hive.isAdapterRegistered(40)) {
+      Hive.registerAdapter(FamilyMemberModelAdapter());
+    }
     
     // Open Boxes
     await Future.wait([
@@ -51,6 +66,9 @@ class HiveManager {
       Hive.openBox<ActiveSessionModel>(activeSessionBox),
       Hive.openBox<SanskarModel>(sanskarsBox),
       Hive.openBox<MomentModel>(momentsBox),
+      Hive.openBox<MedicationModel>(medicationsBox),
+      Hive.openBox<MedicationLogModel>(medicationLogsBox),
+      Hive.openBox<FamilyMemberModel>(familyMembersBox),
     ]);
   }
 
@@ -58,6 +76,9 @@ class HiveManager {
   static Box<ActiveSessionModel> getActiveSessionBox() => Hive.box<ActiveSessionModel>(activeSessionBox);
   static Box<SanskarModel> getSanskarsBox() => Hive.box<SanskarModel>(sanskarsBox);
   static Box<MomentModel> getMomentsBox() => Hive.box<MomentModel>(momentsBox);
+  static Box<MedicationModel> getMedicationsBox() => Hive.box<MedicationModel>(medicationsBox);
+  static Box<MedicationLogModel> getMedicationLogsBox() => Hive.box<MedicationLogModel>(medicationLogsBox);
+  static Box<FamilyMemberModel> getFamilyMembersBox() => Hive.box<FamilyMemberModel>(familyMembersBox);
   static Box getSyncQueueBox() => Hive.box(syncQueueBox);
   static Box getSettingsBox() => Hive.box(settingsBox);
   static Box getProfileBox() => Hive.box(babyProfileBox);

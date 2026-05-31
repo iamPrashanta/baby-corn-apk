@@ -23,6 +23,10 @@ import '../../features/settings/presentation/screens/edit_baby_screen.dart';
 import '../../features/settings/presentation/screens/reminders_setting_screen.dart';
 import '../../features/settings/presentation/screens/reminder_detail_screen.dart';
 import '../../features/auth/presentation/providers/baby_provider.dart';
+import '../../features/settings/presentation/screens/reminder_diagnostics_screen.dart';
+import '../../features/medication/presentation/screens/medication_dashboard_screen.dart';
+import '../../features/medication/presentation/screens/medication_history_screen.dart';
+import '../../features/settings/presentation/screens/family_sharing_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -89,6 +93,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const VaccinationTrackerScreen(),
       ),
       GoRoute(
+        path: '/medications',
+        builder: (context, state) => const MedicationDashboardScreen(),
+      ),
+      GoRoute(
+        path: '/medicine/history',
+        builder: (context, state) => const MedicationHistoryScreen(),
+      ),
+      GoRoute(
         path: '/subscription',
         builder: (context, state) => const SubscriptionScreen(),
       ),
@@ -118,6 +130,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           final category = state.extra as String;
           return ReminderDetailScreen(category: category);
         },
+      ),
+      GoRoute(
+        path: '/family_sharing',
+        builder: (context, state) => const FamilySharingScreen(),
+      ),
+      GoRoute(
+        path: '/reminder_diagnostics',
+        builder: (context, state) => const ReminderDiagnosticsScreen(),
       ),
     ],
   );

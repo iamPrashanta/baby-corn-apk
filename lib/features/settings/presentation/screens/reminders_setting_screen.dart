@@ -165,29 +165,17 @@ class RemindersSettingScreen extends ConsumerWidget {
               ),
             ),
 
-            // Diagnostic Test
+            // Diagnostic Screen
             const SizedBox(height: 32),
             ElevatedButton.icon(
-              onPressed: () async {
-                await ReminderService.scheduleReminder(
-                  id: 5000,
-                  title: 'Debug Test',
-                  body: 'Reminder engine working',
-                  delay: const Duration(seconds: 10),
-                );
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text(
-                            'Test alarm scheduled in 10 seconds. Close or background the app to test!')),
-                  );
-                }
+              onPressed: () {
+                context.push('/reminder_diagnostics');
               },
-              icon: const Icon(Icons.bug_report),
-              label: const Text('Run Diagnostic Test (30s delay)'),
+              icon: const Icon(Icons.health_and_safety_outlined),
+              label: const Text('Reminder Diagnostics'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange.withOpacity(0.1),
-                foregroundColor: Colors.orange[800],
+                backgroundColor: AppColors.primary.withOpacity(0.1),
+                foregroundColor: AppColors.primary,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
@@ -208,9 +196,14 @@ class RemindersSettingScreen extends ConsumerWidget {
     required String category,
     required ReminderCategorySettings catSettings,
   }) {
-    final subtitleText = catSettings.isRepeat
-        ? 'Repeat after ${catSettings.repeatHours} hr'
-        : 'Exact time: ${catSettings.exactTime}';
+    String subtitleText = '';
+    if (catSettings.mode == 'smart') {
+      subtitleText = 'Smart Mode: Wait ${catSettings.repeatHours} hr after action';
+    } else if (catSettings.mode == 'repeat') {
+      subtitleText = 'Repeat every ${catSettings.repeatHours} hr';
+    } else {
+      subtitleText = 'Exact time: ${catSettings.exactTime}';
+    }
 
     return ListTile(
       leading: Text(emoji, style: const TextStyle(fontSize: 24)),
@@ -225,37 +218,6 @@ class RemindersSettingScreen extends ConsumerWidget {
           if (category == 'feeding') notifier.updateFeeding(updated);
           if (category == 'sleep') notifier.updateSleep(updated);
           if (category == 'diaper') notifier.updateDiaper(updated);
-
-          if (val) {
-            final now = DateTime.now();
-            DateTime ringTime;
-            if (catSettings.isRepeat) {
-              ringTime = now.add(Duration(hours: catSettings.repeatHours));
-            } else {
-              final parts = catSettings.exactTime.split(':');
-              if (parts.length == 2) {
-                final h = int.tryParse(parts[0]) ?? 0;
-                final m = int.tryParse(parts[1]) ?? 0;
-                ringTime = DateTime(now.year, now.month, now.day, h, m);
-                if (ringTime.isBefore(now)) {
-                  ringTime = ringTime.add(const Duration(days: 1));
-                }
-              } else {
-                ringTime = now;
-              }
-            }
-            final timeString =
-                "${ringTime.hour.toString().padLeft(2, '0')}:${ringTime.minute.toString().padLeft(2, '0')}";
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('$emoji $title set to ring at $timeString'),
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-              ),
-            );
-          }
         },
       ),
       onTap: () {

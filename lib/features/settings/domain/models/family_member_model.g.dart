@@ -1,47 +1,53 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'moment_model.dart';
+part of 'family_member_model.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class MomentModelAdapter extends TypeAdapter<MomentModel> {
+class FamilyMemberModelAdapter extends TypeAdapter<FamilyMemberModel> {
   @override
-  final int typeId = 20;
+  final int typeId = 40;
 
   @override
-  MomentModel read(BinaryReader reader) {
+  FamilyMemberModel read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return MomentModel(
+    return FamilyMemberModel(
       id: fields[0] as String,
       babyId: fields[1] as String,
-      timestamp: fields[2] as DateTime,
-      title: fields[3] as String,
-      description: fields[4] as String,
-      imagePath: fields[5] as String,
+      name: fields[2] as String,
+      phoneNumber: fields[3] as String,
+      email: fields[4] as String,
+      role: fields[5] as String,
+      status: fields[6] as String,
+      invitedAt: fields[7] as DateTime?,
     );
   }
 
   @override
-  void write(BinaryWriter writer, MomentModel obj) {
+  void write(BinaryWriter writer, FamilyMemberModel obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
       ..write(obj.babyId)
       ..writeByte(2)
-      ..write(obj.timestamp)
+      ..write(obj.name)
       ..writeByte(3)
-      ..write(obj.title)
+      ..write(obj.phoneNumber)
       ..writeByte(4)
-      ..write(obj.description)
+      ..write(obj.email)
       ..writeByte(5)
-      ..write(obj.imagePath);
+      ..write(obj.role)
+      ..writeByte(6)
+      ..write(obj.status)
+      ..writeByte(7)
+      ..write(obj.invitedAt);
   }
 
   @override
@@ -50,7 +56,7 @@ class MomentModelAdapter extends TypeAdapter<MomentModel> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is MomentModelAdapter &&
+      other is FamilyMemberModelAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

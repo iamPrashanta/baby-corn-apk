@@ -252,7 +252,10 @@ class AddRecordModal extends ConsumerWidget {
           // Coming Soon row
           Row(
             children: [
-              Expanded(child: _CategoryTile(emoji: '💊', label: 'Medicine', color: Colors.orange, isActive: false, onTap: () {})),
+              Expanded(child: _CategoryTile(emoji: '💊', label: 'Medicine', color: Colors.orange, isActive: true, onTap: () {
+                Navigator.pop(context);
+                context.push('/medications');
+              })),
               const SizedBox(width: 12),
               Expanded(child: const SizedBox()),
               const SizedBox(width: 12),

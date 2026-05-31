@@ -33,12 +33,12 @@ class ReminderSettingsNotifier extends StateNotifier<ReminderSettingsModel> {
   }
 
   Future<void> _saveSettings(ReminderSettingsModel newSettings) async {
-    state = newSettings;
-    final box = HiveManager.getSettingsBox();
-    await box.put(_settingsKey, jsonEncode(newSettings.toJson()));
+    // Also trigger actual schedule updates via ReminderService
+    final updatedSettings = await ReminderService.updateSchedules(newSettings);
 
-    // Also trigger actual schedule updates via ReminderService if needed
-    await ReminderService.updateSchedules(newSettings);
+    state = updatedSettings;
+    final box = HiveManager.getSettingsBox();
+    await box.put(_settingsKey, jsonEncode(updatedSettings.toJson()));
   }
 
   void toggleMaster(bool isEnabled) {

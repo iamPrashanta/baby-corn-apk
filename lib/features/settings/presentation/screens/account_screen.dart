@@ -19,9 +19,7 @@ import '../../../../core/providers/locale_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../providers/theme_provider.dart';
 import '../providers/premium_provider.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:permission_handler/permission_handler.dart';
+
 
 class AccountScreen extends ConsumerStatefulWidget {
   const AccountScreen({super.key});
@@ -304,85 +302,12 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                   title: const Text('Family Sharing'),
                   subtitle: const Text('Invite partner or family member'),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () async {
+                  onTap: () {
                     if (!isPremium) {
                       context.push('/subscription');
                       return;
                     }
-
-                    // 1. Request Contacts Permission
-                    final status = await Permission.contacts.request();
-                    if (!status.isGranted) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text(
-                                  'Contacts permission is required to invite family members.')),
-                        );
-                      }
-                      return;
-                    }
-
-                    // 2. Open Native Contact Picker
-                    final contact = await FlutterContacts.native
-                        .showPicker(properties: {ContactProperty.phone});
-                    if (contact == null) return; // User canceled
-
-                    // 3. Try to get a phone number
-                    if (contact.phones.isEmpty) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text(
-                                  'Selected contact has no phone number.')),
-                        );
-                      }
-                      return;
-                    }
-
-                    final phoneNumber = contact.phones.first.number;
-                    final contactName = contact.displayName;
-
-                    // 4. Show Disclaimer Dialog
-                    if (mounted) {
-                      final confirm = await showDialog<bool>(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: Text('Invite $contactName?'),
-                          content: const Text(
-                            'An SMS invitation will be sent to their number.\n\n'
-                            'Disclaimer: Standard SMS charges may apply from your network provider. Baby Corn does not charge anything.',
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(ctx).pop(false),
-                              child: const Text('Cancel'),
-                            ),
-                            FilledButton(
-                              onPressed: () => Navigator.of(ctx).pop(true),
-                              child: const Text('Send SMS'),
-                            ),
-                          ],
-                        ),
-                      );
-
-                      // 5. Launch SMS App
-                      if (confirm == true) {
-                        final uri = Uri.parse(
-                            "sms:$phoneNumber?body=Hey! Join me on Baby Corn to manage our baby's profile together. Download it here: https://play.google.com/store/apps/details?id=com.babycorn.app");
-                        if (await canLaunchUrl(uri)) {
-                          await launchUrl(uri);
-                        } else {
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content:
-                                      Text('Could not open messaging app.')),
-                            );
-                          }
-                        }
-                      }
-                    }
+                    context.push('/family_sharing');
                   },
                 ),
             ],

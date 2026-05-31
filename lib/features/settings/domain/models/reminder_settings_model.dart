@@ -2,46 +2,73 @@
 
 class ReminderCategorySettings {
   final bool isEnabled;
-  final bool isRepeat; // true = interval (e.g. 3 hrs), false = exact time
+  final bool isRepeat; // Deprecated: true = interval, false = exact time
+  final String mode; // 'exact', 'repeat', 'smart'
   final int repeatHours;
   final String exactTime; // format "HH:mm"
+  final DateTime? nextScheduledTime;
+  final DateTime? lastTriggeredTime;
 
   const ReminderCategorySettings({
     this.isEnabled = false,
     this.isRepeat = true,
+    this.mode = 'repeat',
     this.repeatHours = 3,
     this.exactTime = "08:00",
+    this.nextScheduledTime,
+    this.lastTriggeredTime,
   });
 
   factory ReminderCategorySettings.fromJson(Map<String, dynamic> json) {
+    // Handle backward compatibility
+    final bool legacyIsRepeat = json['isRepeat'] as bool? ?? true;
+    final String parsedMode = json['mode'] as String? ?? (legacyIsRepeat ? 'repeat' : 'exact');
+
     return ReminderCategorySettings(
       isEnabled: json['isEnabled'] as bool? ?? false,
-      isRepeat: json['isRepeat'] as bool? ?? true,
+      isRepeat: legacyIsRepeat,
+      mode: parsedMode,
       repeatHours: json['repeatHours'] as int? ?? 3,
       exactTime: json['exactTime'] as String? ?? "08:00",
+      nextScheduledTime: json['nextScheduledTime'] != null
+          ? DateTime.parse(json['nextScheduledTime'] as String)
+          : null,
+      lastTriggeredTime: json['lastTriggeredTime'] != null
+          ? DateTime.parse(json['lastTriggeredTime'] as String)
+          : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'isEnabled': isEnabled,
-      'isRepeat': isRepeat,
+      'isRepeat': isRepeat, // Keep for backward compatibility
+      'mode': mode,
       'repeatHours': repeatHours,
       'exactTime': exactTime,
+      if (nextScheduledTime != null) 'nextScheduledTime': nextScheduledTime!.toIso8601String(),
+      if (lastTriggeredTime != null) 'lastTriggeredTime': lastTriggeredTime!.toIso8601String(),
     };
   }
 
   ReminderCategorySettings copyWith({
     bool? isEnabled,
     bool? isRepeat,
+    String? mode,
     int? repeatHours,
     String? exactTime,
+    DateTime? nextScheduledTime,
+    DateTime? lastTriggeredTime,
+    bool clearNextScheduledTime = false,
   }) {
     return ReminderCategorySettings(
       isEnabled: isEnabled ?? this.isEnabled,
       isRepeat: isRepeat ?? this.isRepeat,
+      mode: mode ?? this.mode,
       repeatHours: repeatHours ?? this.repeatHours,
       exactTime: exactTime ?? this.exactTime,
+      nextScheduledTime: clearNextScheduledTime ? null : (nextScheduledTime ?? this.nextScheduledTime),
+      lastTriggeredTime: lastTriggeredTime ?? this.lastTriggeredTime,
     );
   }
 }

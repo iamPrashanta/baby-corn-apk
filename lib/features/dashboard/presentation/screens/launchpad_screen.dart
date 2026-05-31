@@ -14,6 +14,8 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/app_bottom_sheet.dart';
 import '../../../records/presentation/providers/active_session_provider.dart';
 import '../../../records/presentation/widgets/timeline_tile.dart';
+import '../../../settings/presentation/providers/reminder_settings_provider.dart';
+import '../../../settings/domain/models/reminder_settings_model.dart';
 
 class LaunchpadScreen extends ConsumerWidget {
   const LaunchpadScreen({super.key});
@@ -24,6 +26,7 @@ class LaunchpadScreen extends ConsumerWidget {
     final activeBaby = ref.watch(activeBabyProvider);
     final allBabies = ref.watch(allBabiesProvider);
     final filterDate = ref.watch(timelineFilterDateProvider);
+    final reminderSettings = ref.watch(reminderSettingsProvider);
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -39,6 +42,7 @@ class LaunchpadScreen extends ConsumerWidget {
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 const SizedBox(height: 16),
+                _buildMissedReminders(context, reminderSettings, isDark),
                 _buildSummaryCard(context, recordsAsync, isDark),
                 const SizedBox(height: 32),
                 _buildTimelineHeader(context, ref, filterDate, isDark),
@@ -158,6 +162,56 @@ class LaunchpadScreen extends ConsumerWidget {
           ).animate().scale(
               duration: 600.ms, curve: Curves.easeOutBack, delay: 200.ms),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMissedReminders(BuildContext context, ReminderSettingsModel settings, bool isDark) {
+    final now = DateTime.now();
+    final missed = <String>[];
+
+    void check(ReminderCategorySettings cat, String title) {
+      if (cat.isEnabled && cat.nextScheduledTime != null) {
+        if (now.difference(cat.nextScheduledTime!).inMinutes >= 30) {
+          missed.add(title);
+        }
+      }
+    }
+
+    check(settings.feeding, 'Feeding');
+    check(settings.sleep, 'Sleep');
+    check(settings.diaper, 'Diaper');
+
+    if (missed.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Column(
+        children: missed.map((title) => Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.orange.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.orange.withOpacity(0.5)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  '⚠ Missed $title Reminder',
+                  style: TextStyle(
+                    color: isDark ? Colors.orange[300] : Colors.orange[800], 
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        )).toList(),
       ),
     );
   }

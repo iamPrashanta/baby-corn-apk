@@ -1,5 +1,3 @@
-// lib/features/guide/domain/models/sanskar_model.g.dart
-
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'sanskar_model.dart';
