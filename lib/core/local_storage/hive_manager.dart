@@ -8,6 +8,7 @@ import '../../features/development/domain/models/moment_model.dart';
 import '../../features/medication/domain/models/medication_model.dart';
 import '../../features/medication/domain/models/medication_log_model.dart';
 import '../../features/settings/domain/models/family_member_model.dart';
+import '../../features/guide/domain/models/food_intro_record.dart';
 
 class HiveManager {
   static const String babyProfileBox = 'baby_profile';
@@ -22,6 +23,7 @@ class HiveManager {
   static const String medicationsBox = 'medications';
   static const String medicationLogsBox = 'medication_logs';
   static const String familyMembersBox = 'family_members';
+  static const String foodTrackerBox = 'food_tracker';
 
   static Future<void> init() async {
     await Hive.initFlutter();
@@ -54,6 +56,12 @@ class HiveManager {
     if (!Hive.isAdapterRegistered(40)) {
       Hive.registerAdapter(FamilyMemberModelAdapter());
     }
+    if (!Hive.isAdapterRegistered(50)) {
+      Hive.registerAdapter(FoodIntroStatusAdapter());
+    }
+    if (!Hive.isAdapterRegistered(51)) {
+      Hive.registerAdapter(FoodIntroRecordAdapter());
+    }
     
     // Open Boxes
     await Future.wait([
@@ -69,6 +77,7 @@ class HiveManager {
       Hive.openBox<MedicationModel>(medicationsBox),
       Hive.openBox<MedicationLogModel>(medicationLogsBox),
       Hive.openBox<FamilyMemberModel>(familyMembersBox),
+      Hive.openBox<FoodIntroRecord>(foodTrackerBox),
     ]);
   }
 
@@ -79,6 +88,7 @@ class HiveManager {
   static Box<MedicationModel> getMedicationsBox() => Hive.box<MedicationModel>(medicationsBox);
   static Box<MedicationLogModel> getMedicationLogsBox() => Hive.box<MedicationLogModel>(medicationLogsBox);
   static Box<FamilyMemberModel> getFamilyMembersBox() => Hive.box<FamilyMemberModel>(familyMembersBox);
+  static Box<FoodIntroRecord> getFoodTrackerBox() => Hive.box<FoodIntroRecord>(foodTrackerBox);
   static Box getSyncQueueBox() => Hive.box(syncQueueBox);
   static Box getSettingsBox() => Hive.box(settingsBox);
   static Box getProfileBox() => Hive.box(babyProfileBox);

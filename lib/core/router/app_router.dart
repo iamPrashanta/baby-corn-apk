@@ -27,6 +27,8 @@ import '../../features/settings/presentation/screens/alarm_screen.dart';
 import '../../features/medication/presentation/screens/medication_dashboard_screen.dart';
 import '../../features/medication/presentation/screens/medication_history_screen.dart';
 import '../../features/settings/presentation/screens/family_sharing_screen.dart';
+import '../../features/guide/presentation/screens/first_foods_screen.dart';
+import '../../features/guide/presentation/screens/food_tracker_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -141,6 +143,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           final payload = state.extra as String? ?? '';
           return AlarmScreen(payload: payload);
         },
+      ),
+      GoRoute(
+        path: '/guide/first_foods',
+        builder: (context, state) => const FirstFoodsScreen(),
+      ),
+      GoRoute(
+        path: '/guide/food_tracker',
+        builder: (context, state) => const FoodTrackerScreen(),
       ),
     ],
   );

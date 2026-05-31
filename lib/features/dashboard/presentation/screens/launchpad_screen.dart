@@ -17,6 +17,8 @@ import '../../../records/presentation/providers/active_session_provider.dart';
 import '../../../records/presentation/widgets/timeline_tile.dart';
 import '../../../settings/presentation/providers/reminder_settings_provider.dart';
 import '../../../settings/domain/models/reminder_settings_model.dart';
+import '../../../guide/domain/models/food_intro_record.dart';
+import '../../../guide/presentation/providers/food_tracker_provider.dart';
 
 class LaunchpadScreen extends ConsumerWidget {
   const LaunchpadScreen({super.key});
@@ -28,6 +30,7 @@ class LaunchpadScreen extends ConsumerWidget {
     final allBabies = ref.watch(allBabiesProvider);
     final filterDate = ref.watch(timelineFilterDateProvider);
     final reminderSettings = ref.watch(reminderSettingsProvider);
+    final foodRecords = ref.watch(foodTrackerProvider);
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -46,6 +49,7 @@ class LaunchpadScreen extends ConsumerWidget {
                 _buildMissedReminders(context, reminderSettings, isDark),
                 _buildSummaryCard(context, recordsAsync, isDark),
                 _buildUpcomingVaccineCard(context, recordsAsync, activeBaby, isDark),
+                _buildFoodObservationCard(context, foodRecords, isDark),
                 const SizedBox(height: 32),
                 _buildTimelineHeader(context, ref, filterDate, isDark),
               ]),
@@ -424,6 +428,101 @@ class LaunchpadScreen extends ConsumerWidget {
       },
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildFoodObservationCard(BuildContext context, List<FoodIntroRecord> records, bool isDark) {
+    final activeRecords = records.where((r) => r.status == FoodIntroStatus.observing).toList();
+    if (activeRecords.isEmpty) return const SizedBox.shrink();
+
+    final activeRecord = activeRecords.first;
+    final now = DateTime.now();
+    final difference = now.difference(activeRecord.dateIntroduced).inHours;
+    
+    int day;
+    String timeRemaining;
+    
+    if (difference < 24) {
+      day = 1;
+      timeRemaining = "${24 - difference}h remaining";
+    } else if (difference < 48) {
+      day = 2;
+      timeRemaining = "1 day remaining";
+    } else if (difference < 72) {
+      day = 3;
+      timeRemaining = "Last day of observation";
+    } else {
+      day = 3;
+      timeRemaining = "Observation complete.";
+    }
+
+    return GestureDetector(
+      onTap: () => context.push('/guide/food_tracker'),
+      child: Container(
+        margin: const EdgeInsets.only(top: 16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF2E221E) : const Color(0xFFFFF6ED),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.orange.withOpacity(0.3)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.orange.withOpacity(isDark ? 0.1 : 0.05),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            )
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Text('🍎', style: TextStyle(fontSize: 24)),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Food Observation',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.orange,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    activeRecord.foodName,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF4A4458),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Day $day of 3 • $timeRemaining',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark ? Colors.white60 : Colors.black54,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.orange),
+          ],
+        ),
+      )
+        .animate()
+        .fadeIn(duration: 600.ms, delay: 550.ms)
+        .slideY(begin: 0.05, end: 0),
     );
   }
 
