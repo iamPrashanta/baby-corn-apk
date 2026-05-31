@@ -8,6 +8,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/glass_system/glass_colors.dart';
 import '../../../../core/services/sync_service.dart';
+import '../../data/repositories/baby_repository.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -84,19 +85,27 @@ class _AuthScreenState extends State<AuthScreen> {
       if (!mounted) return;
       setState(() => _isLoading = false);
 
-      // Go directly to home — biometric re-auth will trigger on next session expiry
-      context.go('/home');
+      final repo = BabyRepository();
+      final hasBabies = repo.getBabies().isNotEmpty;
+
+      if (hasBabies) {
+         context.go('/home');
+      } else {
+         context.go('/onboarding');
+      }
     } on FirebaseAuthException catch (e) {
       setState(() {
         _isLoading = false;
         _errorMessage = e.message ?? 'Authentication failed.';
       });
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('GOOGLE LOGIN ERROR: $e');
+      debugPrint(st.toString());
+
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Sign-in failed. Please try again.';
+        _errorMessage = e.toString();
       });
-      debugPrint('🔴 [Auth] Google sign-in error: $e');
     }
   }
 

@@ -1,3 +1,5 @@
+// lib/features/medication/presentation/screens/medication_dashboard_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -44,14 +46,21 @@ class MedicationDashboardScreen extends ConsumerWidget {
         icon: const Icon(Icons.add),
         label: const Text('Add Medicine'),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: LiquidBackground(
         child: SafeScrollableWrapper(
+          applySafeArea: false,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            padding: EdgeInsets.only(
+              left: 20.0,
+              right: 20.0,
+              // top SafeArea handled manually below via SizedBox
+              // bottom: system nav bar + FAB clearance handled at end of list
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 120),
+                SizedBox(height: MediaQuery.of(context).padding.top + 72),
 
                 // Summary Section
                 Row(
@@ -86,6 +95,21 @@ class MedicationDashboardScreen extends ConsumerWidget {
                       ),
                     ),
                   ],
+                ),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        backgroundColor: Colors.transparent,
+                        isScrollControlled: true,
+                        builder: (context) => const AddMedicationScreen(),
+                      );
+                    },
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add Medicine'),
+                  ),
                 ),
                 const SizedBox(height: 24),
 
@@ -177,7 +201,9 @@ class MedicationDashboardScreen extends ConsumerWidget {
                   },
                 ),
 
-                const SizedBox(height: 100), // Space for FAB
+                SizedBox(
+                  height: MediaQuery.of(context).padding.bottom + 260,
+                ),
               ],
             ),
           ),
@@ -268,7 +294,9 @@ class MedicationDashboardScreen extends ConsumerWidget {
                       Text(
                         '${med.remainingQuantity} ${med.doseUnit} remaining${daysRemaining != null ? ' (≈ $daysRemaining days left)' : ''}',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                       ),
                     ],
@@ -288,7 +316,7 @@ class MedicationDashboardScreen extends ConsumerWidget {
               ],
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }
@@ -494,7 +522,7 @@ class MedicationDashboardScreen extends ConsumerWidget {
                 ],
               ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );
