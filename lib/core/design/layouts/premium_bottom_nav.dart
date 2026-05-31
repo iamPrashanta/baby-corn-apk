@@ -3,7 +3,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../tokens/colors.dart';
-import '../services/haptic_service.dart';
+import '../../../core/services/haptic_service.dart';
 
 class PremiumBottomNav extends StatelessWidget {
   final int currentIndex;

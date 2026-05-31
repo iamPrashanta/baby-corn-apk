@@ -4,11 +4,11 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../features/records/presentation/providers/active_session_provider.dart';
+import '../../../features/records/presentation/providers/active_session_provider.dart';
 import '../tokens/colors.dart';
-import '../services/haptic_service.dart';
-import 'timer_full_sheet.dart';
-import 'save_success_overlay.dart';
+import '../../../core/services/haptic_service.dart';
+import '../components/dialogs/timer_full_sheet.dart';
+import '../components/dialogs/save_success_overlay.dart';
 
 class FloatingTimerOverlay extends ConsumerStatefulWidget {
   const FloatingTimerOverlay({super.key});

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../tokens/colors.dart';
-import '../tokens/radius.dart';
-import '../tokens/shadows.dart';
+import '../../tokens/colors.dart';
+import '../../tokens/radius.dart';
+import '../../tokens/shadows.dart';
 
 class AppStatCard extends StatelessWidget {
   final String title;

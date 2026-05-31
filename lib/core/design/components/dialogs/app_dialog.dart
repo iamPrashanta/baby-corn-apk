@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../tokens/colors.dart';
-import '../tokens/radius.dart';
-import '../tokens/spacing.dart';
+import '../../tokens/colors.dart';
+import '../../tokens/radius.dart';
+import '../../tokens/spacing.dart';
 
 class AppDialog {
   static Future<T?> show<T>({
