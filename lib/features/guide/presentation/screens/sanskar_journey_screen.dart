@@ -12,6 +12,7 @@ import '../widgets/sanskar_detail_sheet.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/providers/locale_provider.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../core/widgets/custom_app_bar.dart';
 
 class SanskarJourneyScreen extends ConsumerWidget {
   const SanskarJourneyScreen({super.key});
@@ -22,9 +23,6 @@ class SanskarJourneyScreen extends ConsumerWidget {
     final activeBaby = ref.watch(activeBabyProvider);
     final birthDate = activeBaby?.birthDate ?? DateTime.now(); // Fallback
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final completedCount = sanskars.where((s) => s.isCompleted).length;
-    final total = sanskars.length;
 
     // Sort by effective date
     final sortedSanskars = List<SanskarModel>.from(sanskars)
@@ -38,8 +36,10 @@ class SanskarJourneyScreen extends ConsumerWidget {
     final isHindi = locale.languageCode == 'hi';
     final l10n = AppLocalizations.of(context)!;
 
-    return CustomScrollView(
-      slivers: [
+    return Scaffold(
+      appBar: CustomAppBar(title: l10n.spiritualJourney),
+      body: CustomScrollView(
+        slivers: [
         SliverPadding(
           padding: const EdgeInsets.all(24),
           sliver: SliverToBoxAdapter(
@@ -88,7 +88,8 @@ class SanskarJourneyScreen extends ConsumerWidget {
         ),
         const SliverToBoxAdapter(
             child: SizedBox(height: 120)), // Bottom nav padding
-      ],
+        ],
+      ),
     );
   }
 

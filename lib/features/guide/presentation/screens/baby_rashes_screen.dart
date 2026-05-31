@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/custom_app_bar.dart';
 
 class BabyRashesScreen extends StatelessWidget {
   const BabyRashesScreen({super.key});
@@ -68,10 +69,12 @@ class BabyRashesScreen extends StatelessWidget {
       },
     ];
 
-    return CustomScrollView(
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.all(24),
+    return Scaffold(
+      appBar: const CustomAppBar(title: "Baby Rashes"),
+      body: CustomScrollView(
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.all(24),
           sliver: SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,7 +227,8 @@ class BabyRashesScreen extends StatelessWidget {
           ),
         ),
         const SliverToBoxAdapter(child: SizedBox(height: 100)),
-      ],
+        ],
+      ),
     );
   }
 

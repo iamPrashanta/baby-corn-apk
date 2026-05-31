@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'sanskar_journey_screen.dart';
 import 'baby_cry_language_screen.dart';
 import 'baby_rashes_screen.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/theme/glass_system/glass_colors.dart';
 
@@ -14,14 +13,13 @@ class GuideMainScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: CustomAppBar(title: l10n.guides),
       body: GridView.count(
         crossAxisCount: 2,
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 120),
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
         childAspectRatio: 0.9,
