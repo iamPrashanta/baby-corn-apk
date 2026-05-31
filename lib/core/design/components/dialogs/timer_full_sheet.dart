@@ -1,4 +1,4 @@
-// lib/core/widgets/timer_full_sheet.dart
+// lib/core/design/components/dialogs/timer_full_sheet.dart
 
 import 'dart:math' as math;
 
@@ -6,9 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../features/records/presentation/providers/active_session_provider.dart';
-import '../theme/app_colors.dart';
+import '../tokens/colors.dart';
 import '../services/haptic_service.dart';
-import 'app_bottom_sheet.dart';
+import '../design/components/dialogs/app_bottom_sheet.dart';
 import 'save_success_overlay.dart';
 
 class TimerFullSheet extends ConsumerStatefulWidget {

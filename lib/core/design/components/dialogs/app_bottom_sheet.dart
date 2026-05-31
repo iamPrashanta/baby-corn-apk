@@ -1,4 +1,4 @@
-// lib/core/widgets/app_bottom_sheet.dart
+// lib/core/design/components/dialogs/app_bottom_sheet.dart
 
 import 'dart:ui';
 import 'package:flutter/material.dart';

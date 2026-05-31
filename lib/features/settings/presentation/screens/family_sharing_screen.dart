@@ -4,7 +4,7 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import '../../../../core/widgets/custom_app_bar.dart';
+import '../../../../core/design/layouts/custom_app_bar.dart';
 import '../../../../core/widgets/liquid_background.dart';
 import '../../../../core/widgets/safe_scrollable_wrapper.dart';
 import '../providers/family_provider.dart';

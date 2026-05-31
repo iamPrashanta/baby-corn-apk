@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_radius.dart';
-import '../theme/app_spacing.dart';
+import '../tokens/colors.dart';
+import '../tokens/radius.dart';
+import '../tokens/spacing.dart';
 
 class AppDialog {
   static Future<T?> show<T>({
@@ -58,7 +58,13 @@ class AppDialog {
             right: AppSpacing.lg,
           ),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurface : AppColors.surface,
+            color: AppColors.background,
+            border: Border(
+              top: BorderSide(
+                color: AppColors.white.withOpacity(0.1),
+                width: 1,
+              ),
+            ),
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(24.0),
             ),

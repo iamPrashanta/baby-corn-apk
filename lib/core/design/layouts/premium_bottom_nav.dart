@@ -1,8 +1,8 @@
-// lib/core/widgets/premium_bottom_nav.dart
+// lib/core/design/layouts/premium_bottom_nav.dart
 
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
+import '../tokens/colors.dart';
 import '../services/haptic_service.dart';
 
 class PremiumBottomNav extends StatelessWidget {

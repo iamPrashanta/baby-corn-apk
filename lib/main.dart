@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'core/theme/app_theme.dart';
+import 'core/design/tokens/theme.dart';
 import 'core/router/app_router.dart';
 import 'features/auth/data/repositories/baby_repository.dart';
 import 'core/local_storage/hive_manager.dart';
@@ -16,7 +16,7 @@ import 'core/services/reminder_service.dart';
 import 'core/services/widget_service.dart';
 import 'core/config/app_config.dart';
 import 'core/widgets/app_lifecycle_wrapper.dart';
-import 'core/widgets/floating_timer_overlay.dart';
+import 'core/design/layouts/floating_timer_overlay.dart';
 import 'core/providers/locale_provider.dart';
 import 'l10n/app_localizations.dart';
 

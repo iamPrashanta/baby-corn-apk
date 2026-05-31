@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_radius.dart';
+import '../tokens/colors.dart';
+import '../tokens/radius.dart';
 
 class AppChip extends StatelessWidget {
   final String label;
@@ -28,9 +28,9 @@ class AppChip extends StatelessWidget {
 
     final backgroundColor = isOutlined
         ? Colors.transparent
-        : (isDark ? baseColor.withOpacity(0.2) : baseColor.withOpacity(0.1));
-    final textColor = isOutlined ? baseColor : baseColor;
-    final borderColor = isOutlined ? baseColor : Colors.transparent;
+        : baseColor.withOpacity(0.15);
+    final textColor = baseColor;
+    final borderColor = isOutlined ? baseColor : baseColor.withOpacity(0.3);
 
     Widget child = Row(
       mainAxisSize: MainAxisSize.min,

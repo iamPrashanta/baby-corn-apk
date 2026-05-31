@@ -6,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/design/tokens/colors.dart';
 import '../../../../core/theme/glass_system/glass_colors.dart';
 import '../../../../core/services/sync_service.dart';
 import '../../data/repositories/baby_repository.dart';

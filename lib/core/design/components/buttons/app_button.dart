@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_radius.dart';
+import '../tokens/colors.dart';
+import '../tokens/radius.dart';
+import '../tokens/shadows.dart';
 
 enum AppButtonType { primary, secondary, outline, text }
 
@@ -62,17 +63,17 @@ class AppButton extends StatelessWidget {
       switch (type) {
         case AppButtonType.primary:
           return ElevatedButton.styleFrom(
-            backgroundColor: color ?? AppColors.primary,
-            foregroundColor: Colors.white,
+            backgroundColor: Colors.transparent, // Handled by Ink
+            foregroundColor: AppColors.white,
             elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            padding: EdgeInsets.zero,
             shape: RoundedRectangleBorder(borderRadius: AppRadius.buttonBorder),
             textStyle: theme.textTheme.labelLarge?.copyWith(fontSize: 16),
           );
         case AppButtonType.secondary:
           return ElevatedButton.styleFrom(
-            backgroundColor: color ?? (isDark ? AppColors.darkSurface : AppColors.secondaryContainer),
-            foregroundColor: isDark ? Colors.white : AppColors.textPrimary,
+            backgroundColor: color ?? AppColors.surfaceHighlight,
+            foregroundColor: AppColors.white,
             elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             shape: RoundedRectangleBorder(borderRadius: AppRadius.buttonBorder),
@@ -80,15 +81,15 @@ class AppButton extends StatelessWidget {
           );
         case AppButtonType.outline:
           return OutlinedButton.styleFrom(
-            foregroundColor: color ?? AppColors.primary,
-            side: BorderSide(color: color ?? AppColors.primary, width: 2),
+            foregroundColor: color ?? AppColors.primaryBlue,
+            side: BorderSide(color: color ?? AppColors.primaryBlue, width: 2),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             shape: RoundedRectangleBorder(borderRadius: AppRadius.buttonBorder),
             textStyle: theme.textTheme.labelLarge?.copyWith(fontSize: 16),
           );
         case AppButtonType.text:
           return TextButton.styleFrom(
-            foregroundColor: color ?? AppColors.primary,
+            foregroundColor: color ?? AppColors.primaryBlue,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             shape: RoundedRectangleBorder(borderRadius: AppRadius.buttonBorder),
             textStyle: theme.textTheme.labelLarge?.copyWith(fontSize: 16),
@@ -96,23 +97,50 @@ class AppButton extends StatelessWidget {
       }
     }
 
-    final button = type == AppButtonType.outline
-        ? OutlinedButton(
-            onPressed: isLoading ? null : onPressed,
-            style: getStyle(),
+    Widget button;
+    
+    if (type == AppButtonType.outline) {
+      button = OutlinedButton(
+        onPressed: isLoading ? null : onPressed,
+        style: getStyle(),
+        child: buildContent(),
+      );
+    } else if (type == AppButtonType.text) {
+      button = TextButton(
+        onPressed: isLoading ? null : onPressed,
+        style: getStyle(),
+        child: buildContent(),
+      );
+    } else if (type == AppButtonType.primary) {
+      button = Container(
+        decoration: BoxDecoration(
+          borderRadius: AppRadius.buttonBorder,
+          gradient: LinearGradient(
+            colors: [
+              color ?? AppColors.primaryBlue,
+              (color ?? AppColors.primaryBlue).withOpacity(0.8),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: AppShadows.glowShadow,
+        ),
+        child: ElevatedButton(
+          onPressed: isLoading ? null : onPressed,
+          style: getStyle(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             child: buildContent(),
-          )
-        : type == AppButtonType.text
-            ? TextButton(
-                onPressed: isLoading ? null : onPressed,
-                style: getStyle(),
-                child: buildContent(),
-              )
-            : ElevatedButton(
-                onPressed: isLoading ? null : onPressed,
-                style: getStyle(),
-                child: buildContent(),
-              );
+          ),
+        ),
+      );
+    } else {
+      button = ElevatedButton(
+        onPressed: isLoading ? null : onPressed,
+        style: getStyle(),
+        child: buildContent(),
+      );
+    }
 
     if (isFullWidth) {
       return SizedBox(

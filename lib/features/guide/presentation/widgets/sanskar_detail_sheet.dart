@@ -5,8 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../domain/models/sanskar_model.dart';
 import '../providers/sanskar_provider.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/app_bottom_sheet.dart';
+import '../../../../core/design/tokens/colors.dart';
+import '../../../../core/design/components/dialogs/app_bottom_sheet.dart';
 import '../../../../core/providers/locale_provider.dart';
 
 class SanskarDetailSheet extends ConsumerStatefulWidget {

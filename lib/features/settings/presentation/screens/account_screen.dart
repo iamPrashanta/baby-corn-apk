@@ -6,11 +6,11 @@ import 'package:go_router/go_router.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/design/tokens/colors.dart';
 import '../widgets/sync_details_sheet.dart';
 import '../../../../core/local_storage/secure_storage_manager.dart';
 import '../../../../core/config/app_config.dart';
-import '../../../../core/widgets/custom_app_bar.dart';
+import '../../../../core/design/layouts/custom_app_bar.dart';
 import '../../../../core/services/backup_service.dart';
 import '../../../../core/services/sync_service.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
@@ -158,6 +158,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                         value: Locale('en'), child: Text('English')),
                     DropdownMenuItem(
                         value: Locale('hi'), child: Text('हिन्दी')),
+                    DropdownMenuItem(
+                        value: Locale('sa'), child: Text('संस्कृतम्')),
                     DropdownMenuItem(value: Locale('bn'), child: Text('বাংলা')),
                     DropdownMenuItem(
                         value: Locale('te'), child: Text('తెలుగు')),
@@ -248,31 +250,31 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
             'Data & Backup',
             [
               ListTile(
-                leading: const Icon(Icons.file_upload_outlined),
-                title: const Text('Export Backup (Local)'),
+                leading: const Icon(Icons.cloud_upload_outlined),
+                title: const Text('Back up to Google Drive'),
                 onTap: () async {
-                  final success = await BackupService.exportBackup();
+                  final success = await BackupService.backupToGoogleDrive();
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                           content: Text(success
-                              ? 'Backup exported successfully!'
-                              : 'Backup failed')),
+                              ? 'Backup uploaded successfully!'
+                              : 'Cloud backup failed. Are you signed in?')),
                     );
                   }
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.file_download_outlined),
-                title: const Text('Import Backup (Local)'),
+                leading: const Icon(Icons.cloud_download_outlined),
+                title: const Text('Restore from Google Drive'),
                 onTap: () async {
-                  final success = await BackupService.importBackup();
+                  final success = await BackupService.restoreFromGoogleDrive();
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                           content: Text(success
                               ? 'Backup restored successfully! Restarting...'
-                              : 'Restore failed')),
+                              : 'Cloud restore failed. No backup found?')),
                     );
                     if (success) context.go('/'); // Restart app to reload state
                   }

@@ -7,7 +7,7 @@ import 'launchpad_screen.dart';
 import '../../../development/presentation/screens/development_main_screen.dart';
 import '../../../guide/presentation/screens/guide_main_screen.dart';
 import '../../../settings/presentation/screens/account_screen.dart';
-import '../../../../core/widgets/premium_bottom_nav.dart';
+import '../../../../core/design/layouts/premium_bottom_nav.dart';
 import '../../../../l10n/app_localizations.dart';
 
 class MainScaffold extends StatefulWidget {

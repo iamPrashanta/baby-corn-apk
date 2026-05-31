@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'sanskar_journey_screen.dart';
 import 'baby_cry_language_screen.dart';
 import 'baby_rashes_screen.dart';
-import '../../../../core/widgets/custom_app_bar.dart';
+import '../../../../core/design/layouts/custom_app_bar.dart';
 import '../../../../core/theme/glass_system/glass_colors.dart';
 
 import '../../../../l10n/app_localizations.dart';

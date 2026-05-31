@@ -6,8 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../providers/reminder_settings_provider.dart';
 import '../../domain/models/reminder_settings_model.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/native/ringtone_channel.dart';
+import '../../../../core/design/tokens/colors.dart';
+import '../../../../core/native/alarm/ringtone_channel.dart';
 import '../../../../features/reminders/domain/models/alarm_profile_model.dart';
 
 class ReminderDetailScreen extends ConsumerStatefulWidget {

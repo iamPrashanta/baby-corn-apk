@@ -1,8 +1,8 @@
-// lib/core/widgets/save_success_overlay.dart
+// lib/core/design/components/dialogs/save_success_overlay.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../theme/app_colors.dart';
+import '../tokens/colors.dart';
 
 /// Animated success checkmark overlay shown after saving a timer record.
 /// Auto-appears with scale + fade animation, then fades out.

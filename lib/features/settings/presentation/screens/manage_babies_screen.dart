@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../auth/domain/models/baby_model.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
 import '../../../records/presentation/providers/active_session_provider.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/design/tokens/colors.dart';
 
 class ManageBabiesScreen extends ConsumerWidget {
   const ManageBabiesScreen({super.key});

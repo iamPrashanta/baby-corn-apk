@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
-import '../../../../core/widgets/app_bottom_sheet.dart';
+import '../../../../core/design/components/dialogs/app_bottom_sheet.dart';
 import '../providers/medication_provider.dart';
 import '../../domain/models/medication_model.dart';
 import '../../../../core/services/reminder_service.dart';

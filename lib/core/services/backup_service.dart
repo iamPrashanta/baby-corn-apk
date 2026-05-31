@@ -3,107 +3,192 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:googleapis/drive/v3.dart' as drive;
+import 'package:http/http.dart' as http;
+
 import '../local_storage/hive_manager.dart';
 import '../../features/records/domain/models/record_model.dart';
 
+class GoogleAuthClient extends http.BaseClient {
+  final Map<String, String> _headers;
+  final http.Client _client = http.Client();
+
+  GoogleAuthClient(this._headers);
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    return _client.send(request..headers.addAll(_headers));
+  }
+}
+
 class BackupService {
-  /// Exports all data (baby profile from settings box + records) to a JSON file and shares it.
-  static Future<bool> exportBackup() async {
+  static const String _backupFileName = 'baby_corn_backup.json';
+
+  static Future<drive.DriveApi?> _getDriveApi() async {
+    final googleSignIn = GoogleSignIn(scopes: [
+      drive.DriveApi.driveAppdataScope,
+    ]);
+    
+    // Try silent sign-in first, fallback to interactive
+    var account = await googleSignIn.signInSilently();
+    account ??= await googleSignIn.signIn();
+
+    if (account == null) return null;
+
+    final auth = await account.authentication;
+    final token = auth.accessToken;
+    if (token == null) return null;
+
+    final authenticateClient = GoogleAuthClient({
+      'Authorization': 'Bearer $token',
+    });
+
+    return drive.DriveApi(authenticateClient);
+  }
+
+  static String _generateBackupJson() {
+    final recordsBox = HiveManager.getRecordsBox();
+    final settingsBox = HiveManager.getSettingsBox();
+    final profileBox = HiveManager.getProfileBox();
+
+    final recordsList = recordsBox.values.map((e) => e.toJson()).toList();
+
+    final profileData = {
+      'baby_name': settingsBox.get('baby_name'),
+      'baby_birthdate': settingsBox.get('baby_birthdate'),
+      'baby_feeding_type': settingsBox.get('baby_feeding_type'),
+      'baby_gender': settingsBox.get('baby_gender'),
+      'baby_birth_weight': settingsBox.get('baby_birth_weight'),
+      'babies_list': profileBox.get('babies_list'),
+      'active_baby_id': profileBox.get('active_baby_id'),
+      'onboarding_complete': profileBox.get('onboarding_complete'),
+    };
+
+    final backupData = {
+      'version': 2,
+      'timestamp': DateTime.now().toIso8601String(),
+      'profile': profileData,
+      'records': recordsList,
+    };
+
+    return jsonEncode(backupData);
+  }
+
+  static Future<void> _restoreFromJson(String jsonString) async {
+    final backupData = jsonDecode(jsonString) as Map<String, dynamic>;
+
+    if (backupData['version'] == null || backupData['records'] == null) {
+      throw const FormatException('Invalid backup file format');
+    }
+
+    final recordsBox = HiveManager.getRecordsBox();
+    final settingsBox = HiveManager.getSettingsBox();
+    final profileBox = HiveManager.getProfileBox();
+
+    if (backupData['profile'] != null) {
+      final profile = backupData['profile'] as Map<String, dynamic>;
+      for (final entry in profile.entries) {
+        if (entry.value != null) {
+          if (['babies_list', 'active_baby_id', 'onboarding_complete']
+              .contains(entry.key)) {
+            await profileBox.put(entry.key, entry.value);
+          } else {
+            await settingsBox.put(entry.key, entry.value);
+          }
+        }
+      }
+    }
+
+    await recordsBox.clear();
+    final recordsList = backupData['records'] as List;
+    for (final r in recordsList) {
+      final record = RecordModel.fromJson(r as Map<String, dynamic>);
+      await recordsBox.put(record.id, record);
+    }
+  }
+
+  /// Backs up to Google Drive's hidden AppData folder
+  static Future<bool> backupToGoogleDrive() async {
     try {
-      final recordsBox = HiveManager.getRecordsBox();
-      final settingsBox = HiveManager.getSettingsBox();
-      final profileBox = HiveManager.getProfileBox();
+      final driveApi = await _getDriveApi();
+      if (driveApi == null) return false;
 
-      final recordsList = recordsBox.values.map((e) => e.toJson()).toList();
+      final jsonString = _generateBackupJson();
+      final content = utf8.encode(jsonString);
+      final media = drive.Media(Stream.value(content), content.length);
 
-      // Profile data (both legacy from settingsBox and modern from profileBox)
-      final profileData = {
-        'baby_name': settingsBox.get('baby_name'),
-        'baby_birthdate': settingsBox.get('baby_birthdate'),
-        'baby_feeding_type': settingsBox.get('baby_feeding_type'),
-        'baby_gender': settingsBox.get('baby_gender'),
-        'baby_birth_weight': settingsBox.get('baby_birth_weight'),
-        'babies_list': profileBox.get('babies_list'),
-        'active_baby_id': profileBox.get('active_baby_id'),
-        'onboarding_complete': profileBox.get('onboarding_complete'),
-      };
+      // Check if file already exists in appDataFolder
+      final query = await driveApi.files.list(
+        spaces: 'appDataFolder',
+        q: "name = '$_backupFileName'",
+        $fields: 'files(id, name)',
+      );
 
-      final backupData = {
-        'version': 2,
-        'timestamp': DateTime.now().toIso8601String(),
-        'profile': profileData,
-        'records': recordsList,
-      };
+      final files = query.files;
+      if (files != null && files.isNotEmpty) {
+        // Update existing file
+        final fileId = files.first.id!;
+        await driveApi.files.update(
+          drive.File(),
+          fileId,
+          uploadMedia: media,
+        );
+      } else {
+        // Create new file
+        final file = drive.File()
+          ..name = _backupFileName
+          ..parents = ['appDataFolder'];
+        await driveApi.files.create(
+          file,
+          uploadMedia: media,
+        );
+      }
 
-      final jsonString = jsonEncode(backupData);
-
-      final dir = await getTemporaryDirectory();
-      final dateStr = DateTime.now().toIso8601String().split('T')[0];
-      final file = File('${dir.path}/baby_corn_backup_$dateStr.json');
-      await file.writeAsString(jsonString);
-
-      final result =
-          await Share.shareXFiles([XFile(file.path)], text: 'Baby Corn Backup');
-      return result.status == ShareResultStatus.success;
+      debugPrint('[BACKUP] Successfully backed up to Google Drive AppData');
+      return true;
     } catch (e) {
-      debugPrint('Export failed: $e');
+      debugPrint('[BACKUP ERROR] $e');
       return false;
     }
   }
 
-  /// Prompts user to pick a JSON backup and restores it.
-  static Future<bool> importBackup() async {
+  /// Restores from Google Drive's hidden AppData folder
+  static Future<bool> restoreFromGoogleDrive() async {
     try {
-      final result = await FilePicker.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['json'],
+      final driveApi = await _getDriveApi();
+      if (driveApi == null) return false;
+
+      final query = await driveApi.files.list(
+        spaces: 'appDataFolder',
+        q: "name = '$_backupFileName'",
+        $fields: 'files(id, name)',
       );
 
-      if (result == null || result.files.single.path == null) {
-        return false; // User canceled
+      final files = query.files;
+      if (files == null || files.isEmpty) {
+        debugPrint('[RESTORE] No backup file found in Google Drive');
+        return false;
       }
 
-      final file = File(result.files.single.path!);
-      final jsonString = await file.readAsString();
-      final backupData = jsonDecode(jsonString) as Map<String, dynamic>;
+      final fileId = files.first.id!;
+      final drive.Media media = await driveApi.files.get(
+        fileId,
+        downloadOptions: drive.DownloadOptions.fullMedia,
+      ) as drive.Media;
 
-      if (backupData['version'] == null || backupData['records'] == null) {
-        throw const FormatException('Invalid backup file format');
-      }
+      final List<int> dataStore = [];
+      await media.stream.listen((data) {
+        dataStore.insertAll(dataStore.length, data);
+      }).asFuture();
 
-      final recordsBox = HiveManager.getRecordsBox();
-      final settingsBox = HiveManager.getSettingsBox();
-      final profileBox = HiveManager.getProfileBox();
+      final jsonString = utf8.decode(dataStore);
+      await _restoreFromJson(jsonString);
 
-      // Restore profile keys into appropriate boxes
-      if (backupData['profile'] != null) {
-        final profile = backupData['profile'] as Map<String, dynamic>;
-        for (final entry in profile.entries) {
-          if (entry.value != null) {
-            if (['babies_list', 'active_baby_id', 'onboarding_complete']
-                .contains(entry.key)) {
-              await profileBox.put(entry.key, entry.value);
-            } else {
-              await settingsBox.put(entry.key, entry.value);
-            }
-          }
-        }
-      }
-
-      // Clear existing records and restore
-      await recordsBox.clear();
-      final recordsList = backupData['records'] as List;
-      for (final r in recordsList) {
-        final record = RecordModel.fromJson(r as Map<String, dynamic>);
-        await recordsBox.put(record.id, record);
-      }
-
+      debugPrint('[RESTORE] Successfully restored from Google Drive');
       return true;
     } catch (e) {
-      debugPrint('Import failed: $e');
+      debugPrint('[RESTORE ERROR] $e');
       return false;
     }
   }

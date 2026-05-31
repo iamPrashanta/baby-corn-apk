@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/app_spacing.dart';
+import '../tokens/spacing.dart';
 
 class AppSectionTitle extends StatelessWidget {
   final String title;

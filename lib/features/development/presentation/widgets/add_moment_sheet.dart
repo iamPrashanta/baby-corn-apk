@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../../core/widgets/app_bottom_sheet.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/design/components/dialogs/app_bottom_sheet.dart';
+import '../../../../core/design/tokens/colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../providers/moments_provider.dart';
 

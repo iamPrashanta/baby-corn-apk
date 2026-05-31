@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/design/tokens/colors.dart';
 import '../../../../core/theme/glass_system/glass_colors.dart';
 import '../../domain/models/food_intro_record.dart';
 import '../providers/food_tracker_provider.dart';

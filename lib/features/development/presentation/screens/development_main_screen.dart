@@ -8,8 +8,8 @@ import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/custom_app_bar.dart';
+import '../../../../core/design/tokens/colors.dart';
+import '../../../../core/design/layouts/custom_app_bar.dart';
 import '../../../settings/presentation/providers/premium_provider.dart';
 import '../../../settings/presentation/screens/subscription_screen.dart';
 import '../providers/moments_provider.dart';

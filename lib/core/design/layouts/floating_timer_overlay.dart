@@ -1,11 +1,11 @@
-// lib/core/widgets/floating_timer_overlay.dart
+// lib/core/design/layouts/floating_timer_overlay.dart
 
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../features/records/presentation/providers/active_session_provider.dart';
-import '../theme/app_colors.dart';
+import '../tokens/colors.dart';
 import '../services/haptic_service.dart';
 import 'timer_full_sheet.dart';
 import 'save_success_overlay.dart';

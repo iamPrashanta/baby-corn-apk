@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_spacing.dart';
+import '../tokens/colors.dart';
+import '../tokens/spacing.dart';
 
 class AppEmptyState extends StatelessWidget {
   final String title;
@@ -21,8 +21,6 @@ class AppEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
@@ -34,7 +32,7 @@ class AppEmptyState extends StatelessWidget {
               Icon(
                 icon,
                 size: iconSize,
-                color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                color: AppColors.textSecondary,
               ),
               const SizedBox(height: AppSpacing.lg),
             ],

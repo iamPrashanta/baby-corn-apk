@@ -13,6 +13,6 @@ class AppRadius {
   
   // Legacy mappings for backwards compatibility during migration
   static final BorderRadius cardBorder = BorderRadius.circular(24.0);
-  static final BorderRadius buttonBorder = BorderRadius.circular(16.0);
+  static final BorderRadius buttonBorder = BorderRadius.circular(10.0);
   static final BorderRadius dialogBorder = BorderRadius.circular(24.0);
 }
