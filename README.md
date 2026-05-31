@@ -191,6 +191,44 @@ lib/
 └── main.dart            # App entry point + overlay entry point
 ```
 
+### 🚀 Startup Sequence
+
+The startup flow is **strictly sequential** — each step is `await`ed before the next begins. This eliminates race conditions between data migration and routing.
+
+```mermaid
+sequenceDiagram
+    participant M  as main()
+    participant HV as HiveManager
+    participant BR as BabyRepository
+    participant SP as SplashScreen
+    participant RT as Router
+
+    M->>HV: await HiveManager.init()
+    HV-->>M: ✅ Hive ready
+
+    M->>BR: await BabyRepository.runStartupMigration()
+    Note over BR: Migrate v1 keys (baby_name, baby_birthdate)<br/>Migrate v2 settingsBox → profileBox
+    BR-->>M: ✅ Migration complete
+
+    M->>M: Log babies_list count, active_baby_id
+    M->>M: runApp()
+
+    M->>SP: SplashScreen mounted
+    SP->>SP: await 2s splash delay
+    SP->>BR: getBabies()
+    BR-->>SP: List<BabyModel> (guaranteed post-migration)
+
+    alt language not selected
+        SP->>RT: context.go('/language')
+    else babies list is empty
+        SP->>RT: context.go('/onboarding')
+    else babies list is not empty
+        SP->>RT: context.go('/home')
+    end
+```
+
+> **Single Source of Truth:** Routing depends **only** on `babies_list.isNotEmpty`. No flags like `onboarding_complete`, `welcome_seen`, or `first_launch` are consulted.
+
 ### Data Flow
 
 ```

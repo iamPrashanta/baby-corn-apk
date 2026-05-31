@@ -45,6 +45,9 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Kotlin compiler session files (generated during every build, never commit)
+android/.kotlin/
+
 # Firebase & Secrets
 google-services.json
 GoogleService-Info.plist
