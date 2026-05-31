@@ -117,6 +117,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         }
       } else {
         // Local-First Offline mode — no Firebase auth required
+        debugPrint("🔍 Splash babies count = ${babies.length}");
+        debugPrint("🔍 Splash active baby = $activeBabyId");
+        debugPrint("🔍 Splash route => ${hasBabies ? '/home' : '/onboarding'}");
+
         if (!hasBabies) {
           debugPrint('🔍 [Splash] → /onboarding (offline, no babies)');
           if (mounted) context.go('/onboarding');

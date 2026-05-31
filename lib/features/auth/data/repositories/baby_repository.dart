@@ -84,6 +84,8 @@ class BabyRepository {
     final box = HiveManager.getProfileBox();
     final encoded = jsonEncode(babies.map((e) => e.toJson()).toList());
     await box.put('babies_list', encoded);
+    await box.flush();
+    debugPrint('✅ babies_list saved and flushed');
   }
 
   Future<void> addBaby(BabyModel baby) async {
@@ -138,6 +140,8 @@ class BabyRepository {
   Future<void> setActiveBabyId(String id) async {
     final box = HiveManager.getProfileBox();
     await box.put('active_baby_id', id);
+    await box.flush();
+    debugPrint('✅ active_baby_id saved and flushed');
   }
 
   // Legacy wrappers for backward compatibility

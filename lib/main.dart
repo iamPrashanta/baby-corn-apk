@@ -80,6 +80,8 @@ void main() async {
     }
 
     debugPrint("====== STARTUP DATA VERIFICATION ======");
+    debugPrint("PROFILE BOX KEYS: ${profileBox.keys.toList()}");
+    debugPrint("BABIES COUNT: ${BabyRepository().getBabies().length}");
     debugPrint("babies_list count: $babiesCount");
     debugPrint("active_baby_id: ${profileBox.get('active_baby_id')}");
     debugPrint("onboarding_complete: ${profileBox.get('onboarding_complete')}");
