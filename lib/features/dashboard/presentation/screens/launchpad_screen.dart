@@ -49,6 +49,7 @@ class LaunchpadScreen extends ConsumerWidget {
                 _buildMissedReminders(context, reminderSettings, isDark),
                 _buildSummaryCard(context, recordsAsync, isDark),
                 _buildUpcomingVaccineCard(context, recordsAsync, activeBaby, isDark),
+                _buildUpcomingAppointmentCard(context, recordsAsync, isDark),
                 _buildFoodObservationCard(context, foodRecords, isDark),
                 const SizedBox(height: 32),
                 _buildTimelineHeader(context, ref, filterDate, isDark),
@@ -418,6 +419,95 @@ class LaunchpadScreen extends ConsumerWidget {
                   ),
                 ),
                 const Icon(Icons.chevron_right, color: AppColors.vaccine),
+              ],
+            ),
+          )
+            .animate()
+            .fadeIn(duration: 600.ms, delay: 500.ms)
+            .slideY(begin: 0.05, end: 0),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildUpcomingAppointmentCard(BuildContext context, AsyncValue<List<RecordModel>> recordsAsync, bool isDark) {
+    return recordsAsync.when(
+      data: (records) {
+        final appointments = records.where((r) => r.type == 'appointment' && r.timestamp.isAfter(DateTime.now())).toList();
+        if (appointments.isEmpty) return const SizedBox.shrink();
+        
+        appointments.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+        final nextAppointment = appointments.first;
+        
+        return GestureDetector(
+          onTap: () => context.push('/appointments'),
+          child: Container(
+            margin: const EdgeInsets.only(top: 16),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isDark 
+                    ? [const Color(0xFF6A4C93).withOpacity(0.3), const Color(0xFF6A4C93).withOpacity(0.1)]
+                    : [const Color(0xFF6A4C93).withOpacity(0.15), Colors.white],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFF6A4C93).withOpacity(0.3)),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF6A4C93).withOpacity(isDark ? 0.1 : 0.05),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
+                )
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6A4C93).withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Text('🩺', style: TextStyle(fontSize: 24)),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Upcoming Appointment',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF6A4C93),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        nextAppointment.metadata['doctorName'] ?? 'Doctor',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : const Color(0xFF4A4458),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${DateFormat('MMM d').format(nextAppointment.timestamp)} at ${DateFormat('h:mm a').format(nextAppointment.timestamp)}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isDark ? Colors.white60 : Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.chevron_right, color: Color(0xFF6A4C93)),
               ],
             ),
           )

@@ -19,7 +19,8 @@ class MedicationHistoryScreen extends ConsumerStatefulWidget {
 class _MedicationHistoryScreenState
     extends ConsumerState<MedicationHistoryScreen> {
   String _selectedFilter = '7 Days';
-  final List<String> _filters = ['7 Days', '30 Days', 'All Time'];
+  DateTimeRange? _customDateRange;
+  final List<String> _filters = ['7 Days', '30 Days', 'Custom'];
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +48,10 @@ class _MedicationHistoryScreenState
     } else if (_selectedFilter == '30 Days') {
       final cutoff = now.subtract(const Duration(days: 30));
       logs = logs.where((l) => l.scheduledTime.isAfter(cutoff)).toList();
+    } else if (_selectedFilter == 'Custom' && _customDateRange != null) {
+      final start = _customDateRange!.start;
+      final end = _customDateRange!.end.add(const Duration(days: 1)); // Include end day
+      logs = logs.where((l) => l.scheduledTime.isAfter(start) && l.scheduledTime.isBefore(end)).toList();
     }
 
     // 4. Sort descending by scheduled time
@@ -77,10 +82,27 @@ class _MedicationHistoryScreenState
                       return Padding(
                         padding: const EdgeInsets.only(right: 8.0),
                         child: FilterChip(
-                          label: Text(filter),
+                          label: Text(
+                            filter == 'Custom' && _customDateRange != null && _selectedFilter == 'Custom'
+                                ? '${DateFormat('MMM d').format(_customDateRange!.start)} - ${DateFormat('MMM d').format(_customDateRange!.end)}'
+                                : filter,
+                          ),
                           selected: isSelected,
-                          onSelected: (selected) {
-                            if (selected) {
+                          onSelected: (selected) async {
+                            if (filter == 'Custom') {
+                              final range = await showDateRangePicker(
+                                context: context,
+                                firstDate: DateTime(2020),
+                                lastDate: DateTime.now(),
+                                initialDateRange: _customDateRange,
+                              );
+                              if (range != null) {
+                                setState(() {
+                                  _customDateRange = range;
+                                  _selectedFilter = filter;
+                                });
+                              }
+                            } else if (selected) {
                               setState(() => _selectedFilter = filter);
                             }
                           },

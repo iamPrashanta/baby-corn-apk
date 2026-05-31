@@ -1,14 +1,19 @@
 // lib/features/development/presentation/screens/development_main_screen.dart
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:intl/intl.dart';
+
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../settings/presentation/providers/premium_provider.dart';
 import '../../../settings/presentation/screens/subscription_screen.dart';
-import 'tabs/moments_tab.dart';
-import 'tabs/milestones_tab.dart';
+import '../providers/moments_provider.dart';
+import '../widgets/add_moment_sheet.dart';
+import '../../domain/models/moment_model.dart';
 
 class DevelopmentMainScreen extends ConsumerWidget {
   const DevelopmentMainScreen({super.key});
@@ -16,46 +21,27 @@ class DevelopmentMainScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isPremium = ref.watch(premiumProvider);
 
-    return DefaultTabController(
-      length: 4,
-      child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        appBar: CustomAppBar(
-          title: l10n.development,
-          bottom: TabBar(
-            isScrollable: true,
-            tabAlignment: TabAlignment.start,
-            indicatorColor: AppColors.primary,
-            indicatorWeight: 3,
-            indicatorSize: TabBarIndicatorSize.label,
-            labelColor: AppColors.primary,
-            unselectedLabelColor: isDark ? Colors.white54 : Colors.black54,
-            labelStyle:
-                const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
-            unselectedLabelStyle:
-                const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-            tabs: [
-              Tab(text: l10n.moments),
-              Tab(text: l10n.milestones),
-              Tab(text: l10n.growth),
-              Tab(text: l10n.teething),
-            ],
-          ),
-        ),
-        body: isPremium
-            ? TabBarView(
-                children: [
-                  const MomentsTab(),
-                  const MilestonesTab(),
-                  _buildComingSoonTab(context, l10n.growth, '📈'),
-                  _buildComingSoonTab(context, l10n.teething, '🦷'),
-                ],
-              )
-            : _buildPremiumLock(context),
-      ),
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: CustomAppBar(title: l10n.development),
+      body: isPremium ? const _JourneyTimeline() : _buildPremiumLock(context),
+      floatingActionButton: isPremium
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => const AddMomentSheet(),
+                );
+              },
+              backgroundColor: AppColors.primary,
+              icon: const Icon(Icons.add_a_photo_rounded, color: Colors.white),
+              label: Text(l10n.addMoment, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            )
+          : null,
     );
   }
 
@@ -87,7 +73,7 @@ class DevelopmentMainScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Unlock the Development tab, Moments, Milestones, and Growth tracking with the Baby Corn Pro plan.',
+              'Unlock the Development Journey, track milestones, and save unlimited moments with the Baby Corn Pro plan.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
@@ -130,29 +116,326 @@ class DevelopmentMainScreen extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildComingSoonTab(BuildContext context, String title, String emoji) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+class _JourneyTimeline extends ConsumerWidget {
+  const _JourneyTimeline();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final momentsAsync = ref.watch(momentsProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
+
+    final standardMilestones = [
+      {'emoji': '😊', 'title': l10n.firstSmile, 'subtitle': 'A heartwarming moment'},
+      {'emoji': '🔄', 'title': l10n.firstRoll, 'subtitle': 'Tummy to back'},
+      {'emoji': '🚼', 'title': l10n.firstCrawl, 'subtitle': 'On the move!'},
+      {'emoji': '👣', 'title': l10n.firstSteps, 'subtitle': 'Walking into a new world'},
+    ];
+
+    return momentsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, _) => Center(child: Text('Error: $err')),
+      data: (moments) {
+        final List<Map<String, dynamic>> timelineNodes = [];
+
+        for (var milestone in standardMilestones) {
+          final title = milestone['title'] as String;
+          final exists = moments.any((m) => m.title.toLowerCase() == title.toLowerCase());
+          if (!exists) {
+            timelineNodes.add({
+              'type': 'pending_milestone',
+              'emoji': milestone['emoji'],
+              'title': title,
+              'subtitle': milestone['subtitle'],
+            });
+          }
+        }
+
+        for (var moment in moments) {
+          timelineNodes.add({
+            'type': 'moment',
+            'moment': moment,
+          });
+        }
+
+        timelineNodes.sort((a, b) {
+          if (a['type'] == 'pending_milestone' && b['type'] == 'moment') return -1;
+          if (a['type'] == 'moment' && b['type'] == 'pending_milestone') return 1;
+          if (a['type'] == 'moment' && b['type'] == 'moment') {
+            final m1 = a['moment'] as MomentModel;
+            final m2 = b['moment'] as MomentModel;
+            return m2.timestamp.compareTo(m1.timestamp); // Newest moments first
+          }
+          return 0;
+        });
+
+        if (timelineNodes.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('🌱', style: TextStyle(fontSize: 64)),
+                const SizedBox(height: 24),
+                Text(
+                  'Your Journey Begins',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : const Color(0xFF2D3142),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Record moments and track milestones here.',
+                  style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+                ),
+              ],
+            ).animate().fadeIn(),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.only(top: 24, bottom: 120, left: 16, right: 16),
+          itemCount: timelineNodes.length,
+          itemBuilder: (context, index) {
+            final node = timelineNodes[index];
+            final isFirst = index == 0;
+            final isLast = index == timelineNodes.length - 1;
+
+            return _TimelineNodeItem(
+              node: node,
+              isFirst: isFirst,
+              isLast: isLast,
+              isDark: isDark,
+              index: index,
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _TimelineNodeItem extends StatelessWidget {
+  final Map<String, dynamic> node;
+  final bool isFirst;
+  final bool isLast;
+  final bool isDark;
+  final int index;
+
+  const _TimelineNodeItem({
+    required this.node,
+    required this.isFirst,
+    required this.isLast,
+    required this.isDark,
+    required this.index,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isPending = node['type'] == 'pending_milestone';
+    final bool isNextUp = isFirst && isPending;
+
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: AppColors.primaryContainer.withOpacity(0.4),
-              shape: BoxShape.circle,
+          // Timeline Line & Node indicator
+          SizedBox(
+            width: 40,
+            child: Column(
+              children: [
+                Container(
+                  width: 2,
+                  height: 32,
+                  color: isFirst ? Colors.transparent : (isDark ? Colors.white24 : Colors.black12),
+                ),
+                Container(
+                  width: 16,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isPending ? (isNextUp ? AppColors.primary : Colors.grey) : AppColors.primary,
+                    border: Border.all(
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                      width: 4,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    width: 2,
+                    color: isLast ? Colors.transparent : (isDark ? Colors.white24 : Colors.black12),
+                  ),
+                ),
+              ],
             ),
-            child: Text(emoji, style: const TextStyle(fontSize: 48)),
           ),
-          const SizedBox(height: 24),
-          Text(
-            title,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          const SizedBox(width: 12),
+          // Content Card
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: isPending ? _buildPendingCard(context, isNextUp) : _buildMomentCard(),
+            ).animate().fadeIn(duration: 400.ms, delay: (index * 50).ms).slideX(begin: 0.1, end: 0),
           ),
-          const SizedBox(height: 8),
-          Text(
-            AppLocalizations.of(context)!.comingSoon,
-            style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPendingCard(BuildContext context, bool isNextUp) {
+    return GestureDetector(
+      onTap: () {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (ctx) => AddMomentSheet(initialTitle: node['title']),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E1C20) : Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: isNextUp ? Border.all(color: AppColors.primary.withOpacity(0.5), width: 2) : null,
+          boxShadow: [
+            BoxShadow(
+              color: isNextUp ? AppColors.primary.withOpacity(0.2) : Colors.black.withOpacity(0.04),
+              blurRadius: isNextUp ? 24 : 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: isNextUp ? AppColors.primary.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(node['emoji'], style: const TextStyle(fontSize: 28)),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (isNextUp)
+                    Text(
+                      'Next Up',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  Text(
+                    node['title'],
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : const Color(0xFF2D3142),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    node['subtitle'],
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark ? Colors.white54 : const Color(0xFF9A8C98),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.add_circle_outline_rounded,
+              color: isNextUp ? AppColors.primary : Colors.grey,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMomentCard() {
+    final moment = node['moment'] as MomentModel;
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1C20) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Image.file(
+            File(moment.imagePath),
+            height: 250,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
+              height: 250,
+              color: Colors.grey.shade200,
+              child: const Center(child: Icon(Icons.broken_image, size: 64, color: Colors.grey)),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        moment.title,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : const Color(0xFF2D3142),
+                        ),
+                      ),
+                    ),
+                    Text(
+                      DateFormat('MMM d, yyyy').format(moment.timestamp),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                if (moment.description.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    moment.description,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark ? Colors.white70 : const Color(0xFF4A4458),
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ],
       ),

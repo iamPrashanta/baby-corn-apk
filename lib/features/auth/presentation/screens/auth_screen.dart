@@ -75,8 +75,10 @@ class _AuthScreenState extends State<AuthScreen> {
       debugPrint('🔑 [Auth] Signing in to Firebase...');
       final userCredential =
           await FirebaseAuth.instance.signInWithCredential(credential);
-      debugPrint(
-          '🔑 [Auth] Firebase sign-in success: ${userCredential.user?.email}');
+      debugPrint('===== GOOGLE LOGIN AUDIT =====');
+      debugPrint('🔑 Firebase sign-in success: ${userCredential.user?.email}');
+      debugPrint('🔑 Firebase UID: ${userCredential.user?.uid}');
+      debugPrint('==============================');
 
       // Sync cloud data
       await SyncService.syncCloudDataToLocal();
@@ -94,9 +96,19 @@ class _AuthScreenState extends State<AuthScreen> {
          context.go('/onboarding');
       }
     } on FirebaseAuthException catch (e) {
+      debugPrint('❌ [Auth Audit] FirebaseAuthException: Code=${e.code}, Message=${e.message}');
       setState(() {
         _isLoading = false;
         _errorMessage = e.message ?? 'Authentication failed.';
+      });
+    } on FirebaseException catch (e) {
+      debugPrint('❌ [Auth Audit] FirebaseException during Sync: Code=${e.code}, Message=${e.message}');
+      if (e.code == 'permission-denied') {
+        debugPrint('⚠️ [Auth Audit] Firebase Rules or App Check failure detected!');
+      }
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Cloud Sync Failed: ${e.message}';
       });
     } catch (e, st) {
       debugPrint('GOOGLE LOGIN ERROR: $e');

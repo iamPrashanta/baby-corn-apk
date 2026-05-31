@@ -10,7 +10,8 @@ import '../../../../l10n/app_localizations.dart';
 import '../providers/moments_provider.dart';
 
 class AddMomentSheet extends ConsumerStatefulWidget {
-  const AddMomentSheet({super.key});
+  final String? initialTitle;
+  const AddMomentSheet({super.key, this.initialTitle});
 
   @override
   ConsumerState<AddMomentSheet> createState() => _AddMomentSheetState();
@@ -23,6 +24,14 @@ class _AddMomentSheetState extends ConsumerState<AddMomentSheet> {
   bool _isLoading = false;
 
   final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialTitle != null) {
+      _titleController.text = widget.initialTitle!;
+    }
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     try {

@@ -123,8 +123,11 @@ class SyncService {
                     .child('users/${user.uid}/moments/${moment.id}.jpg');
                 await ref.putFile(file);
                 downloadUrl = await ref.getDownloadURL();
+                debugPrint('✅ [Storage Audit] Upload successful for ${moment.id}');
+              } on FirebaseException catch (e) {
+                debugPrint('❌ [Storage Audit] Upload failed for ${moment.id} - Code: ${e.code}, Message: ${e.message}');
               } catch (e) {
-                debugPrint('Storage upload failed for ${moment.id}: $e');
+                debugPrint('❌ [Storage Audit] Generic error for ${moment.id}: $e');
               }
             }
           } else {
@@ -157,12 +160,28 @@ class SyncService {
         }
       }
 
+      debugPrint('===== CLOUD SYNC AUDIT (OFFLINE TO CLOUD) =====');
+      debugPrint('Google UID: ${user.uid}');
+      debugPrint('Attempting to commit batch write to Firestore...');
       await batch.commit().timeout(const Duration(seconds: 15));
+      debugPrint('✅ Firestore batch commit successful!');
+      
       settingsBox.put('last_sync_time', DateTime.now().toIso8601String());
       debugPrint('Sync: Offline data successfully merged to Cloud');
+      debugPrint('=============================================');
+    } on FirebaseException catch (e) {
+      debugPrint('❌ [Firestore Audit] FirebaseException during Sync:');
+      debugPrint('Code: ${e.code}');
+      debugPrint('Message: ${e.message}');
+      if (e.code == 'permission-denied') {
+        debugPrint('⚠️ POSSIBLE FIREBASE RULES FAILURE OR APP CHECK FAILURE!');
+      }
+      debugPrint('=============================================');
+      rethrow;
     } catch (e) {
-      debugPrint('Sync Error: $e');
-      throw e;
+      debugPrint('❌ [Firestore Audit] Generic Sync Error: $e');
+      debugPrint('=============================================');
+      rethrow;
     }
   }
 
@@ -326,9 +345,17 @@ class SyncService {
 
       settingsBox.put('last_sync_time', DateTime.now().toIso8601String());
       debugPrint('Sync: Cloud data successfully merged to Local');
+    } on FirebaseException catch (e) {
+      debugPrint('❌ [Firestore Audit] FirebaseException during Sync (Cloud to Local):');
+      debugPrint('Code: ${e.code}');
+      debugPrint('Message: ${e.message}');
+      if (e.code == 'permission-denied') {
+        debugPrint('⚠️ POSSIBLE FIREBASE RULES FAILURE OR APP CHECK FAILURE!');
+      }
+      rethrow;
     } catch (e) {
-      debugPrint('Sync Error: $e');
-      throw e;
+      debugPrint('❌ [Firestore Audit] Generic Sync Error (Cloud to Local): $e');
+      rethrow;
     }
   }
 

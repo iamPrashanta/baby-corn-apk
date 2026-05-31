@@ -1,5 +1,3 @@
-// features/records/presentation/screens/vaccination_tracker_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -10,6 +8,38 @@ import '../../domain/models/record_model.dart';
 import '../../domain/models/vaccine_schedule.dart';
 import '../providers/records_provider.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
+import '../../../../core/services/reminder_service.dart';
+
+enum VaccineStatus { overdue, dueToday, upcoming, completed }
+
+class VaccineDisplayItem {
+  final String name;
+  final String description;
+  final DateTime dueDate;
+  final bool isCustom;
+  final RecordModel? loggedRecord;
+  final RecordModel? customPendingRecord; // the record representing the custom schedule
+
+  VaccineDisplayItem({
+    required this.name,
+    required this.description,
+    required this.dueDate,
+    this.isCustom = false,
+    this.loggedRecord,
+    this.customPendingRecord,
+  });
+  
+  VaccineStatus get status {
+    if (loggedRecord != null) return VaccineStatus.completed;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final dueDay = DateTime(dueDate.year, dueDate.month, dueDate.day);
+    
+    if (dueDay.isBefore(today)) return VaccineStatus.overdue;
+    if (dueDay.isAtSameMomentAs(today)) return VaccineStatus.dueToday;
+    return VaccineStatus.upcoming;
+  }
+}
 
 class VaccinationTrackerScreen extends ConsumerWidget {
   const VaccinationTrackerScreen({super.key});
@@ -33,207 +63,100 @@ class VaccinationTrackerScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Vaccination Tracker'),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showAddCustomDialog(context, ref),
+        icon: const Icon(Icons.add),
+        label: const Text('Custom'),
+        backgroundColor: AppColors.vaccine,
+        foregroundColor: Colors.white,
+      ),
       body: recordsAsync.when(
         data: (records) {
-          // Get all logged vaccine records for this baby
-          final loggedVaccines = records.where((r) => r.type == 'vaccine').toList();
+          // Filter to all vaccine records
+          final vaccineRecords = records.where((r) => r.type == 'vaccine').toList();
+          
+          final List<VaccineDisplayItem> allItems = [];
 
-          // Group standard schedule by category
-          final Map<String, List<VaccineScheduleItem>> grouped = {};
+          // 1. Process standard schedule
           for (final item in standardVaccineSchedule) {
-            grouped.putIfAbsent(item.categoryAge, () => []).add(item);
+            final dueDate = birthDate.add(Duration(days: item.recommendedDaysFromBirth));
+            final isDone = vaccineRecords.any((r) => r.metadata['vaccineName'] == item.name && r.metadata['status'] != 'pending');
+            final loggedRecord = isDone
+                ? vaccineRecords.firstWhere((r) => r.metadata['vaccineName'] == item.name && r.metadata['status'] != 'pending')
+                : null;
+            
+            allItems.add(VaccineDisplayItem(
+              name: item.name,
+              description: item.description,
+              dueDate: dueDate,
+              isCustom: false,
+              loggedRecord: loggedRecord,
+            ));
           }
 
-          return ListView.builder(
+          // 2. Process custom vaccines
+          // A custom vaccine has metadata['isCustom'] == true
+          // It can be pending (status == 'pending') or completed (status == 'completed' or null status if legacy)
+          final customRecords = vaccineRecords.where((r) => r.metadata['isCustom'] == true).toList();
+          
+          for (final record in customRecords) {
+            if (record.metadata['status'] == 'pending') {
+              // It's a scheduled custom vaccine that hasn't been administered yet
+              final dueDateStr = record.metadata['dueDate'];
+              final dueDate = dueDateStr != null ? DateTime.parse(dueDateStr) : record.timestamp;
+              allItems.add(VaccineDisplayItem(
+                name: record.metadata['vaccineName'] ?? 'Custom Vaccine',
+                description: record.metadata['note'] ?? 'Custom scheduled vaccine',
+                dueDate: dueDate,
+                isCustom: true,
+                customPendingRecord: record,
+              ));
+            } else {
+              // It's a completed custom vaccine
+              final dueDateStr = record.metadata['dueDate'];
+              final dueDate = dueDateStr != null ? DateTime.parse(dueDateStr) : record.timestamp;
+              allItems.add(VaccineDisplayItem(
+                name: record.metadata['vaccineName'] ?? 'Custom Vaccine',
+                description: record.metadata['note'] ?? 'Custom vaccine',
+                dueDate: dueDate,
+                isCustom: true,
+                loggedRecord: record,
+              ));
+            }
+          }
+
+          // Group by status
+          final Map<VaccineStatus, List<VaccineDisplayItem>> grouped = {
+            VaccineStatus.overdue: [],
+            VaccineStatus.dueToday: [],
+            VaccineStatus.upcoming: [],
+            VaccineStatus.completed: [],
+          };
+
+          for (final item in allItems) {
+            grouped[item.status]!.add(item);
+          }
+
+          // Sort within groups
+          grouped[VaccineStatus.overdue]!.sort((a, b) => a.dueDate.compareTo(b.dueDate));
+          grouped[VaccineStatus.dueToday]!.sort((a, b) => a.dueDate.compareTo(b.dueDate));
+          grouped[VaccineStatus.upcoming]!.sort((a, b) => a.dueDate.compareTo(b.dueDate));
+          grouped[VaccineStatus.completed]!.sort((a, b) => b.loggedRecord!.timestamp.compareTo(a.loggedRecord!.timestamp));
+
+          final sections = [
+            if (grouped[VaccineStatus.overdue]!.isNotEmpty) _buildSection(context, 'Overdue', grouped[VaccineStatus.overdue]!, Colors.red, isDark, ref),
+            if (grouped[VaccineStatus.dueToday]!.isNotEmpty) _buildSection(context, 'Due Today', grouped[VaccineStatus.dueToday]!, Colors.orange, isDark, ref),
+            if (grouped[VaccineStatus.upcoming]!.isNotEmpty) _buildSection(context, 'Upcoming', grouped[VaccineStatus.upcoming]!, AppColors.vaccine, isDark, ref),
+            if (grouped[VaccineStatus.completed]!.isNotEmpty) _buildSection(context, 'Completed', grouped[VaccineStatus.completed]!, Colors.green, isDark, ref),
+          ];
+
+          if (sections.isEmpty) {
+            return const Center(child: Text('No vaccines found.'));
+          }
+
+          return ListView(
             padding: const EdgeInsets.only(bottom: 100),
-            itemCount: grouped.length,
-            itemBuilder: (context, index) {
-              final category = grouped.keys.elementAt(index);
-              final items = grouped[category]!;
-              final firstItem = items.first;
-              
-              final dueDate = birthDate.add(Duration(days: firstItem.recommendedDaysFromBirth));
-              final isOverdue = DateTime.now().isAfter(dueDate) && firstItem.recommendedDaysFromBirth > 0;
-              
-              // Check how many are completed
-              int completedCount = 0;
-              for (final v in items) {
-                if (loggedVaccines.any((r) => r.metadata['vaccineName'] == v.name)) {
-                  completedCount++;
-                }
-              }
-              final isFullyCompleted = completedCount == items.length;
-
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E1C20) : Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: isDark ? Colors.black26 : const Color(0x0A000000),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    )
-                  ],
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Category Header
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                      decoration: BoxDecoration(
-                        color: isFullyCompleted
-                            ? Colors.green.withOpacity(0.1)
-                            : isDark ? AppColors.vaccine.withOpacity(0.15) : AppColors.vaccine.withOpacity(0.05),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                category,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                  color: isDark ? Colors.white : const Color(0xFF4A4458),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Due: ${DateFormat('MMM d, yyyy').format(dueDate)}',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: isFullyCompleted
-                                      ? Colors.green
-                                      : (isOverdue ? Colors.red : (isDark ? Colors.white54 : Colors.grey.shade600)),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: isFullyCompleted
-                                  ? Colors.green.withOpacity(0.2)
-                                  : AppColors.vaccine.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Text(
-                              '$completedCount / ${items.length}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: isFullyCompleted ? Colors.green : AppColors.vaccine,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    
-                    // Vaccine items
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Column(
-                        children: items.map((vaccine) {
-                          final isDone = loggedVaccines.any((r) => r.metadata['vaccineName'] == vaccine.name);
-                          final loggedRecord = isDone
-                              ? loggedVaccines.firstWhere((r) => r.metadata['vaccineName'] == vaccine.name)
-                              : null;
-
-                          return InkWell(
-                            onTap: () {
-                              if (isDone) {
-                                _showEditOrDeleteDialog(context, ref, loggedRecord!, vaccine.name);
-                              } else {
-                                _showLogDialog(context, ref, vaccine.name, dueDate);
-                              }
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    margin: const EdgeInsets.only(top: 2),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: isDone ? Colors.green.withOpacity(0.2) : (isDark ? Colors.white10 : Colors.grey.shade100),
-                                      border: Border.all(
-                                        color: isDone ? Colors.green : (isDark ? Colors.white24 : Colors.grey.shade300),
-                                        width: 2,
-                                      ),
-                                    ),
-                                    padding: const EdgeInsets.all(4),
-                                    child: Icon(
-                                      isDone ? Icons.check : Icons.circle,
-                                      size: 16,
-                                      color: isDone ? Colors.green : Colors.transparent,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          vaccine.name,
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w700,
-                                            color: isDone ? Colors.grey : (isDark ? Colors.white : const Color(0xFF4A4458)),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        if (vaccine.description.isNotEmpty)
-                                          Text(
-                                            vaccine.description,
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              color: isDone ? Colors.grey.shade400 : (isDark ? Colors.white54 : Colors.grey.shade600),
-                                              height: 1.3,
-                                            ),
-                                          ),
-                                        if (isDone && loggedRecord != null)
-                                          Padding(
-                                            padding: const EdgeInsets.only(top: 6),
-                                            child: Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                              decoration: BoxDecoration(
-                                                color: Colors.green.withOpacity(0.1),
-                                                borderRadius: BorderRadius.circular(8),
-                                              ),
-                                              child: Text(
-                                                '✅ Given ${DateFormat('MMM d, yyyy').format(loggedRecord.timestamp)}',
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: Colors.green,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
+            children: sections,
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -242,9 +165,316 @@ class VaccinationTrackerScreen extends ConsumerWidget {
     );
   }
 
-  void _showLogDialog(BuildContext context, WidgetRef ref, String vaccineName, DateTime dueDate) {
+  Widget _buildSection(BuildContext context, String title, List<VaccineDisplayItem> items, Color accentColor, bool isDark, WidgetRef ref) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1C20) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black26 : const Color(0x0A000000),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          )
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            decoration: BoxDecoration(
+              color: accentColor.withOpacity(isDark ? 0.2 : 0.1),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: accentColor,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: accentColor.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    '${items.length}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: accentColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              children: items.map((item) => _buildItem(context, item, isDark, ref)).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildItem(BuildContext context, VaccineDisplayItem item, bool isDark, WidgetRef ref) {
+    final isDone = item.status == VaccineStatus.completed;
+    final isOverdue = item.status == VaccineStatus.overdue;
+
+    return InkWell(
+      onTap: () {
+        if (isDone) {
+          _showEditOrDeleteDialog(context, ref, item.loggedRecord!, item.name);
+        } else {
+          _showLogDialog(context, ref, item);
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 2),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isDone ? Colors.green.withOpacity(0.2) : (isDark ? Colors.white10 : Colors.grey.shade100),
+                border: Border.all(
+                  color: isDone ? Colors.green : (isOverdue ? Colors.red : (isDark ? Colors.white24 : Colors.grey.shade300)),
+                  width: 2,
+                ),
+              ),
+              padding: const EdgeInsets.all(4),
+              child: Icon(
+                isDone ? Icons.check : Icons.circle,
+                size: 16,
+                color: isDone ? Colors.green : Colors.transparent,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          item.name,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: isDone ? Colors.grey : (isOverdue ? Colors.red : (isDark ? Colors.white : const Color(0xFF4A4458))),
+                          ),
+                        ),
+                      ),
+                      if (item.isCustom)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.vaccine.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text('CUSTOM', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.vaccine)),
+                        )
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  if (item.description.isNotEmpty)
+                    Text(
+                      item.description,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDone ? Colors.grey.shade400 : (isDark ? Colors.white54 : Colors.grey.shade600),
+                        height: 1.3,
+                      ),
+                    ),
+                  if (!isDone)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        'Due: ${DateFormat('MMM d, yyyy').format(item.dueDate)}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: isOverdue ? Colors.red : AppColors.vaccine,
+                        ),
+                      ),
+                    ),
+                  if (isDone && item.loggedRecord != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '✅ Given ${DateFormat('MMM d, yyyy').format(item.loggedRecord!.timestamp)}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAddCustomDialog(BuildContext context, WidgetRef ref) {
     DateTime selectedDate = DateTime.now();
+    final nameController = TextEditingController();
     final noteController = TextEditingController();
+    bool enableReminder = true;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            return Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + MediaQuery.of(ctx).padding.bottom + 24,
+                top: 24,
+                left: 24,
+                right: 24,
+              ),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E1C20) : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'Add Custom Vaccine',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 24),
+                  TextField(
+                    controller: nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Vaccine Name',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Date Picker
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.calendar_today, color: AppColors.vaccine),
+                    title: const Text('Due Date'),
+                    subtitle: Text(DateFormat('MMM d, yyyy').format(selectedDate)),
+                    trailing: TextButton(
+                      child: const Text('Change'),
+                      onPressed: () async {
+                        final d = await showDatePicker(
+                          context: ctx,
+                          initialDate: selectedDate,
+                          firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                          lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                        );
+                        if (d != null) {
+                          setState(() => selectedDate = d);
+                        }
+                      },
+                    ),
+                  ),
+                  const Divider(),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Enable Reminder'),
+                    subtitle: const Text('Notify me before due date'),
+                    value: enableReminder,
+                    activeColor: AppColors.vaccine,
+                    onChanged: (val) => setState(() => enableReminder = val),
+                  ),
+                  const Divider(),
+                  TextField(
+                    controller: noteController,
+                    decoration: const InputDecoration(
+                      labelText: 'Notes (optional)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.vaccine,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    onPressed: () async {
+                      if (nameController.text.trim().isEmpty) return;
+                      final id = const Uuid().v4();
+                      final record = RecordModel(
+                        id: id,
+                        type: 'vaccine', // store as generic vaccine
+                        timestamp: selectedDate,
+                        metadata: {
+                          'vaccineName': nameController.text.trim(),
+                          'isCustom': true,
+                          'status': 'pending',
+                          'dueDate': selectedDate.toIso8601String(),
+                          'note': noteController.text.trim(),
+                          'reminderEnabled': enableReminder,
+                        },
+                      );
+                      await ref.read(recordsProvider.notifier).addRecord(record);
+                      
+                      if (enableReminder) {
+                         // Schedule reminder
+                         final daysDiff = selectedDate.difference(DateTime.now()).inDays;
+                         if (daysDiff >= 1) {
+                           await ReminderService.scheduleReminder(
+                             id: id.hashCode.abs() % 100000,
+                             title: 'Upcoming Vaccine',
+                             body: '${nameController.text.trim()} is due tomorrow.',
+                             delay: Duration(days: daysDiff - 1, hours: 8), // 8 AM day before
+                           );
+                         }
+                      }
+                      
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    },
+                    child: const Text('Schedule Vaccine', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showLogDialog(BuildContext context, WidgetRef ref, VaccineDisplayItem item) {
+    DateTime selectedDate = DateTime.now();
+    final noteController = TextEditingController(text: item.customPendingRecord?.metadata['note'] ?? '');
     final batchController = TextEditingController();
     bool isGovtProvided = false;
 
@@ -272,7 +502,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'Log $vaccineName',
+                    'Log ${item.name}',
                     style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 24),
@@ -340,15 +570,26 @@ class VaccinationTrackerScreen extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                     onPressed: () async {
+                      if (item.isCustom && item.customPendingRecord != null) {
+                        // Delete the pending scheduled record first
+                        ref.read(recordsProvider.notifier).deleteRecord(item.customPendingRecord!.id);
+                        
+                        // Cancel any pending notifications for this id
+                        ReminderService.cancelReminder(item.customPendingRecord!.id.hashCode.abs() % 100000);
+                      }
+                      
                       final record = RecordModel(
                         id: const Uuid().v4(),
                         type: 'vaccine',
                         timestamp: selectedDate,
                         metadata: {
-                          'vaccineName': vaccineName,
+                          'vaccineName': item.name,
                           'batchNumber': batchController.text,
                           'note': noteController.text,
                           'providedByGovt': isGovtProvided,
+                          'isCustom': item.isCustom,
+                          'dueDate': item.dueDate.toIso8601String(),
+                          'status': 'completed',
                         },
                       );
                       await ref.read(recordsProvider.notifier).addRecord(record);
