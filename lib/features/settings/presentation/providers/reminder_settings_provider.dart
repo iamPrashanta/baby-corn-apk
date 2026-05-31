@@ -33,9 +33,13 @@ class ReminderSettingsNotifier extends StateNotifier<ReminderSettingsModel> {
   }
 
   Future<void> _saveSettings(ReminderSettingsModel newSettings) async {
-    // Also trigger actual schedule updates via ReminderService
+    // 1. Optimistic Update (Instant UI Response)
+    state = newSettings;
+
+    // 2. Also trigger actual schedule updates via ReminderService
     final updatedSettings = await ReminderService.updateSchedules(newSettings);
 
+    // 3. Update with exact calculated times
     state = updatedSettings;
     final box = HiveManager.getSettingsBox();
     await box.put(_settingsKey, jsonEncode(updatedSettings.toJson()));

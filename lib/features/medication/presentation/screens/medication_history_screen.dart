@@ -70,6 +70,7 @@ class _MedicationHistoryScreenState
       ),
       body: LiquidBackground(
         child: SafeScrollableWrapper(
+          useIntrinsicHeight: false,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Column(

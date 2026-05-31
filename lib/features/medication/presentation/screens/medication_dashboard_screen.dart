@@ -50,6 +50,7 @@ class MedicationDashboardScreen extends ConsumerWidget {
       body: LiquidBackground(
         child: SafeScrollableWrapper(
           applySafeArea: false,
+          useIntrinsicHeight: false,
           child: Padding(
             padding: EdgeInsets.only(
               left: 20.0,

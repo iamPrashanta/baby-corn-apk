@@ -8,11 +8,13 @@ import 'package:flutter/material.dart';
 class SafeScrollableWrapper extends StatelessWidget {
   final Widget child;
   final bool applySafeArea;
+  final bool useIntrinsicHeight;
 
   const SafeScrollableWrapper({
     super.key,
     required this.child,
     this.applySafeArea = true,
+    this.useIntrinsicHeight = true,
   });
 
   @override
@@ -25,9 +27,9 @@ class SafeScrollableWrapper extends StatelessWidget {
             constraints: BoxConstraints(
               minHeight: constraints.maxHeight,
             ),
-            child: IntrinsicHeight(
-              child: child,
-            ),
+            child: useIntrinsicHeight 
+                ? IntrinsicHeight(child: child)
+                : child,
           ),
         );
       },
