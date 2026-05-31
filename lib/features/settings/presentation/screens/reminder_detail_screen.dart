@@ -1,4 +1,4 @@
-// features/settings/presentation/screens/reminder_detail_screen.dart
+// lib/features/settings/presentation/screens/reminder_detail_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,7 +13,8 @@ class ReminderDetailScreen extends ConsumerStatefulWidget {
   const ReminderDetailScreen({super.key, required this.category});
 
   @override
-  ConsumerState<ReminderDetailScreen> createState() => _ReminderDetailScreenState();
+  ConsumerState<ReminderDetailScreen> createState() =>
+      _ReminderDetailScreenState();
 }
 
 class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
@@ -26,10 +27,10 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
     super.initState();
     final settings = ref.read(reminderSettingsProvider);
     final catSettings = _getCatSettings(settings);
-    
+
     _isRepeat = catSettings.isRepeat;
     _repeatHours = catSettings.repeatHours;
-    
+
     final parts = catSettings.exactTime.split(':');
     _exactTime = TimeOfDay(
       hour: int.tryParse(parts[0]) ?? 8,
@@ -47,9 +48,10 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
   void _save() {
     final notifier = ref.read(reminderSettingsProvider.notifier);
     final currentSettings = _getCatSettings(ref.read(reminderSettingsProvider));
-    
-    final formattedTime = '${_exactTime.hour.toString().padLeft(2, '0')}:${_exactTime.minute.toString().padLeft(2, '0')}';
-    
+
+    final formattedTime =
+        '${_exactTime.hour.toString().padLeft(2, '0')}:${_exactTime.minute.toString().padLeft(2, '0')}';
+
     final updated = currentSettings.copyWith(
       isRepeat: _isRepeat,
       repeatHours: _repeatHours,
@@ -59,25 +61,28 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
     if (widget.category == 'feeding') notifier.updateFeeding(updated);
     if (widget.category == 'sleep') notifier.updateSleep(updated);
     if (widget.category == 'diaper') notifier.updateDiaper(updated);
-    
+
     if (updated.isEnabled) {
       final now = DateTime.now();
       DateTime ringTime;
       if (_isRepeat) {
         ringTime = now.add(Duration(hours: _repeatHours));
       } else {
-        ringTime = DateTime(now.year, now.month, now.day, _exactTime.hour, _exactTime.minute);
+        ringTime = DateTime(
+            now.year, now.month, now.day, _exactTime.hour, _exactTime.minute);
         if (ringTime.isBefore(now)) {
           ringTime = ringTime.add(const Duration(days: 1));
         }
       }
-      final timeString = "${ringTime.hour.toString().padLeft(2, '0')}:${ringTime.minute.toString().padLeft(2, '0')}";
+      final timeString =
+          "${ringTime.hour.toString().padLeft(2, '0')}:${ringTime.minute.toString().padLeft(2, '0')}";
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${_getCategoryTitle()} set to ring at $timeString'),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
     }
@@ -95,14 +100,15 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_getCategoryTitle()),
         actions: [
           TextButton(
             onPressed: _save,
-            child: const Text('Save', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text('Save',
+                style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -157,10 +163,12 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
                   const SizedBox(width: 24),
                   Text(
                     '$_repeatHours',
-                    style: const TextStyle(fontSize: 64, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 64, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(width: 8),
-                  const Text('hr', style: TextStyle(fontSize: 24, color: Colors.grey)),
+                  const Text('hr',
+                      style: TextStyle(fontSize: 24, color: Colors.grey)),
                   const SizedBox(width: 24),
                   IconButton(
                     onPressed: () {
@@ -190,17 +198,20 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
                   },
                   borderRadius: BorderRadius.circular(16),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 24),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 48, vertical: 24),
                     decoration: BoxDecoration(
                       color: isDark ? const Color(0xFF1E1C20) : Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: AppColors.primary.withOpacity(isDark ? 0.2 : 0.1),
+                        color:
+                            AppColors.primary.withOpacity(isDark ? 0.2 : 0.1),
                       ),
                     ),
                     child: Text(
                       _exactTime.format(context),
-                      style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          fontSize: 48, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),

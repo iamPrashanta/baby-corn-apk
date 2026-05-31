@@ -1,4 +1,4 @@
-// features/auth/presentation/screens/splash_screen.dart
+// lib/features/auth/presentation/screens/splash_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -29,10 +29,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      final hasSelectedLanguage = prefs.getBool('has_selected_language') ?? false;
+      final hasSelectedLanguage =
+          prefs.getBool('has_selected_language') ?? false;
 
       final hasPin = await SecureStorageManager.hasPin();
-      final isOnboarded = ref.read(babyRepositoryProvider).isOnboardingComplete();
+      final isOnboarded =
+          ref.read(babyRepositoryProvider).isOnboardingComplete();
 
       if (!mounted) return;
 
@@ -85,9 +87,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             Image.asset(
               'assets/images/logo.png',
               width: 150,
-            ).animate()
-             .fade(duration: 800.ms)
-             .scale(begin: const Offset(0.8, 0.8), curve: Curves.easeOutBack, duration: 800.ms),
+            ).animate().fade(duration: 800.ms).scale(
+                begin: const Offset(0.8, 0.8),
+                curve: Curves.easeOutBack,
+                duration: 800.ms),
             const SizedBox(height: 32),
             const CircularProgressIndicator(color: Color(0xFFFFB2A6)),
           ],

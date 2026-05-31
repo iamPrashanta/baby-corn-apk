@@ -1,4 +1,4 @@
-// core/widgets/liquid_background.dart
+// lib/core/widgets/liquid_background.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -19,7 +19,7 @@ class LiquidBackground extends StatelessWidget {
         Container(
           color: isDark ? GlassColors.warmCharcoal : GlassColors.creamWhite,
         ),
-        
+
         // Floating Blob 1 (Top Right) — wrapped in RepaintBoundary
         Positioned(
           top: -100,
@@ -30,11 +30,23 @@ class LiquidBackground extends StatelessWidget {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: (isDark ? GlassColors.mutedLavender : GlassColors.blushPink).withOpacity(0.5),
+                color:
+                    (isDark ? GlassColors.mutedLavender : GlassColors.blushPink)
+                        .withOpacity(0.5),
               ),
-            ).animate(onPlay: (controller) => controller.repeat(reverse: true))
-             .scaleXY(begin: 1.0, end: 1.2, duration: 4000.ms, curve: Curves.easeInOutSine)
-             .moveX(begin: 0, end: -30, duration: 5000.ms, curve: Curves.easeInOutSine),
+            )
+                .animate(
+                    onPlay: (controller) => controller.repeat(reverse: true))
+                .scaleXY(
+                    begin: 1.0,
+                    end: 1.2,
+                    duration: 4000.ms,
+                    curve: Curves.easeInOutSine)
+                .moveX(
+                    begin: 0,
+                    end: -30,
+                    duration: 5000.ms,
+                    curve: Curves.easeInOutSine),
           ),
         ),
 
@@ -48,18 +60,29 @@ class LiquidBackground extends StatelessWidget {
               height: 250,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: (isDark ? GlassColors.softBrownBlack : GlassColors.peach).withOpacity(0.6),
+                color: (isDark ? GlassColors.softBrownBlack : GlassColors.peach)
+                    .withOpacity(0.6),
               ),
-            ).animate(onPlay: (controller) => controller.repeat(reverse: true))
-             .scaleXY(begin: 1.0, end: 1.3, duration: 6000.ms, curve: Curves.easeInOutSine)
-             .moveY(begin: 0, end: -40, duration: 5500.ms, curve: Curves.easeInOutSine),
+            )
+                .animate(
+                    onPlay: (controller) => controller.repeat(reverse: true))
+                .scaleXY(
+                    begin: 1.0,
+                    end: 1.3,
+                    duration: 6000.ms,
+                    curve: Curves.easeInOutSine)
+                .moveY(
+                    begin: 0,
+                    end: -40,
+                    duration: 5500.ms,
+                    curve: Curves.easeInOutSine),
           ),
         ),
 
-        // Removed unnecessary BackdropFilter — it was using ColorFilter.mode 
-        // which doesn't actually blur anything but forces rasterization, 
+        // Removed unnecessary BackdropFilter — it was using ColorFilter.mode
+        // which doesn't actually blur anything but forces rasterization,
         // hurting performance on low-end devices.
-        
+
         // Foreground Content
         child,
       ],

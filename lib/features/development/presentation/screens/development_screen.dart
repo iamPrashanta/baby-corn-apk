@@ -1,4 +1,4 @@
-// features/development/presentation/screens/development_screen.dart
+// lib/features/development/presentation/screens/development_screen.dart
 
 import 'package:flutter/material.dart';
 
@@ -13,7 +13,10 @@ class DevelopmentScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.child_care, size: 80, color: Theme.of(context).colorScheme.secondary.withOpacity(0.5)),
+            Icon(Icons.child_care,
+                size: 80,
+                color:
+                    Theme.of(context).colorScheme.secondary.withOpacity(0.5)),
             const SizedBox(height: 16),
             Text(
               'Coming Soon',

@@ -1,3 +1,5 @@
+// lib/features/development/presentation/widgets/add_moment_sheet.dart
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -51,10 +53,10 @@ class _AddMomentSheetState extends ConsumerState<AddMomentSheet> {
     setState(() => _isLoading = true);
 
     await ref.read(momentsProvider.notifier).addMoment(
-      title: _titleController.text.trim(),
-      description: _descController.text.trim(),
-      tempImagePath: _imagePath!,
-    );
+          title: _titleController.text.trim(),
+          description: _descController.text.trim(),
+          tempImagePath: _imagePath!,
+        );
 
     if (mounted) {
       Navigator.pop(context);
@@ -150,9 +152,12 @@ class _AddMomentSheetState extends ConsumerState<AddMomentSheet> {
                   ? Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.add_a_photo_rounded, size: 48, color: AppColors.primary.withOpacity(0.8)),
+                        Icon(Icons.add_a_photo_rounded,
+                            size: 48,
+                            color: AppColors.primary.withOpacity(0.8)),
                         const SizedBox(height: 12),
-                        const Text('Tap to add a photo', style: TextStyle(fontWeight: FontWeight.w600)),
+                        const Text('Tap to add a photo',
+                            style: TextStyle(fontWeight: FontWeight.w600)),
                       ],
                     )
                   : null,
@@ -167,7 +172,8 @@ class _AddMomentSheetState extends ConsumerState<AddMomentSheet> {
             decoration: InputDecoration(
               labelText: l10n.title,
               hintText: 'e.g. First Steps!',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
               filled: true,
               fillColor: isDark ? Colors.white10 : Colors.white,
             ),
@@ -182,7 +188,8 @@ class _AddMomentSheetState extends ConsumerState<AddMomentSheet> {
             decoration: InputDecoration(
               labelText: l10n.description,
               hintText: 'Add some details...',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
               filled: true,
               fillColor: isDark ? Colors.white10 : Colors.white,
             ),
@@ -198,11 +205,13 @@ class _AddMomentSheetState extends ConsumerState<AddMomentSheet> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
               ),
               child: Text(
                 l10n.saveMoment,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
           ),

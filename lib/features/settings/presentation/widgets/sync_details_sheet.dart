@@ -1,4 +1,4 @@
-// features/settings/presentation/widgets/sync_details_sheet.dart
+// lib/features/settings/presentation/widgets/sync_details_sheet.dart
 
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -36,11 +36,12 @@ class _SyncDetailsSheetState extends ConsumerState<SyncDetailsSheet> {
   void _loadSyncDetails() {
     final settingsBox = HiveManager.getSettingsBox();
     final recordsBox = HiveManager.getRecordsBox();
-    
+    final profileBox = HiveManager.getProfileBox();
+
     _lastSyncTime = settingsBox.get('last_sync_time');
     _totalRecords = recordsBox.length;
-    
-    final babiesJson = settingsBox.get('babies_list');
+
+    final babiesJson = profileBox.get('babies_list');
     if (babiesJson != null && babiesJson.toString().isNotEmpty) {
       // Just a rough count of occurrences of '"id":'
       _totalBabies = '"id"'.allMatches(babiesJson.toString()).length;
@@ -59,7 +60,7 @@ class _SyncDetailsSheetState extends ConsumerState<SyncDetailsSheet> {
       if (difference.inMinutes < 1) return 'Just now';
       if (difference.inHours < 1) return '${difference.inMinutes} minutes ago';
       if (difference.inDays < 1) return '${difference.inHours} hours ago';
-      
+
       return DateFormat('MMM d, yyyy - h:mm a').format(date);
     } catch (e) {
       return 'Unknown';
@@ -77,19 +78,21 @@ class _SyncDetailsSheetState extends ConsumerState<SyncDetailsSheet> {
     }
 
     setState(() => _isSyncing = true);
-    
+
     try {
       // Pull first so fresh installs retrieve cloud data before pushing anything
-      await SyncService.syncCloudDataToLocal().timeout(const Duration(seconds: 15));
-      await SyncService.syncOfflineDataToCloud().timeout(const Duration(seconds: 15));
-      
+      await SyncService.syncCloudDataToLocal()
+          .timeout(const Duration(seconds: 15));
+      await SyncService.syncOfflineDataToCloud()
+          .timeout(const Duration(seconds: 60));
+
       if (mounted) {
         // Refresh UI providers with new Hive data
         ref.invalidate(activeBabyProvider);
         ref.invalidate(recordsProvider);
         ref.invalidate(sanskarsProvider);
         ref.invalidate(momentsProvider);
-        
+
         _loadSyncDetails();
         setState(() => _isSyncing = false);
         Navigator.pop(context);
@@ -155,9 +158,12 @@ class _SyncDetailsSheetState extends ConsumerState<SyncDetailsSheet> {
                 ),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: isConnected ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                    color: isConnected
+                        ? Colors.green.withOpacity(0.1)
+                        : Colors.red.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -182,7 +188,7 @@ class _SyncDetailsSheetState extends ConsumerState<SyncDetailsSheet> {
               ],
             ),
             const SizedBox(height: 32),
-            
+
             _buildDetailRow(
               icon: Icons.access_time,
               title: 'Last Synced',
@@ -203,7 +209,7 @@ class _SyncDetailsSheetState extends ConsumerState<SyncDetailsSheet> {
               value: '$_totalBabies profiles',
               isDark: isDark,
             ),
-            
+
             const SizedBox(height: 40),
             ElevatedButton(
               onPressed: _isSyncing ? null : _forceSync,
@@ -220,20 +226,35 @@ class _SyncDetailsSheetState extends ConsumerState<SyncDetailsSheet> {
                   ? Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.cloud_upload_outlined, color: Colors.white)
-                            .animate(onPlay: (controller) => controller.repeat())
-                            .moveY(begin: 2, end: -2, duration: 600.ms, curve: Curves.easeInOut)
+                        const Icon(Icons.cloud_upload_outlined,
+                                color: Colors.white)
+                            .animate(
+                                onPlay: (controller) => controller.repeat())
+                            .moveY(
+                                begin: 2,
+                                end: -2,
+                                duration: 600.ms,
+                                curve: Curves.easeInOut)
                             .then()
-                            .moveY(begin: -2, end: 2, duration: 600.ms, curve: Curves.easeInOut),
+                            .moveY(
+                                begin: -2,
+                                end: 2,
+                                duration: 600.ms,
+                                curve: Curves.easeInOut),
                         const SizedBox(width: 12),
-                        const Text('Uploading to Cloud...', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
-                            .animate(onPlay: (controller) => controller.repeat(reverse: true))
+                        const Text('Uploading to Cloud...',
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold))
+                            .animate(
+                                onPlay: (controller) =>
+                                    controller.repeat(reverse: true))
                             .fade(begin: 0.5, end: 1.0, duration: 800.ms),
                       ],
                     )
                   : const Text(
                       'Force Sync Now',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
             ),
           ],

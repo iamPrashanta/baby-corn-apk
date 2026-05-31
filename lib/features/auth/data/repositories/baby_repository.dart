@@ -1,4 +1,4 @@
-// features/auth/data/repositories/baby_repository.dart
+// lib/features/auth/data/repositories/baby_repository.dart
 
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,36 +19,58 @@ class BabyRepository {
   }
 
   void _migrateOldData() {
-    final box = HiveManager.getSettingsBox();
-    final name = box.get('baby_name');
-    final birthDateStr = box.get('baby_birthdate');
-    final babiesJson = box.get('babies_list');
-    
-    // If we have old data but no new data, migrate it!
-    if (name != null && birthDateStr != null && babiesJson == null) {
+    final settingsBox = HiveManager.getSettingsBox();
+    final profileBox = HiveManager.getProfileBox();
+
+    // 1. Migrate legacy version 1 (individual keys) to babies_list in profileBox
+    final name = settingsBox.get('baby_name');
+    final birthDateStr = settingsBox.get('baby_birthdate');
+    final babiesJsonLegacy = settingsBox
+        .get('babies_list'); // checking settingsBox for version 2 data
+
+    // If we have old v1 data, migrate it!
+    if (name != null &&
+        birthDateStr != null &&
+        babiesJsonLegacy == null &&
+        profileBox.get('babies_list') == null) {
       final baby = BabyModel(
         id: const Uuid().v4(),
         name: name,
         birthDate: DateTime.parse(birthDateStr),
-        feedingType: box.get('baby_feeding_type') ?? 'Mixed',
-        gender: box.get('baby_gender') ?? 'Prefer not to say',
-        birthWeight: box.get('baby_birth_weight') ?? 3.2,
+        feedingType: settingsBox.get('baby_feeding_type') ?? 'Mixed',
+        gender: settingsBox.get('baby_gender') ?? 'Prefer not to say',
+        birthWeight: settingsBox.get('baby_birth_weight') ?? 3.2,
       );
-      
+
       saveBabies([baby]);
       setActiveBabyId(baby.id);
-      
-      // Clear old keys to prevent running migration again
-      box.delete('baby_name');
-      box.delete('baby_birthdate');
+
+      // Clear old v1 keys
+      settingsBox.delete('baby_name');
+      settingsBox.delete('baby_birthdate');
+    }
+
+    // 2. Migrate from settingsBox to profileBox
+    if (settingsBox.containsKey('babies_list')) {
+      profileBox.put('babies_list', settingsBox.get('babies_list'));
+      settingsBox.delete('babies_list');
+    }
+    if (settingsBox.containsKey('active_baby_id')) {
+      profileBox.put('active_baby_id', settingsBox.get('active_baby_id'));
+      settingsBox.delete('active_baby_id');
+    }
+    if (settingsBox.containsKey('onboarding_complete')) {
+      profileBox.put(
+          'onboarding_complete', settingsBox.get('onboarding_complete'));
+      settingsBox.delete('onboarding_complete');
     }
   }
 
   List<BabyModel> getBabies() {
-    final box = HiveManager.getSettingsBox();
+    final box = HiveManager.getProfileBox();
     final babiesJson = box.get('babies_list');
     if (babiesJson == null) return [];
-    
+
     try {
       final List<dynamic> decoded = jsonDecode(babiesJson);
       return decoded.map((e) => BabyModel.fromJson(e)).toList();
@@ -58,7 +80,7 @@ class BabyRepository {
   }
 
   Future<void> saveBabies(List<BabyModel> babies) async {
-    final box = HiveManager.getSettingsBox();
+    final box = HiveManager.getProfileBox();
     final encoded = jsonEncode(babies.map((e) => e.toJson()).toList());
     await box.put('babies_list', encoded);
   }
@@ -69,7 +91,7 @@ class BabyRepository {
     await saveBabies(babies);
     if (babies.length == 1) {
       await setActiveBabyId(baby.id);
-      await HiveManager.getSettingsBox().put('onboarding_complete', true);
+      await HiveManager.getProfileBox().put('onboarding_complete', true);
     }
   }
 
@@ -86,13 +108,13 @@ class BabyRepository {
     final babies = getBabies();
     babies.removeWhere((b) => b.id == id);
     await saveBabies(babies);
-    
+
     // If the active baby was deleted, switch to another one if available
     if (getActiveBabyId() == id) {
       if (babies.isNotEmpty) {
         await setActiveBabyId(babies.first.id);
       } else {
-        final box = HiveManager.getSettingsBox();
+        final box = HiveManager.getProfileBox();
         await box.delete('active_baby_id');
         await box.delete('onboarding_complete'); // reset if no babies left
       }
@@ -100,18 +122,29 @@ class BabyRepository {
   }
 
   String? getActiveBabyId() {
-    final box = HiveManager.getSettingsBox();
+    final box = HiveManager.getProfileBox();
     return box.get('active_baby_id') as String?;
   }
 
   Future<void> setActiveBabyId(String id) async {
-    final box = HiveManager.getSettingsBox();
+    final box = HiveManager.getProfileBox();
     await box.put('active_baby_id', id);
   }
 
   bool isOnboardingComplete() {
-    final box = HiveManager.getSettingsBox();
-    return box.get('onboarding_complete', defaultValue: false) as bool;
+    final box = HiveManager.getProfileBox();
+    final babies = getBabies();
+
+    if (babies.isNotEmpty) {
+      // self-heal
+      box.put('onboarding_complete', true);
+      return true;
+    }
+
+    return box.get(
+      'onboarding_complete',
+      defaultValue: false,
+    ) as bool;
   }
 
   // Legacy wrappers for backward compatibility

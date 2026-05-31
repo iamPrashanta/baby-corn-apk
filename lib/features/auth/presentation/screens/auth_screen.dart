@@ -1,4 +1,4 @@
-// features/auth/presentation/screens/auth_screen.dart
+// lib/features/auth/presentation/screens/auth_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -29,7 +29,7 @@ class _AuthScreenState extends State<AuthScreen> {
     try {
       // 1. Trigger Google Sign In flow
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      
+
       if (googleUser == null) {
         // User canceled the sign-in flow
         setState(() => _isLoading = false);
@@ -37,7 +37,8 @@ class _AuthScreenState extends State<AuthScreen> {
       }
 
       // 2. Obtain auth details from the request
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
       // 3. Create a new credential for Firebase
       final credential = GoogleAuthProvider.credential(
@@ -72,7 +73,8 @@ class _AuthScreenState extends State<AuthScreen> {
 
   void _continueOffline() {
     // Skip Firebase authentication and PIN entirely for offline mode
-    context.go('/onboarding'); // Splash screen will redirect to /home if already onboarded
+    context.go(
+        '/onboarding'); // Splash screen will redirect to /home if already onboarded
   }
 
   @override
@@ -93,7 +95,9 @@ class _AuthScreenState extends State<AuthScreen> {
                 shape: BoxShape.circle,
                 color: AppColors.primary.withOpacity(isDark ? 0.2 : 0.4),
                 boxShadow: [
-                  BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 100),
+                  BoxShadow(
+                      color: AppColors.primary.withOpacity(0.3),
+                      blurRadius: 100),
                 ],
               ),
             ),
@@ -108,12 +112,14 @@ class _AuthScreenState extends State<AuthScreen> {
                 shape: BoxShape.circle,
                 color: AppColors.secondary.withOpacity(isDark ? 0.2 : 0.4),
                 boxShadow: [
-                  BoxShadow(color: AppColors.secondary.withOpacity(0.3), blurRadius: 100),
+                  BoxShadow(
+                      color: AppColors.secondary.withOpacity(0.3),
+                      blurRadius: 100),
                 ],
               ),
             ),
           ),
-          
+
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32.0),
@@ -122,14 +128,16 @@ class _AuthScreenState extends State<AuthScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Spacer(flex: 2),
-                  
+
                   // App Icon / Logo Area
                   Center(
                     child: Container(
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
-                        color: isDark ? GlassColors.darkGlassSurface : Colors.white.withOpacity(0.9),
+                        color: isDark
+                            ? GlassColors.darkGlassSurface
+                            : Colors.white.withOpacity(0.9),
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
@@ -139,45 +147,57 @@ class _AuthScreenState extends State<AuthScreen> {
                           ),
                         ],
                       ),
-                      child: Icon(Icons.child_care_rounded, size: 56, color: AppColors.primary),
-                    ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack),
+                      child: Icon(Icons.child_care_rounded,
+                          size: 56, color: AppColors.primary),
+                    )
+                        .animate()
+                        .scale(duration: 600.ms, curve: Curves.easeOutBack),
                   ),
                   const SizedBox(height: 32),
-                  
+
                   // Welcome Text
                   Text(
                     'Welcome to\nBaby Corn',
                     style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      height: 1.1,
-                      color: isDark ? Colors.white : AppColors.textPrimary,
-                    ),
+                          fontWeight: FontWeight.w800,
+                          height: 1.1,
+                          color: isDark ? Colors.white : AppColors.textPrimary,
+                        ),
                     textAlign: TextAlign.center,
-                  ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2, curve: Curves.easeOut),
-                  
+                  )
+                      .animate()
+                      .fadeIn(delay: 200.ms)
+                      .slideY(begin: 0.2, curve: Curves.easeOut),
+
                   const SizedBox(height: 16),
-                  
+
                   Text(
                     'Track your baby\'s journey seamlessly, synced across your family.',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: isDark ? Colors.white70 : AppColors.textSecondary,
-                      height: 1.4,
-                    ),
+                          color:
+                              isDark ? Colors.white70 : AppColors.textSecondary,
+                          height: 1.4,
+                        ),
                     textAlign: TextAlign.center,
-                  ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2, curve: Curves.easeOut),
-                  
+                  )
+                      .animate()
+                      .fadeIn(delay: 300.ms)
+                      .slideY(begin: 0.2, curve: Curves.easeOut),
+
                   const Spacer(flex: 2),
-                  
+
                   if (_errorMessage.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 16.0),
                       child: Text(
                         _errorMessage,
-                        style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                            fontWeight: FontWeight.w500),
                         textAlign: TextAlign.center,
                       ),
                     ),
-                  
+
                   // Google Sign-In Button
                   ElevatedButton(
                     onPressed: _isLoading ? null : _signInWithGoogle,
@@ -186,7 +206,8 @@ class _AuthScreenState extends State<AuthScreen> {
                       foregroundColor: isDark ? Colors.black : Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 18),
                       elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
                     ),
                     child: _isLoading
                         ? SizedBox(
@@ -194,7 +215,8 @@ class _AuthScreenState extends State<AuthScreen> {
                             width: 24,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(isDark ? Colors.black : Colors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  isDark ? Colors.black : Colors.white),
                             ),
                           )
                         : Row(
@@ -205,31 +227,34 @@ class _AuthScreenState extends State<AuthScreen> {
                               const SizedBox(width: 8),
                               const Text(
                                 'Continue with Google',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.w600),
                               ),
                             ],
                           ),
                   ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.2),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   // Offline Mode Button
                   TextButton(
                     onPressed: _isLoading ? null : _continueOffline,
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 18),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
                     ),
                     child: Text(
                       'Use Offline Mode',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white70 : AppColors.textSecondary,
+                        color:
+                            isDark ? Colors.white70 : AppColors.textSecondary,
                       ),
                     ),
                   ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2),
-                  
+
                   const Spacer(flex: 1),
                 ],
               ),

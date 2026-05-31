@@ -7,19 +7,28 @@ import 'package:uuid/uuid.dart';
 import '../providers/records_provider.dart';
 import '../../domain/models/record_model.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/custom_app_bar.dart';
 
 class FeedingEntryScreen extends ConsumerStatefulWidget {
-  const FeedingEntryScreen({super.key});
+  final String? initialMethod;
+  const FeedingEntryScreen({super.key, this.initialMethod});
 
   @override
   ConsumerState<FeedingEntryScreen> createState() => _FeedingEntryScreenState();
 }
 
 class _FeedingEntryScreenState extends ConsumerState<FeedingEntryScreen> {
-  String _feedingMethod = 'Left Breast';
+  late String _feedingMethod;
   final _durationController = TextEditingController();
+  final _amountController = TextEditingController();
   final _noteController = TextEditingController();
   DateTime _timestamp = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    _feedingMethod = widget.initialMethod ?? 'Left Breast';
+  }
 
   Future<void> _save() async {
     final notifier = ref.read(recordsProvider.notifier);
@@ -32,6 +41,8 @@ class _FeedingEntryScreenState extends ConsumerState<FeedingEntryScreen> {
         'method': _feedingMethod,
         'side': _feedingMethod,
         'duration': int.tryParse(_durationController.text) ?? 0,
+        if (_feedingMethod == 'Bottle' || _feedingMethod == 'Solid')
+          'amount': _amountController.text,
         'note': _noteController.text,
       },
     );
@@ -83,6 +94,8 @@ class _FeedingEntryScreenState extends ConsumerState<FeedingEntryScreen> {
             'method': mergedMethod,
             'side': mergedMethod,
             'duration': oldDuration + newDuration,
+            if (_feedingMethod == 'Bottle' || _feedingMethod == 'Solid')
+              'amount': _amountController.text,
             'note': mergedNote,
           },
         );
@@ -136,7 +149,7 @@ class _FeedingEntryScreenState extends ConsumerState<FeedingEntryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Log Feeding')),
+      appBar: CustomAppBar(title: 'Log Feeding'),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         children: [
@@ -151,10 +164,20 @@ class _FeedingEntryScreenState extends ConsumerState<FeedingEntryScreen> {
             onSelectionChanged: (set) => setState(() => _feedingMethod = set.first),
           ),
           const SizedBox(height: 28),
+          if (_feedingMethod == 'Bottle' || _feedingMethod == 'Solid') ...[
+            TextField(
+              controller: _amountController,
+              decoration: _inputDecoration(
+                _feedingMethod == 'Bottle' ? 'Amount (ml / oz)' : 'Amount (g) or Food Type',
+                icon: Icons.scale_outlined,
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
           TextField(
             controller: _durationController,
             keyboardType: TextInputType.number,
-            decoration: _inputDecoration('Duration (minutes)', icon: Icons.timer_outlined),
+            decoration: _inputDecoration('Duration (minutes) - optional', icon: Icons.timer_outlined),
           ),
           const SizedBox(height: 20),
           TextField(

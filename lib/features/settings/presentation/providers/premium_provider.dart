@@ -1,4 +1,4 @@
-// features/settings/presentation/providers/premium_provider.dart
+// lib/features/settings/presentation/providers/premium_provider.dart
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/local_storage/hive_manager.dart';
@@ -21,7 +21,7 @@ class PremiumNotifier extends StateNotifier<bool> {
     state = true;
     _savePremiumState(true);
   }
-  
+
   void resetPremium() {
     state = false;
     _savePremiumState(false);

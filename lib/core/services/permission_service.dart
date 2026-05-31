@@ -1,3 +1,5 @@
+// lib/core/services/permission_service.dart
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -7,7 +9,6 @@ import 'package:permission_handler/permission_handler.dart';
 /// RULE: Never call these at app startup. Call them immediately BEFORE
 /// the feature that needs the permission (e.g., camera before taking a baby photo).
 class PermissionService {
-  
   // ---------------------------------------------------------------------------
   // Camera — for baby milestone photos
   // ---------------------------------------------------------------------------
@@ -16,7 +17,8 @@ class PermissionService {
       context,
       permission: Permission.camera,
       title: 'Camera Access Required',
-      reason: 'We need camera access so you can take photos of your baby\'s milestones.',
+      reason:
+          'We need camera access so you can take photos of your baby\'s milestones.',
       icon: Icons.camera_alt_rounded,
     );
   }
@@ -32,7 +34,8 @@ class PermissionService {
           context,
           permission: Permission.photos,
           title: 'Photo Library Access',
-          reason: 'We need access to your photos so you can upload milestone pictures.',
+          reason:
+              'We need access to your photos so you can upload milestone pictures.',
           icon: Icons.photo_library_rounded,
         );
       } else {
@@ -40,7 +43,8 @@ class PermissionService {
           context,
           permission: Permission.storage,
           title: 'Storage Access',
-          reason: 'We need storage access to save and upload baby milestone photos.',
+          reason:
+              'We need storage access to save and upload baby milestone photos.',
           icon: Icons.folder_rounded,
         );
       }
@@ -49,7 +53,8 @@ class PermissionService {
         context,
         permission: Permission.photos,
         title: 'Photo Library Access',
-        reason: 'We need access to your photos so you can upload milestone pictures.',
+        reason:
+            'We need access to your photos so you can upload milestone pictures.',
         icon: Icons.photo_library_rounded,
       );
     }
@@ -63,7 +68,8 @@ class PermissionService {
       context,
       permission: Permission.microphone,
       title: 'Microphone Access Required',
-      reason: 'We need microphone access to record your baby\'s first words and sounds.',
+      reason:
+          'We need microphone access to record your baby\'s first words and sounds.',
       icon: Icons.mic_rounded,
     );
   }
@@ -76,7 +82,8 @@ class PermissionService {
       context,
       permission: Permission.locationWhenInUse,
       title: 'Location Access Required',
-      reason: 'We need your location to find nearby pediatricians and geotag milestone photos.',
+      reason:
+          'We need your location to find nearby pediatricians and geotag milestone photos.',
       icon: Icons.location_on_rounded,
     );
   }
@@ -89,7 +96,8 @@ class PermissionService {
       context,
       permission: Permission.notification,
       title: 'Enable Notifications',
-      reason: 'Get timely reminders for baby feeding, sleep schedules, and vaccinations.',
+      reason:
+          'Get timely reminders for baby feeding, sleep schedules, and vaccinations.',
       icon: Icons.notifications_active_rounded,
     );
   }
@@ -100,9 +108,11 @@ class PermissionService {
   static Future<bool> requestCalendar(BuildContext context) async {
     return _requestWithRationale(
       context,
-      permission: Permission.calendarFullAccess, // Adjust if write-only is needed
+      permission:
+          Permission.calendarFullAccess, // Adjust if write-only is needed
       title: 'Calendar Access',
-      reason: 'We need calendar access to sync vaccination schedules to your device.',
+      reason:
+          'We need calendar access to sync vaccination schedules to your device.',
       icon: Icons.calendar_month_rounded,
     );
   }
@@ -115,7 +125,8 @@ class PermissionService {
       context,
       permission: Permission.contacts,
       title: 'Contacts Access',
-      reason: 'We need contacts access to easily share baby milestones with your family.',
+      reason:
+          'We need contacts access to easily share baby milestones with your family.',
       icon: Icons.contacts_rounded,
     );
   }
@@ -123,9 +134,12 @@ class PermissionService {
   // ---------------------------------------------------------------------------
   // Check current status without requesting
   // ---------------------------------------------------------------------------
-  static Future<bool> isCameraGranted() async => await Permission.camera.isGranted;
-  static Future<bool> isNotificationGranted() async => await Permission.notification.isGranted;
-  static Future<bool> isLocationGranted() async => await Permission.locationWhenInUse.isGranted;
+  static Future<bool> isCameraGranted() async =>
+      await Permission.camera.isGranted;
+  static Future<bool> isNotificationGranted() async =>
+      await Permission.notification.isGranted;
+  static Future<bool> isLocationGranted() async =>
+      await Permission.locationWhenInUse.isGranted;
 
   // ---------------------------------------------------------------------------
   // Open OS Settings (when permanently denied)
@@ -146,13 +160,15 @@ class PermissionService {
 
     if (await permission.isPermanentlyDenied) {
       if (context.mounted) {
-        await _showSettingsDialog(context, title: title, reason: reason, icon: icon);
+        await _showSettingsDialog(context,
+            title: title, reason: reason, icon: icon);
       }
       return false;
     }
 
     if (context.mounted) {
-      final proceed = await _showRationaleDialog(context, title: title, reason: reason, icon: icon);
+      final proceed = await _showRationaleDialog(context,
+          title: title, reason: reason, icon: icon);
       if (!proceed) return false;
     }
 
@@ -169,23 +185,27 @@ class PermissionService {
     return await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: Row(
               children: [
                 Icon(icon, color: Theme.of(context).primaryColor),
                 const SizedBox(width: 12),
-                Expanded(child: Text(title, style: const TextStyle(fontSize: 17))),
+                Expanded(
+                    child: Text(title, style: const TextStyle(fontSize: 17))),
               ],
             ),
             content: Text(reason, style: const TextStyle(height: 1.5)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Not Now', style: TextStyle(color: Colors.grey)),
+                child:
+                    const Text('Not Now', style: TextStyle(color: Colors.grey)),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
                 ),
                 onPressed: () => Navigator.pop(ctx, true),
                 child: const Text('Allow'),
@@ -210,7 +230,9 @@ class PermissionService {
           children: [
             Icon(icon, color: Colors.orange),
             const SizedBox(width: 12),
-            const Expanded(child: Text('Permission Denied', style: TextStyle(fontSize: 17))),
+            const Expanded(
+                child:
+                    Text('Permission Denied', style: TextStyle(fontSize: 17))),
           ],
         ),
         content: Text(

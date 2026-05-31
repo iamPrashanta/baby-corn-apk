@@ -1,3 +1,5 @@
+// lib/features/guide/domain/models/sanskar_model.dart
+
 import 'package:hive/hive.dart';
 
 part 'sanskar_model.g.dart';

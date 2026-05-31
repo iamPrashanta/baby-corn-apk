@@ -1,3 +1,5 @@
+// lib/features/development/presentation/screens/tabs/moments_tab.dart
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,7 +29,7 @@ class _MomentsTabState extends ConsumerState<MomentsTab> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     final filterLabels = [l10n.photos, l10n.memories, l10n.favorites];
 
     return Scaffold(
@@ -47,8 +49,11 @@ class _MomentsTabState extends ConsumerState<MomentsTab> {
                     label: Text(
                       filterLabels[index],
                       style: TextStyle(
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                        color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.w600,
+                        color: isSelected
+                            ? Colors.white
+                            : (isDark ? Colors.white70 : Colors.black87),
                       ),
                     ),
                     selected: isSelected,
@@ -57,36 +62,42 @@ class _MomentsTabState extends ConsumerState<MomentsTab> {
                         _selectedFilterIndex = index;
                       });
                     },
-                    backgroundColor: isDark ? Colors.white10 : Colors.grey.shade200,
+                    backgroundColor:
+                        isDark ? Colors.white10 : Colors.grey.shade200,
                     selectedColor: AppColors.primary,
                     checkmarkColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20)),
                     side: BorderSide.none,
                   ),
                 );
               }),
             ),
           ),
-          
+
           // Content Area
           Expanded(
             child: _buildContentArea(isDark, l10n),
           ),
         ],
       ),
-      floatingActionButton: _selectedFilterIndex == 0 ? FloatingActionButton.extended(
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            builder: (context) => const AddMomentSheet(),
-          );
-        },
-        backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.add_a_photo_rounded, color: Colors.white),
-        label: Text(l10n.addMoment, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-      ) : null,
+      floatingActionButton: _selectedFilterIndex == 0
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => const AddMomentSheet(),
+                );
+              },
+              backgroundColor: AppColors.primary,
+              icon: const Icon(Icons.add_a_photo_rounded, color: Colors.white),
+              label: Text(l10n.addMoment,
+                  style: const TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold)),
+            )
+          : null,
     );
   }
 
@@ -122,7 +133,7 @@ class _MomentsTabState extends ConsumerState<MomentsTab> {
 
     // Photos (Index 0)
     final momentsAsync = ref.watch(momentsProvider);
-    
+
     return momentsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, _) => Center(child: Text('Error: $err')),
@@ -136,7 +147,8 @@ class _MomentsTabState extends ConsumerState<MomentsTab> {
                 const SizedBox(height: 24),
                 Text(
                   l10n.noMoments,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -188,19 +200,23 @@ class _MomentsTabState extends ConsumerState<MomentsTab> {
                     Hero(
                       tag: 'moment_${moment.id}',
                       child: moment.imagePath.startsWith('http')
-                        ? CachedNetworkImage(
-                            imageUrl: moment.imagePath,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => Container(
-                              color: isDark ? Colors.black26 : Colors.black12,
-                              child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                          ? CachedNetworkImage(
+                              imageUrl: moment.imagePath,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => Container(
+                                color: isDark ? Colors.black26 : Colors.black12,
+                                child: const Center(
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2)),
+                              ),
+                              errorWidget: (context, url, error) => const Icon(
+                                  Icons.broken_image,
+                                  color: Colors.grey),
+                            )
+                          : Image.file(
+                              File(moment.imagePath),
+                              fit: BoxFit.cover,
                             ),
-                            errorWidget: (context, url, error) => const Icon(Icons.broken_image, color: Colors.grey),
-                          )
-                        : Image.file(
-                            File(moment.imagePath),
-                            fit: BoxFit.cover,
-                          ),
                     ),
                     // Gradient overlay
                     Container(
@@ -255,17 +271,23 @@ class _MomentsTabState extends ConsumerState<MomentsTab> {
                               title: const Text('Delete Moment'),
                               content: const Text('Are you sure?'),
                               actions: [
-                                TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+                                TextButton(
+                                    onPressed: () => Navigator.pop(ctx, false),
+                                    child: const Text('Cancel')),
                                 ElevatedButton(
-                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red),
                                   onPressed: () => Navigator.pop(ctx, true),
-                                  child: const Text('Delete', style: TextStyle(color: Colors.white)),
+                                  child: const Text('Delete',
+                                      style: TextStyle(color: Colors.white)),
                                 ),
                               ],
                             ),
                           );
                           if (confirm == true) {
-                            ref.read(momentsProvider.notifier).deleteMoment(moment.id);
+                            ref
+                                .read(momentsProvider.notifier)
+                                .deleteMoment(moment.id);
                           }
                         },
                         child: Container(
@@ -274,14 +296,18 @@ class _MomentsTabState extends ConsumerState<MomentsTab> {
                             color: Colors.black45,
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.delete_outline, color: Colors.white, size: 18),
+                          child: const Icon(Icons.delete_outline,
+                              color: Colors.white, size: 18),
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
-            ).animate().fadeIn(duration: 400.ms, delay: (index * 50).ms).slideY(begin: 0.1, end: 0);
+            )
+                .animate()
+                .fadeIn(duration: 400.ms, delay: (index * 50).ms)
+                .slideY(begin: 0.1, end: 0);
           },
         );
       },
@@ -291,7 +317,7 @@ class _MomentsTabState extends ConsumerState<MomentsTab> {
 
 class _MomentViewerScreen extends StatelessWidget {
   final dynamic moment;
-  
+
   const _MomentViewerScreen({required this.moment});
 
   @override
@@ -307,22 +333,29 @@ class _MomentViewerScreen extends StatelessWidget {
             icon: const Icon(Icons.download_rounded),
             onPressed: () async {
               if (moment.imagePath.startsWith('http')) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Downloading image...')));
+                ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Downloading image...')));
                 try {
-                  final request = await HttpClient().getUrl(Uri.parse(moment.imagePath));
+                  final request =
+                      await HttpClient().getUrl(Uri.parse(moment.imagePath));
                   final response = await request.close();
-                  final bytes = await consolidateHttpClientResponseBytes(response);
+                  final bytes =
+                      await consolidateHttpClientResponseBytes(response);
                   final tempDir = await getTemporaryDirectory();
-                  final tempFile = File('${tempDir.path}/share_${moment.id}.jpg');
+                  final tempFile =
+                      File('${tempDir.path}/share_${moment.id}.jpg');
                   await tempFile.writeAsBytes(bytes);
-                  await Share.shareXFiles([XFile(tempFile.path)], text: moment.title);
+                  await Share.shareXFiles([XFile(tempFile.path)],
+                      text: moment.title);
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to download: $e')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to download: $e')));
                   }
                 }
               } else {
-                await Share.shareXFiles([XFile(moment.imagePath)], text: moment.title);
+                await Share.shareXFiles([XFile(moment.imagePath)],
+                    text: moment.title);
               }
             },
           ),
@@ -338,16 +371,20 @@ class _MomentViewerScreen extends StatelessWidget {
             minScale: 0.5,
             maxScale: 4,
             child: moment.imagePath.startsWith('http')
-              ? CachedNetworkImage(
-                  imageUrl: moment.imagePath,
-                  fit: BoxFit.contain,
-                  placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                  errorWidget: (context, url, error) => const Icon(Icons.broken_image, color: Colors.grey, size: 64),
-                )
-              : Image.file(
-                  File(moment.imagePath),
-                  fit: BoxFit.contain,
-                ),
+                ? CachedNetworkImage(
+                    imageUrl: moment.imagePath,
+                    fit: BoxFit.contain,
+                    placeholder: (context, url) =>
+                        const Center(child: CircularProgressIndicator()),
+                    errorWidget: (context, url, error) => const Icon(
+                        Icons.broken_image,
+                        color: Colors.grey,
+                        size: 64),
+                  )
+                : Image.file(
+                    File(moment.imagePath),
+                    fit: BoxFit.contain,
+                  ),
           ),
         ),
       ),

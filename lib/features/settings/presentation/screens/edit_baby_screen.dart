@@ -1,4 +1,4 @@
-// features/settings/presentation/screens/edit_baby_screen.dart
+// lib/features/settings/presentation/screens/edit_baby_screen.dart
 
 import 'package:flutter/material.dart';
 
@@ -28,17 +28,32 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
 
   bool _isSaving = false;
 
-
   static const List<Map<String, dynamic>> _genderOptions = [
     {'label': 'Girl', 'icon': Icons.face_3, 'color': Color(0xFFFFD8D3)},
     {'label': 'Boy', 'icon': Icons.face_6, 'color': Color(0xFFD4E6F1)},
-    {'label': 'Prefer not to say', 'icon': Icons.favorite_border, 'color': Color(0xFFFFF5D1)},
+    {
+      'label': 'Prefer not to say',
+      'icon': Icons.favorite_border,
+      'color': Color(0xFFFFF5D1)
+    },
   ];
 
   static const List<Map<String, dynamic>> _feedingOptions = [
-    {'label': 'Breastmilk', 'icon': Icons.water_drop_outlined, 'color': Color(0xFFFFE5B4)},
-    {'label': 'Formula', 'icon': Icons.local_drink_outlined, 'color': Color(0xFFD4E6F1)},
-    {'label': 'Mixed', 'icon': Icons.set_meal_outlined, 'color': Color(0xFFE2D5F8)},
+    {
+      'label': 'Breastmilk',
+      'icon': Icons.water_drop_outlined,
+      'color': Color(0xFFFFE5B4)
+    },
+    {
+      'label': 'Formula',
+      'icon': Icons.local_drink_outlined,
+      'color': Color(0xFFD4E6F1)
+    },
+    {
+      'label': 'Mixed',
+      'icon': Icons.set_meal_outlined,
+      'color': Color(0xFFE2D5F8)
+    },
   ];
 
   @override
@@ -212,7 +227,8 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
 
   // ─── Section wrapper ──────────────────────────────────────────────────────
 
-  Widget _buildSection(BuildContext context, {
+  Widget _buildSection(
+    BuildContext context, {
     required String label,
     required Color labelColor,
     required Widget child,
@@ -328,8 +344,8 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
           builder: (context, child) => Theme(
             data: Theme.of(context).copyWith(
               colorScheme: Theme.of(context).colorScheme.copyWith(
-                primary: AppColors.primary,
-              ),
+                    primary: AppColors.primary,
+                  ),
             ),
             child: child!,
           ),
@@ -389,10 +405,12 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
             onTap: () => onSelect(label),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              margin: EdgeInsets.fromLTRB(12, i == 0 ? 12 : 0, 12, isLast ? 12 : 6),
+              margin:
+                  EdgeInsets.fromLTRB(12, i == 0 ? 12 : 0, 12, isLast ? 12 : 6),
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
               decoration: BoxDecoration(
-                color: isSelected ? color.withOpacity(0.25) : Colors.transparent,
+                color:
+                    isSelected ? color.withOpacity(0.25) : Colors.transparent,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: isSelected ? color : Colors.transparent,
@@ -401,13 +419,17 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(icon, size: 26, color: isSelected ? color.withOpacity(0.85) : Colors.grey),
+                  Icon(icon,
+                      size: 26,
+                      color:
+                          isSelected ? color.withOpacity(0.85) : Colors.grey),
                   const SizedBox(width: 14),
                   Text(
                     label,
                     style: TextStyle(
                       fontSize: 17,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.w500,
                     ),
                   ),
                   const Spacer(),
@@ -436,7 +458,8 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Weight', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+              const Text('Weight',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
               Text(
                 '${_birthWeight.toStringAsFixed(2)} kg',
                 style: TextStyle(
@@ -475,7 +498,8 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
 
   Widget _buildHeightSlider(Color cardBg, bool isDark) {
     // If not in cm, we show inches
-    final displayValue = _isHeightInCm ? _birthHeight! : _birthHeight! * 0.393701;
+    final displayValue =
+        _isHeightInCm ? _birthHeight! : _birthHeight! * 0.393701;
     final displayUnit = _isHeightInCm ? 'cm' : 'in';
 
     return Container(
@@ -489,7 +513,8 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Height', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+              const Text('Height',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
               Row(
                 children: [
                   Text(

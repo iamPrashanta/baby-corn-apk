@@ -1,4 +1,4 @@
-// core/widgets/floating_timer_overlay.dart
+// lib/core/widgets/floating_timer_overlay.dart
 
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -69,9 +69,8 @@ class _FloatingTimerOverlayState extends ConsumerState<FloatingTimerOverlay>
   }
 
   Future<void> _handleStop() async {
-    final record = await ref
-        .read(activeSessionProvider.notifier)
-        .stopAndSaveSession();
+    final record =
+        await ref.read(activeSessionProvider.notifier).stopAndSaveSession();
     if (record != null && mounted) {
       setState(() => _showSuccess = true);
       await Future.delayed(const Duration(milliseconds: 1500));
@@ -179,11 +178,15 @@ class _FloatingTimerOverlayState extends ConsumerState<FloatingTimerOverlay>
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          isPaused ? '${activeSession.type} (Paused)' : activeSession.type,
+                          isPaused
+                              ? '${activeSession.type} (Paused)'
+                              : activeSession.type,
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white70 : AppColors.textSecondary,
+                            color: isDark
+                                ? Colors.white70
+                                : AppColors.textSecondary,
                             letterSpacing: 0.5,
                           ),
                           maxLines: 1,
@@ -194,7 +197,8 @@ class _FloatingTimerOverlayState extends ConsumerState<FloatingTimerOverlay>
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : AppColors.textPrimary,
+                            color:
+                                isDark ? Colors.white : AppColors.textPrimary,
                             fontFeatures: const [FontFeature.tabularFigures()],
                           ),
                         ),
@@ -207,20 +211,27 @@ class _FloatingTimerOverlayState extends ConsumerState<FloatingTimerOverlay>
                     children: [
                       IconButton(
                         icon: Icon(
-                          isPaused ? Icons.play_arrow_rounded : Icons.pause_rounded,
+                          isPaused
+                              ? Icons.play_arrow_rounded
+                              : Icons.pause_rounded,
                           color: isDark ? Colors.white : AppColors.textPrimary,
                         ),
                         onPressed: () {
                           HapticService.selectionClick();
                           if (isPaused) {
-                            ref.read(activeSessionProvider.notifier).resumeSession();
+                            ref
+                                .read(activeSessionProvider.notifier)
+                                .resumeSession();
                           } else {
-                            ref.read(activeSessionProvider.notifier).pauseSession();
+                            ref
+                                .read(activeSessionProvider.notifier)
+                                .pauseSession();
                           }
                         },
                       ),
                       IconButton(
-                        icon: const Icon(Icons.stop_rounded, color: Colors.redAccent),
+                        icon: const Icon(Icons.stop_rounded,
+                            color: Colors.redAccent),
                         onPressed: () {
                           HapticService.mediumImpact();
                           _handleStop();
@@ -233,7 +244,10 @@ class _FloatingTimerOverlayState extends ConsumerState<FloatingTimerOverlay>
             ),
           ),
         ),
-      ).animate().slideY(begin: -1.0, duration: 400.ms, curve: Curves.easeOutBack).fadeIn(),
+      )
+          .animate()
+          .slideY(begin: -1.0, duration: 400.ms, curve: Curves.easeOutBack)
+          .fadeIn(),
     );
   }
 }

@@ -1,8 +1,11 @@
+// lib/features/guide/presentation/screens/guide_main_screen.dart
+
 import 'package:flutter/material.dart';
 import 'sanskar_journey_screen.dart';
 import 'baby_cry_language_screen.dart';
 import 'baby_rashes_screen.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/custom_app_bar.dart';
 
 import '../../../../l10n/app_localizations.dart';
 
@@ -17,9 +20,8 @@ class GuideMainScreen extends StatelessWidget {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(l10n.guides),
-          centerTitle: true,
+        appBar: CustomAppBar(
+          title: l10n.guides,
           bottom: TabBar(
             indicatorColor: AppColors.primary,
             labelColor: AppColors.primary,

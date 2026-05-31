@@ -1,3 +1,5 @@
+// lib/features/auth/presentation/screens/language_selection_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/providers/locale_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/config/app_config.dart';
+import '../../data/repositories/baby_repository.dart';
 
 class LanguageSelectionScreen extends ConsumerWidget {
   const LanguageSelectionScreen({super.key});
@@ -32,7 +35,8 @@ class LanguageSelectionScreen extends ConsumerWidget {
             children: [
               Text(
                 l10n.selectLanguage,
-                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               Text(
@@ -46,14 +50,17 @@ class LanguageSelectionScreen extends ConsumerWidget {
               Expanded(
                 child: ListView.separated(
                   itemCount: languages.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 16),
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 16),
                   itemBuilder: (context, index) {
                     final lang = languages[index];
                     return InkWell(
                       onTap: () async {
                         // Set locale
-                        ref.read(localeProvider.notifier).setLocale(Locale(lang['code']!));
-                        
+                        ref
+                            .read(localeProvider.notifier)
+                            .setLocale(Locale(lang['code']!));
+
                         // Mark as selected
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.setBool('has_selected_language', true);
@@ -63,15 +70,24 @@ class LanguageSelectionScreen extends ConsumerWidget {
                           if (AppConfig.enableFirebaseAuth) {
                             context.go('/auth');
                           } else {
-                            context.go('/onboarding');
+                            final isOnboarded = ref
+                                .read(babyRepositoryProvider)
+                                .isOnboardingComplete();
+                            if (isOnboarded) {
+                              context.go('/home');
+                            } else {
+                              context.go('/onboarding');
+                            }
                           }
                         }
                       },
                       borderRadius: BorderRadius.circular(16),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 20),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF252229) : Colors.white,
+                          color:
+                              isDark ? const Color(0xFF252229) : Colors.white,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: isDark ? Colors.white12 : Colors.black12,
@@ -79,7 +95,8 @@ class LanguageSelectionScreen extends ConsumerWidget {
                         ),
                         child: Text(
                           lang['name']!,
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.w600),
                         ),
                       ),
                     );

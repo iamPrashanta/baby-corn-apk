@@ -1,4 +1,4 @@
-// core/widgets/bouncing_button.dart
+// lib/core/widgets/bouncing_button.dart
 
 import 'package:flutter/material.dart';
 import '../constants/app_motion.dart';
@@ -22,7 +22,8 @@ class BouncingButton extends StatefulWidget {
   State<BouncingButton> createState() => _BouncingButtonState();
 }
 
-class _BouncingButtonState extends State<BouncingButton> with SingleTickerProviderStateMixin {
+class _BouncingButtonState extends State<BouncingButton>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
 
@@ -30,7 +31,8 @@ class _BouncingButtonState extends State<BouncingButton> with SingleTickerProvid
   void initState() {
     super.initState();
     _controller = AnimationController(vsync: this, duration: widget.duration);
-    _scaleAnimation = Tween<double>(begin: 1.0, end: widget.scaleFactor).animate(
+    _scaleAnimation =
+        Tween<double>(begin: 1.0, end: widget.scaleFactor).animate(
       CurvedAnimation(parent: _controller, curve: AppMotion.defaultCurve),
     );
   }

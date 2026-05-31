@@ -59,6 +59,11 @@ void main() async {
     debugPrint("STEP 3: Initializing Hive");
     await HiveManager.init();
 
+    // DEBUG LOGS
+    debugPrint("DEBUG LOGS: profile box count: ${HiveManager.getProfileBox().length}");
+    debugPrint("DEBUG LOGS: records count: ${HiveManager.getRecordsBox().length}");
+    debugPrint("DEBUG LOGS: settings count: ${HiveManager.getSettingsBox().length}");
+
     debugPrint("STEP 4: Initializing ReminderService");
     await ReminderService.init();
 

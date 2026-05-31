@@ -1,3 +1,5 @@
+// lib/features/dashboard/presentation/screens/launchpad_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -22,7 +24,7 @@ class LaunchpadScreen extends ConsumerWidget {
     final activeBaby = ref.watch(activeBabyProvider);
     final allBabies = ref.watch(allBabiesProvider);
     final filterDate = ref.watch(timelineFilterDateProvider);
-    
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -47,15 +49,18 @@ class LaunchpadScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 24),
             sliver: _buildTimelineSlivers(recordsAsync, isDark),
           ),
-          const SliverPadding(padding: EdgeInsets.only(bottom: 120)), // Padding for bottom nav
+          const SliverPadding(
+              padding: EdgeInsets.only(bottom: 120)), // Padding for bottom nav
         ],
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, WidgetRef ref, BabyModel? activeBaby, List<BabyModel> allBabies, bool isDark) {
+  Widget _buildHeader(BuildContext context, WidgetRef ref,
+      BabyModel? activeBaby, List<BabyModel> allBabies, bool isDark) {
     final babyName = activeBaby?.name ?? 'Baby';
-    final age = activeBaby?.birthDate != null ? _formatAge(activeBaby!.birthDate) : '';
+    final age =
+        activeBaby?.birthDate != null ? _formatAge(activeBaby!.birthDate) : '';
 
     return Container(
       padding: const EdgeInsets.only(top: 80, left: 24, right: 24, bottom: 32),
@@ -87,7 +92,8 @@ class LaunchpadScreen extends ConsumerWidget {
                 const SizedBox(height: 4),
                 GestureDetector(
                   onTap: allBabies.length > 1
-                      ? () => _showProfileSwitcherSheet(context, ref, activeBaby, allBabies, isDark)
+                      ? () => _showProfileSwitcherSheet(
+                          context, ref, activeBaby, allBabies, isDark)
                       : null,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -100,17 +106,21 @@ class LaunchpadScreen extends ConsumerWidget {
                           letterSpacing: -0.5,
                         ),
                       ),
-                      if (allBabies.length > 1) ...[  
+                      if (allBabies.length > 1) ...[
                         const SizedBox(width: 6),
                         Icon(
                           Icons.keyboard_arrow_down_rounded,
                           size: 28,
-                          color: isDark ? Colors.white54 : const Color(0xFF9A8C98),
+                          color:
+                              isDark ? Colors.white54 : const Color(0xFF9A8C98),
                         ),
                       ],
                     ],
                   ),
-                ).animate().fadeIn(duration: 600.ms, delay: 100.ms).slideY(begin: 0.1, end: 0),
+                )
+                    .animate()
+                    .fadeIn(duration: 600.ms, delay: 100.ms)
+                    .slideY(begin: 0.1, end: 0),
                 if (age.isNotEmpty) ...[
                   const SizedBox(height: 6),
                   Text(
@@ -145,13 +155,15 @@ class LaunchpadScreen extends ConsumerWidget {
                 style: const TextStyle(fontSize: 32),
               ),
             ),
-          ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack, delay: 200.ms),
+          ).animate().scale(
+              duration: 600.ms, curve: Curves.easeOutBack, delay: 200.ms),
         ],
       ),
     );
   }
 
-  Widget _buildSummaryCard(BuildContext context, AsyncValue<List<RecordModel>> recordsAsync, bool isDark) {
+  Widget _buildSummaryCard(BuildContext context,
+      AsyncValue<List<RecordModel>> recordsAsync, bool isDark) {
     int sleepMinutes = 0;
     int feedsCount = 0;
     int diapersCount = 0;
@@ -165,23 +177,23 @@ class LaunchpadScreen extends ConsumerWidget {
             r.timestamp.day == now.day) {
           final type = r.type.toLowerCase();
           if (type.contains('sleep')) {
-             final dur = r.metadata['durationSeconds'];
-             final min = r.metadata['durationMinutes'];
-             if (dur != null) {
-               sleepMinutes += (dur as int) ~/ 60;
-             } else if (min != null) {
-               sleepMinutes += min as int;
-             }
+            final dur = r.metadata['durationSeconds'];
+            final min = r.metadata['durationMinutes'];
+            if (dur != null) {
+              sleepMinutes += (dur as int) ~/ 60;
+            } else if (min != null) {
+              sleepMinutes += min as int;
+            }
           } else if (type.contains('feed')) {
-             feedsCount++;
+            feedsCount++;
           } else if (type == 'diaper') {
-             diapersCount++;
+            diapersCount++;
           }
         }
       }
     });
 
-    final sleepStr = sleepMinutes >= 60 
+    final sleepStr = sleepMinutes >= 60
         ? '${sleepMinutes ~/ 60}h ${sleepMinutes % 60}m'
         : '${sleepMinutes}m';
 
@@ -212,26 +224,40 @@ class LaunchpadScreen extends ConsumerWidget {
                   color: isDark ? Colors.white70 : const Color(0xFF4A4458),
                 ),
               ),
-              Icon(Icons.auto_awesome_rounded, color: AppColors.primary, size: 20),
+              Icon(Icons.auto_awesome_rounded,
+                  color: AppColors.primary, size: 20),
             ],
           ),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildSummaryItem('😴', sleepMinutes == 0 ? '--' : sleepStr, 'Sleep', isDark),
-              Container(width: 1, height: 40, color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
+              _buildSummaryItem(
+                  '😴', sleepMinutes == 0 ? '--' : sleepStr, 'Sleep', isDark),
+              Container(
+                  width: 1,
+                  height: 40,
+                  color:
+                      isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
               _buildSummaryItem('🍼', '$feedsCount times', 'Feeds', isDark),
-              Container(width: 1, height: 40, color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
+              Container(
+                  width: 1,
+                  height: 40,
+                  color:
+                      isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
               _buildSummaryItem('🩲', '$diapersCount times', 'Diapers', isDark),
             ],
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 600.ms, delay: 400.ms).slideY(begin: 0.05, end: 0);
+    )
+        .animate()
+        .fadeIn(duration: 600.ms, delay: 400.ms)
+        .slideY(begin: 0.05, end: 0);
   }
 
-  Widget _buildSummaryItem(String emoji, String value, String label, bool isDark) {
+  Widget _buildSummaryItem(
+      String emoji, String value, String label, bool isDark) {
     return Column(
       children: [
         Text(emoji, style: const TextStyle(fontSize: 20)),
@@ -253,7 +279,8 @@ class LaunchpadScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTimelineHeader(BuildContext context, WidgetRef ref, DateTime? filterDate, bool isDark) {
+  Widget _buildTimelineHeader(
+      BuildContext context, WidgetRef ref, DateTime? filterDate, bool isDark) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -283,23 +310,40 @@ class LaunchpadScreen extends ConsumerWidget {
               ref.read(timelineFilterDateProvider.notifier).state = picked;
             }
           },
-          icon: Icon(filterDate != null ? Icons.close_rounded : Icons.filter_list_rounded, size: 20),
-          label: Text(filterDate != null ? DateFormat('MMM d').format(filterDate) : 'Filter Date'),
+          icon: Icon(
+              filterDate != null
+                  ? Icons.close_rounded
+                  : Icons.filter_list_rounded,
+              size: 20),
+          label: Text(filterDate != null
+              ? DateFormat('MMM d').format(filterDate)
+              : 'Filter Date'),
           style: TextButton.styleFrom(
             foregroundColor: AppColors.primary,
-            backgroundColor: filterDate != null ? AppColors.primary.withOpacity(0.1) : null,
+            backgroundColor:
+                filterDate != null ? AppColors.primary.withOpacity(0.1) : null,
           ),
         ),
       ],
-    ).animate().fadeIn(duration: 400.ms, delay: 500.ms).slideY(begin: 0.05, end: 0);
+    )
+        .animate()
+        .fadeIn(duration: 400.ms, delay: 500.ms)
+        .slideY(begin: 0.05, end: 0);
   }
 
-  Widget _buildTimelineSlivers(AsyncValue<List<RecordModel>> recordsAsync, bool isDark) {
+  Widget _buildTimelineSlivers(
+      AsyncValue<List<RecordModel>> recordsAsync, bool isDark) {
     return recordsAsync.when(
-      loading: () => const SliverToBoxAdapter(child: Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator()))),
-      error: (e, _) => SliverToBoxAdapter(child: Center(child: Text('Error: $e'))),
+      loading: () => const SliverToBoxAdapter(
+          child: Center(
+              child: Padding(
+                  padding: EdgeInsets.all(32),
+                  child: CircularProgressIndicator()))),
+      error: (e, _) =>
+          SliverToBoxAdapter(child: Center(child: Text('Error: $e'))),
       data: (records) {
-        if (records.isEmpty) return const SliverToBoxAdapter(child: EmptyTimelineState());
+        if (records.isEmpty)
+          return const SliverToBoxAdapter(child: EmptyTimelineState());
 
         final grouped = <String, List<RecordModel>>{};
         for (final r in records) {
@@ -325,10 +369,16 @@ class LaunchpadScreen extends ConsumerWidget {
           );
           for (int i = 0; i < entry.value.length; i++) {
             items.add(
-              TimelineTile(record: entry.value[i], isLast: i == entry.value.length - 1)
+              TimelineTile(
+                      record: entry.value[i],
+                      isLast: i == entry.value.length - 1)
                   .animate()
                   .fadeIn(duration: 300.ms, delay: (i * 100).ms)
-                  .slideX(begin: -0.1, end: 0, curve: Curves.easeOutCubic, delay: (i * 100).ms),
+                  .slideX(
+                      begin: -0.1,
+                      end: 0,
+                      curve: Curves.easeOutCubic,
+                      delay: (i * 100).ms),
             );
           }
         }
@@ -394,9 +444,7 @@ class LaunchpadScreen extends ConsumerWidget {
                   ),
                   ElevatedButton(
                     onPressed: () {
-                      ref
-                          .read(activeSessionProvider.notifier)
-                          .cancelSession();
+                      ref.read(activeSessionProvider.notifier).cancelSession();
                       Navigator.pop(ctx, true);
                     },
                     style:
@@ -466,11 +514,11 @@ class _ProfileSwitcherSheet extends StatelessWidget {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 decoration: BoxDecoration(
-                  color: isActive
-                      ? AppColors.primary.withOpacity(0.12)
-                      : cardBg,
+                  color:
+                      isActive ? AppColors.primary.withOpacity(0.12) : cardBg,
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(
                     color: isActive ? AppColors.primary : Colors.transparent,
@@ -505,7 +553,9 @@ class _ProfileSwitcherSheet extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w700,
-                              color: isDark ? Colors.white : const Color(0xFF2D3142),
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF2D3142),
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -513,7 +563,9 @@ class _ProfileSwitcherSheet extends StatelessWidget {
                             _formatAge(baby.birthDate),
                             style: TextStyle(
                               fontSize: 13,
-                              color: isDark ? Colors.white54 : const Color(0xFF9A8C98),
+                              color: isDark
+                                  ? Colors.white54
+                                  : const Color(0xFF9A8C98),
                             ),
                           ),
                         ],
@@ -522,7 +574,8 @@ class _ProfileSwitcherSheet extends StatelessWidget {
                     // Active indicator
                     if (isActive)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withOpacity(0.18),
                           borderRadius: BorderRadius.circular(20),

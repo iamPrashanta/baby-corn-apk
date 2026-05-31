@@ -1,3 +1,5 @@
+// lib/core/widgets/premium_bottom_nav.dart
+
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
@@ -37,7 +39,8 @@ class PremiumBottomNav extends StatelessWidget {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
           child: Container(
-            padding: EdgeInsets.only(bottom: bottomPadding + 12, top: 12, left: 4, right: 4),
+            padding: EdgeInsets.only(
+                bottom: bottomPadding + 12, top: 12, left: 4, right: 4),
             decoration: BoxDecoration(
               color: isDark
                   ? const Color(0xFF1E1C20).withOpacity(0.95)

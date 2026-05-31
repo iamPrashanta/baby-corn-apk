@@ -1,3 +1,5 @@
+// lib/core/services/biometric_service.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
@@ -53,16 +55,19 @@ class BiometricService {
         ),
       );
       debugPrint('BIOMETRIC: authenticate result=$result');
-      return (success: result, error: result ? null : 'Authentication cancelled');
+      return (
+        success: result,
+        error: result ? null : 'Authentication cancelled'
+      );
     } on PlatformException catch (e) {
-      debugPrint('BIOMETRIC: PlatformException code=${e.code} msg=${e.message}');
+      debugPrint(
+          'BIOMETRIC: PlatformException code=${e.code} msg=${e.message}');
       final message = switch (e.code) {
         auth_error.notAvailable =>
           'Biometric authentication is not available on this device.',
         auth_error.notEnrolled =>
           'No biometrics enrolled. Please add a fingerprint in device settings.',
-        auth_error.lockedOut =>
-          'Too many attempts. Please try again later.',
+        auth_error.lockedOut => 'Too many attempts. Please try again later.',
         auth_error.permanentlyLockedOut =>
           'Biometric locked out permanently. Use your PIN to unlock.',
         auth_error.passcodeNotSet =>

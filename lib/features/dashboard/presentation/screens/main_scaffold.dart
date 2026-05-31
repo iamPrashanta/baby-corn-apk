@@ -1,4 +1,4 @@
-// features/dashboard/presentation/screens/main_scaffold.dart
+// lib/features/dashboard/presentation/screens/main_scaffold.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -41,7 +41,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    
+
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) {
@@ -49,7 +49,8 @@ class _MainScaffoldState extends State<MainScaffold> {
 
         final now = DateTime.now();
         final maxDuration = const Duration(seconds: 2);
-        final isWarning = _lastPressedAt == null || now.difference(_lastPressedAt!) > maxDuration;
+        final isWarning = _lastPressedAt == null ||
+            now.difference(_lastPressedAt!) > maxDuration;
 
         if (isWarning) {
           _lastPressedAt = now;
@@ -70,21 +71,25 @@ class _MainScaffoldState extends State<MainScaffold> {
         ),
         bottomNavigationBar: PremiumBottomNav(
           currentIndex: _currentIndex,
-            onTap: (index) {
-              if (index == 2) {
-                _showAddRecordModal(context);
-              } else {
-                setState(() => _currentIndex = index);
-              }
-            },
-            items: [
-              PremiumNavItem(icon: Icons.home_rounded, label: l10n.launchpad),
-              PremiumNavItem(icon: Icons.developer_mode_rounded, label: l10n.development),
-              PremiumNavItem(icon: Icons.add_circle_rounded, label: l10n.records), // Add record uses records label or can be hardcoded 'Add'
-              PremiumNavItem(icon: Icons.menu_book_rounded, label: l10n.guides),
-              PremiumNavItem(icon: Icons.person_rounded, label: l10n.account),
-            ],
-          ),
+          onTap: (index) {
+            if (index == 2) {
+              _showAddRecordModal(context);
+            } else {
+              setState(() => _currentIndex = index);
+            }
+          },
+          items: [
+            PremiumNavItem(icon: Icons.home_rounded, label: l10n.launchpad),
+            PremiumNavItem(
+                icon: Icons.developer_mode_rounded, label: l10n.development),
+            PremiumNavItem(
+                icon: Icons.add_circle_rounded,
+                label: l10n
+                    .records), // Add record uses records label or can be hardcoded 'Add'
+            PremiumNavItem(icon: Icons.menu_book_rounded, label: l10n.guides),
+            PremiumNavItem(icon: Icons.person_rounded, label: l10n.account),
+          ],
+        ),
       ),
     );
   }

@@ -1,3 +1,5 @@
+// lib/core/services/widget_service.dart
+
 import 'package:flutter/foundation.dart';
 import 'package:home_widget/home_widget.dart';
 import '../../features/records/domain/models/record_model.dart';
@@ -17,7 +19,7 @@ class WidgetService {
   static Future<void> updateWidgetData(List<RecordModel> records) async {
     try {
       final now = DateTime.now();
-      
+
       // Calculate sleep today
       int sleepMinutesToday = 0;
       DateTime? lastFeed;
@@ -26,17 +28,16 @@ class WidgetService {
         if (record.timestamp.year == now.year &&
             record.timestamp.month == now.month &&
             record.timestamp.day == now.day) {
-          
           final type = record.type.toLowerCase();
-          
+
           if (type.contains('sleep')) {
-             final dur = record.metadata['durationSeconds'];
-             final min = record.metadata['durationMinutes'];
-             if (dur != null) {
-               sleepMinutesToday += (dur as int) ~/ 60;
-             } else if (min != null) {
-               sleepMinutesToday += min as int;
-             }
+            final dur = record.metadata['durationSeconds'];
+            final min = record.metadata['durationMinutes'];
+            if (dur != null) {
+              sleepMinutesToday += (dur as int) ~/ 60;
+            } else if (min != null) {
+              sleepMinutesToday += min as int;
+            }
           }
         }
 
@@ -47,9 +48,9 @@ class WidgetService {
       }
 
       // Format sleep
-      final sleepStr = sleepMinutesToday >= 60 
-        ? '${sleepMinutesToday ~/ 60}h ${sleepMinutesToday % 60}m'
-        : '${sleepMinutesToday}m';
+      final sleepStr = sleepMinutesToday >= 60
+          ? '${sleepMinutesToday ~/ 60}h ${sleepMinutesToday % 60}m'
+          : '${sleepMinutesToday}m';
 
       // Format last feed
       String lastFeedStr = 'No feeds yet';

@@ -1,7 +1,10 @@
+// lib/features/development/presentation/screens/development_main_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../settings/presentation/providers/premium_provider.dart';
 import '../../../settings/presentation/screens/subscription_screen.dart';
 import 'tabs/moments_tab.dart';
@@ -20,19 +23,8 @@ class DevelopmentMainScreen extends ConsumerWidget {
       length: 4,
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        appBar: AppBar(
-          title: Text(
-            l10n.development,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-              color: isDark ? Colors.white : AppColors.textPrimary,
-              letterSpacing: -0.5,
-            ),
-          ),
-          centerTitle: true,
-          elevation: 0,
-          backgroundColor: Colors.transparent,
+        appBar: CustomAppBar(
+          title: l10n.development,
           bottom: TabBar(
             isScrollable: true,
             tabAlignment: TabAlignment.start,
@@ -41,8 +33,10 @@ class DevelopmentMainScreen extends ConsumerWidget {
             indicatorSize: TabBarIndicatorSize.label,
             labelColor: AppColors.primary,
             unselectedLabelColor: isDark ? Colors.white54 : Colors.black54,
-            labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
-            unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+            labelStyle:
+                const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+            unselectedLabelStyle:
+                const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
             tabs: [
               Tab(text: l10n.moments),
               Tab(text: l10n.milestones),
@@ -51,7 +45,7 @@ class DevelopmentMainScreen extends ConsumerWidget {
             ],
           ),
         ),
-        body: isPremium 
+        body: isPremium
             ? TabBarView(
                 children: [
                   const MomentsTab(),
@@ -67,7 +61,7 @@ class DevelopmentMainScreen extends ConsumerWidget {
 
   Widget _buildPremiumLock(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
@@ -109,7 +103,8 @@ class DevelopmentMainScreen extends ConsumerWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
+                    MaterialPageRoute(
+                        builder: (_) => const SubscriptionScreen()),
                   );
                 },
                 icon: const Icon(Icons.lock_open_rounded, color: Colors.white),

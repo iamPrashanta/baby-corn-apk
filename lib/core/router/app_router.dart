@@ -60,8 +60,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const MainScaffold(),
       ),
       GoRoute(
-        path: '/entry/feeding',
-        builder: (context, state) => const FeedingEntryScreen(),
+        path: '/feeding-entry',
+        builder: (context, state) => FeedingEntryScreen(
+          initialMethod: state.extra as String?,
+        ),
       ),
       GoRoute(
         path: '/entry/sleep',

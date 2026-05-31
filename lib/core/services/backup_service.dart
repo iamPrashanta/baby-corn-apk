@@ -15,17 +15,20 @@ class BackupService {
     try {
       final recordsBox = HiveManager.getRecordsBox();
       final settingsBox = HiveManager.getSettingsBox();
+      final profileBox = HiveManager.getProfileBox();
 
       final recordsList = recordsBox.values.map((e) => e.toJson()).toList();
 
-      // Profile is stored as individual keys in the settings box
+      // Profile data (both legacy from settingsBox and modern from profileBox)
       final profileData = {
         'baby_name': settingsBox.get('baby_name'),
         'baby_birthdate': settingsBox.get('baby_birthdate'),
         'baby_feeding_type': settingsBox.get('baby_feeding_type'),
         'baby_gender': settingsBox.get('baby_gender'),
         'baby_birth_weight': settingsBox.get('baby_birth_weight'),
-        'onboarding_complete': settingsBox.get('onboarding_complete'),
+        'babies_list': profileBox.get('babies_list'),
+        'active_baby_id': profileBox.get('active_baby_id'),
+        'onboarding_complete': profileBox.get('onboarding_complete'),
       };
 
       final backupData = {
@@ -42,7 +45,8 @@ class BackupService {
       final file = File('${dir.path}/baby_corn_backup_$dateStr.json');
       await file.writeAsString(jsonString);
 
-      final result = await Share.shareXFiles([XFile(file.path)], text: 'Baby Corn Backup');
+      final result =
+          await Share.shareXFiles([XFile(file.path)], text: 'Baby Corn Backup');
       return result.status == ShareResultStatus.success;
     } catch (e) {
       debugPrint('Export failed: $e');
@@ -72,13 +76,19 @@ class BackupService {
 
       final recordsBox = HiveManager.getRecordsBox();
       final settingsBox = HiveManager.getSettingsBox();
+      final profileBox = HiveManager.getProfileBox();
 
-      // Restore profile keys into settings box
+      // Restore profile keys into appropriate boxes
       if (backupData['profile'] != null) {
         final profile = backupData['profile'] as Map<String, dynamic>;
         for (final entry in profile.entries) {
           if (entry.value != null) {
-            await settingsBox.put(entry.key, entry.value);
+            if (['babies_list', 'active_baby_id', 'onboarding_complete']
+                .contains(entry.key)) {
+              await profileBox.put(entry.key, entry.value);
+            } else {
+              await settingsBox.put(entry.key, entry.value);
+            }
           }
         }
       }

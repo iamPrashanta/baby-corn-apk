@@ -1,4 +1,4 @@
-// features/statistics/presentation/screens/statistics_screen.dart
+// lib/features/statistics/presentation/screens/statistics_screen.dart
 
 import 'package:flutter/material.dart';
 
@@ -13,7 +13,9 @@ class StatisticsScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.bar_chart, size: 80, color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
+            Icon(Icons.bar_chart,
+                size: 80,
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
             const SizedBox(height: 16),
             Text(
               'Coming Soon',

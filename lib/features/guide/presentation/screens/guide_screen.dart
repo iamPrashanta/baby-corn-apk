@@ -1,4 +1,4 @@
-// features/guide/presentation/screens/guide_screen.dart
+// lib/features/guide/presentation/screens/guide_screen.dart
 
 import 'package:flutter/material.dart';
 
@@ -13,7 +13,9 @@ class GuideScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.menu_book, size: 80, color: Theme.of(context).colorScheme.tertiary.withOpacity(0.5)),
+            Icon(Icons.menu_book,
+                size: 80,
+                color: Theme.of(context).colorScheme.tertiary.withOpacity(0.5)),
             const SizedBox(height: 16),
             Text(
               'Coming Soon',

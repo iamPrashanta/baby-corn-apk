@@ -1,4 +1,4 @@
-// features/settings/domain/models/reminder_settings_model.dart
+// lib/features/settings/domain/models/reminder_settings_model.dart
 
 class ReminderCategorySettings {
   final bool isEnabled;
@@ -63,13 +63,16 @@ class ReminderSettingsModel {
     return ReminderSettingsModel(
       isMasterEnabled: json['isMasterEnabled'] as bool? ?? false,
       feeding: json['feeding'] != null
-          ? ReminderCategorySettings.fromJson(json['feeding'] as Map<String, dynamic>)
+          ? ReminderCategorySettings.fromJson(
+              json['feeding'] as Map<String, dynamic>)
           : const ReminderCategorySettings(),
       sleep: json['sleep'] != null
-          ? ReminderCategorySettings.fromJson(json['sleep'] as Map<String, dynamic>)
+          ? ReminderCategorySettings.fromJson(
+              json['sleep'] as Map<String, dynamic>)
           : const ReminderCategorySettings(),
       diaper: json['diaper'] != null
-          ? ReminderCategorySettings.fromJson(json['diaper'] as Map<String, dynamic>)
+          ? ReminderCategorySettings.fromJson(
+              json['diaper'] as Map<String, dynamic>)
           : const ReminderCategorySettings(),
     );
   }

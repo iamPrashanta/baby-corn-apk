@@ -1,3 +1,5 @@
+// lib/features/guide/presentation/screens/baby_cry_language_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -119,7 +121,8 @@ class BabyCryLanguageScreen extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: (cry['color'] as Color).withOpacity(0.15),
+                                color:
+                                    (cry['color'] as Color).withOpacity(0.15),
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Icon(
@@ -138,15 +141,19 @@ class BabyCryLanguageScreen extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.w900,
-                                      color: isDark ? Colors.white : AppColors.textPrimary,
+                                      color: isDark
+                                          ? Colors.white
+                                          : AppColors.textPrimary,
                                       fontStyle: FontStyle.italic,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: (cry['color'] as Color).withOpacity(0.1),
+                                      color: (cry['color'] as Color)
+                                          .withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
@@ -168,20 +175,26 @@ class BabyCryLanguageScreen extends StatelessWidget {
                           cry['description'] as String,
                           style: TextStyle(
                             fontSize: 14,
-                            color: isDark ? Colors.white70 : AppColors.textSecondary,
+                            color: isDark
+                                ? Colors.white70
+                                : AppColors.textSecondary,
                             height: 1.5,
                           ),
                         ),
                       ],
                     ),
-                  ).animate().fadeIn(delay: Duration(milliseconds: 100 * index)).slideY(begin: 0.1),
+                  )
+                      .animate()
+                      .fadeIn(delay: Duration(milliseconds: 100 * index))
+                      .slideY(begin: 0.1),
                 );
               },
               childCount: cries.length,
             ),
           ),
         ),
-        const SliverToBoxAdapter(child: SizedBox(height: 100)), // Bottom nav padding
+        const SliverToBoxAdapter(
+            child: SizedBox(height: 100)), // Bottom nav padding
       ],
     );
   }

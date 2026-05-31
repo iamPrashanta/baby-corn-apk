@@ -1,3 +1,5 @@
+// lib/features/guide/presentation/providers/sanskar_provider.dart
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/local_storage/hive_manager.dart';
 import '../../domain/models/sanskar_model.dart';
@@ -5,7 +7,8 @@ import '../../../auth/presentation/providers/baby_provider.dart';
 import '../../domain/services/sanskar_date_engine.dart';
 import '../../../../core/services/reminder_service.dart';
 
-final sanskarsProvider = StateNotifierProvider<SanskarNotifier, List<SanskarModel>>((ref) {
+final sanskarsProvider =
+    StateNotifierProvider<SanskarNotifier, List<SanskarModel>>((ref) {
   final activeBaby = ref.watch(activeBabyProvider);
   return SanskarNotifier(activeBaby?.id, activeBaby?.birthDate);
 });
@@ -20,32 +23,38 @@ class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
 
   String get _prefix => _activeBabyId != null ? '${_activeBabyId}_' : '';
 
+  int _getReminderId(String id) {
+    return 1000 + (id.hashCode.abs() % 4000);
+  }
+
   void _loadSanskars() {
     final box = HiveManager.getSanskarsBox();
-    
+
     // Get all sanskars that match the active baby's prefix
-    var babySanskars = box.values.where((s) => s.id.startsWith(_prefix)).toList();
-    
+    var babySanskars =
+        box.values.where((s) => s.id.startsWith(_prefix)).toList();
+
     if (babySanskars.isEmpty) {
       _initializeDefaultSanskars();
       babySanskars = box.values.where((s) => s.id.startsWith(_prefix)).toList();
     }
-    
+
     // Auto-complete past dates
     bool changed = false;
     final now = DateTime.now();
     final bDate = _birthDate ?? now;
-    
+
     for (var s in babySanskars) {
       final effectiveDate = SanskarDateEngine.getEffectiveDate(s, bDate);
-      if (!s.isCompleted && effectiveDate.isBefore(now.subtract(const Duration(days: 1)))) {
+      if (!s.isCompleted &&
+          effectiveDate.isBefore(now.subtract(const Duration(days: 1)))) {
         final updated = s.copyWith(isCompleted: true, reminderEnabled: false);
         box.put(s.id, updated);
         changed = true;
-        ReminderService.cancelReminder(s.id.hashCode);
+        ReminderService.cancelReminder(_getReminderId(s.id));
       }
     }
-    
+
     if (changed) {
       babySanskars = box.values.where((s) => s.id.startsWith(_prefix)).toList();
     }
@@ -71,7 +80,7 @@ class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
       box.put(id, updated);
       if (completed) {
         // Cancel reminder if marked completed
-        ReminderService.cancelReminder(id.hashCode);
+        ReminderService.cancelReminder(_getReminderId(id));
         final unreminded = updated.copyWith(reminderEnabled: false);
         box.put(id, unreminded);
       }
@@ -105,35 +114,37 @@ class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
     if (item != null) {
       final updated = item.copyWith(reminderEnabled: enabled);
       box.put(id, updated);
-      
+
       if (enabled) {
-        final effectiveDate = SanskarDateEngine.getEffectiveDate(updated, _birthDate ?? DateTime.now());
-        final notificationDate = effectiveDate.subtract(const Duration(days: 1)); // 1 day before
+        final effectiveDate = SanskarDateEngine.getEffectiveDate(
+            updated, _birthDate ?? DateTime.now());
+        final notificationDate =
+            effectiveDate.subtract(const Duration(days: 1)); // 1 day before
         final delay = notificationDate.difference(DateTime.now());
         if (delay.isNegative) {
           // If 1 day before has passed, just schedule it for an hour from now as fallback?
           ReminderService.scheduleReminder(
-            id: id.hashCode,
+            id: _getReminderId(id),
             title: 'Upcoming Sanskar: ${updated.name}',
             body: 'Your baby has the ${updated.name} sanskar coming up soon!',
             delay: const Duration(hours: 1),
           );
         } else {
           ReminderService.scheduleReminder(
-            id: id.hashCode,
+            id: _getReminderId(id),
             title: 'Upcoming Sanskar: ${updated.name}',
             body: 'Tomorrow is the traditional date for ${updated.name}.',
             delay: delay,
           );
         }
       } else {
-        ReminderService.cancelReminder(id.hashCode);
+        ReminderService.cancelReminder(_getReminderId(id));
       }
-      
+
       _refreshState();
     }
   }
-  
+
   void _refreshState() {
     final box = HiveManager.getSanskarsBox();
     state = box.values.where((s) => s.id.startsWith(_prefix)).toList();
@@ -148,7 +159,10 @@ class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
         description: 'Conception ritual praying for a healthy child.',
         category: 'Prenatal',
         emojiIcon: '🌸',
-        defaultRule: SanskarRule(offset: 280, unit: SanskarOffsetUnit.beforeBirth, traditionalTimingText: 'Before conception'),
+        defaultRule: SanskarRule(
+            offset: 280,
+            unit: SanskarOffsetUnit.beforeBirth,
+            traditionalTimingText: 'Before conception'),
       ),
       SanskarModel(
         id: 's_02',
@@ -157,7 +171,10 @@ class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
         description: 'Ritual for the physical and mental growth of the baby.',
         category: 'Prenatal',
         emojiIcon: '🌱',
-        defaultRule: SanskarRule(offset: 200, unit: SanskarOffsetUnit.beforeBirth, traditionalTimingText: '2–3 months of pregnancy'),
+        defaultRule: SanskarRule(
+            offset: 200,
+            unit: SanskarOffsetUnit.beforeBirth,
+            traditionalTimingText: '2–3 months of pregnancy'),
       ),
       SanskarModel(
         id: 's_03',
@@ -166,7 +183,10 @@ class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
         description: 'Baby shower ritual for the mother\'s joy and positivity.',
         category: 'Prenatal',
         emojiIcon: '🪔',
-        defaultRule: SanskarRule(offset: 60, unit: SanskarOffsetUnit.beforeBirth, traditionalTimingText: '7–8 months of pregnancy'),
+        defaultRule: SanskarRule(
+            offset: 60,
+            unit: SanskarOffsetUnit.beforeBirth,
+            traditionalTimingText: '7–8 months of pregnancy'),
       ),
       SanskarModel(
         id: 's_04',
@@ -175,7 +195,10 @@ class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
         description: 'Welcoming the newborn into the world with honey/ghee.',
         category: 'Birth',
         emojiIcon: '👶',
-        defaultRule: SanskarRule(offset: 0, unit: SanskarOffsetUnit.days, traditionalTimingText: 'At birth'),
+        defaultRule: SanskarRule(
+            offset: 0,
+            unit: SanskarOffsetUnit.days,
+            traditionalTimingText: 'At birth'),
       ),
       SanskarModel(
         id: 's_05',
@@ -184,7 +207,10 @@ class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
         description: 'The naming ceremony of the child.',
         category: 'Infancy',
         emojiIcon: '✍️',
-        defaultRule: SanskarRule(offset: 21, unit: SanskarOffsetUnit.days, traditionalTimingText: '11th or 21st day'),
+        defaultRule: SanskarRule(
+            offset: 21,
+            unit: SanskarOffsetUnit.days,
+            traditionalTimingText: '11th or 21st day'),
       ),
       SanskarModel(
         id: 's_06',
@@ -193,7 +219,10 @@ class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
         description: 'The baby\'s first outing to see the sun/temple.',
         category: 'Infancy',
         emojiIcon: '☀️',
-        defaultRule: SanskarRule(offset: 4, unit: SanskarOffsetUnit.months, traditionalTimingText: '4th month'),
+        defaultRule: SanskarRule(
+            offset: 4,
+            unit: SanskarOffsetUnit.months,
+            traditionalTimingText: '4th month'),
       ),
       SanskarModel(
         id: 's_07',
@@ -202,7 +231,10 @@ class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
         description: 'The baby\'s first taste of solid food.',
         category: 'Infancy',
         emojiIcon: '🥣',
-        defaultRule: SanskarRule(offset: 6, unit: SanskarOffsetUnit.months, traditionalTimingText: '6th month'),
+        defaultRule: SanskarRule(
+            offset: 6,
+            unit: SanskarOffsetUnit.months,
+            traditionalTimingText: '6th month'),
       ),
       SanskarModel(
         id: 's_08',
@@ -211,7 +243,10 @@ class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
         description: 'Ear piercing ritual for health and intellect.',
         category: 'Childhood',
         emojiIcon: '👂',
-        defaultRule: SanskarRule(offset: 12, unit: SanskarOffsetUnit.months, traditionalTimingText: '6–12 months'),
+        defaultRule: SanskarRule(
+            offset: 12,
+            unit: SanskarOffsetUnit.months,
+            traditionalTimingText: '6–12 months'),
       ),
       SanskarModel(
         id: 's_09',
@@ -220,7 +255,10 @@ class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
         description: 'First haircut, symbolizing purity and new beginnings.',
         category: 'Childhood',
         emojiIcon: '✂️',
-        defaultRule: SanskarRule(offset: 1, unit: SanskarOffsetUnit.years, traditionalTimingText: '1st, 3rd, or 5th year'),
+        defaultRule: SanskarRule(
+            offset: 1,
+            unit: SanskarOffsetUnit.years,
+            traditionalTimingText: '1st, 3rd, or 5th year'),
       ),
       SanskarModel(
         id: 's_10',
@@ -229,7 +267,10 @@ class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
         description: 'Initiation into reading and writing.',
         category: 'Childhood',
         emojiIcon: '📖',
-        defaultRule: SanskarRule(offset: 5, unit: SanskarOffsetUnit.years, traditionalTimingText: 'Around 5 years'),
+        defaultRule: SanskarRule(
+            offset: 5,
+            unit: SanskarOffsetUnit.years,
+            traditionalTimingText: 'Around 5 years'),
       ),
       SanskarModel(
         id: 's_11',
@@ -238,7 +279,10 @@ class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
         description: 'The sacred thread ceremony; entering the student phase.',
         category: 'Adolescence',
         emojiIcon: '🧶',
-        defaultRule: SanskarRule(offset: 8, unit: SanskarOffsetUnit.years, traditionalTimingText: '8–12 years'),
+        defaultRule: SanskarRule(
+            offset: 8,
+            unit: SanskarOffsetUnit.years,
+            traditionalTimingText: '8–12 years'),
       ),
       SanskarModel(
         id: 's_12',
@@ -247,7 +291,10 @@ class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
         description: 'Commencement of deep study and education.',
         category: 'Adolescence',
         emojiIcon: '📚',
-        defaultRule: SanskarRule(offset: 9, unit: SanskarOffsetUnit.years, traditionalTimingText: 'Education initiation'),
+        defaultRule: SanskarRule(
+            offset: 9,
+            unit: SanskarOffsetUnit.years,
+            traditionalTimingText: 'Education initiation'),
       ),
       SanskarModel(
         id: 's_13',
@@ -256,7 +303,10 @@ class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
         description: 'First shave of facial hair, marking maturity.',
         category: 'Teenage',
         emojiIcon: '🪒',
-        defaultRule: SanskarRule(offset: 16, unit: SanskarOffsetUnit.years, traditionalTimingText: 'Teenage years'),
+        defaultRule: SanskarRule(
+            offset: 16,
+            unit: SanskarOffsetUnit.years,
+            traditionalTimingText: 'Teenage years'),
       ),
       SanskarModel(
         id: 's_14',
@@ -265,7 +315,10 @@ class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
         description: 'Graduation from studies, returning home.',
         category: 'Young Adult',
         emojiIcon: '🎓',
-        defaultRule: SanskarRule(offset: 21, unit: SanskarOffsetUnit.years, traditionalTimingText: 'Graduation age'),
+        defaultRule: SanskarRule(
+            offset: 21,
+            unit: SanskarOffsetUnit.years,
+            traditionalTimingText: 'Graduation age'),
       ),
       SanskarModel(
         id: 's_15',
@@ -274,16 +327,23 @@ class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
         description: 'Marriage; entering the householder phase of life.',
         category: 'Adulthood',
         emojiIcon: '💍',
-        defaultRule: SanskarRule(offset: 25, unit: SanskarOffsetUnit.years, traditionalTimingText: 'Marriage'),
+        defaultRule: SanskarRule(
+            offset: 25,
+            unit: SanskarOffsetUnit.years,
+            traditionalTimingText: 'Marriage'),
       ),
       SanskarModel(
         id: 's_16',
         name: 'Vanaprastha',
         sanskritName: 'वानप्रस्थ',
-        description: 'Stepping back from worldly duties, embracing spirituality.',
+        description:
+            'Stepping back from worldly duties, embracing spirituality.',
         category: 'Elderly',
         emojiIcon: '🍂',
-        defaultRule: SanskarRule(offset: 50, unit: SanskarOffsetUnit.years, traditionalTimingText: 'Around 50 years'),
+        defaultRule: SanskarRule(
+            offset: 50,
+            unit: SanskarOffsetUnit.years,
+            traditionalTimingText: 'Around 50 years'),
       ),
       SanskarModel(
         id: 's_17',
@@ -292,7 +352,10 @@ class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
         description: 'Complete renunciation for spiritual liberation.',
         category: 'Elderly',
         emojiIcon: '🕉️',
-        defaultRule: SanskarRule(offset: 75, unit: SanskarOffsetUnit.years, traditionalTimingText: 'Around 75 years'),
+        defaultRule: SanskarRule(
+            offset: 75,
+            unit: SanskarOffsetUnit.years,
+            traditionalTimingText: 'Around 75 years'),
       ),
       SanskarModel(
         id: 's_18',
@@ -301,7 +364,10 @@ class SanskarNotifier extends StateNotifier<List<SanskarModel>> {
         description: 'The final rites; return to the five elements.',
         category: 'End of Life',
         emojiIcon: '🕊️',
-        defaultRule: SanskarRule(offset: 100, unit: SanskarOffsetUnit.years, traditionalTimingText: 'End-of-life'),
+        defaultRule: SanskarRule(
+            offset: 100,
+            unit: SanskarOffsetUnit.years,
+            traditionalTimingText: 'End-of-life'),
       ),
     ];
   }

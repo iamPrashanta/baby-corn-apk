@@ -1,3 +1,5 @@
+// lib/core/theme/glass_system/glass_blur.dart
+
 class GlassBlur {
   // Ultra-light blur for navigation or small overlays (Performance optimized)
   static const double subtleX = 6.0;

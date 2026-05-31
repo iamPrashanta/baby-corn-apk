@@ -1,8 +1,10 @@
+// lib/core/services/haptic_service.dart
+
 import 'package:flutter/services.dart';
 import 'package:vibration/vibration.dart';
 
-/// A robust haptic feedback service that uses the `vibration` plugin for reliable 
-/// feedback across Android and iOS, falling back to Flutter's native `HapticFeedback` 
+/// A robust haptic feedback service that uses the `vibration` plugin for reliable
+/// feedback across Android and iOS, falling back to Flutter's native `HapticFeedback`
 /// if the plugin is unsupported or fails.
 class HapticService {
   static bool? _hasVibrator;
@@ -12,13 +14,14 @@ class HapticService {
   static Future<void> init() async {
     _hasVibrator = await Vibration.hasVibrator();
     if (_hasVibrator == true) {
-      _hasCustomVibrationsSupport = await Vibration.hasCustomVibrationsSupport();
+      _hasCustomVibrationsSupport =
+          await Vibration.hasCustomVibrationsSupport();
     }
   }
 
   static Future<void> lightImpact() async {
     if (_hasVibrator == null) await init();
-    
+
     if (_hasVibrator == true) {
       if (_hasCustomVibrationsSupport == true) {
         Vibration.vibrate(duration: 30, amplitude: 64);

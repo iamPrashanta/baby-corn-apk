@@ -1,4 +1,4 @@
-// features/settings/presentation/screens/subscription_screen.dart
+// lib/features/settings/presentation/screens/subscription_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -37,7 +37,8 @@ class SubscriptionScreen extends ConsumerWidget {
         ),
         child: SafeScrollableWrapper(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -57,7 +58,7 @@ class SubscriptionScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 32),
-                
+
                 // Titles
                 const Text(
                   'Baby Corn Pro',
@@ -69,7 +70,9 @@ class SubscriptionScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  isPremium ? 'You are already a Pro member.' : 'Unlock the ultimate parenting experience.',
+                  isPremium
+                      ? 'You are already a Pro member.'
+                      : 'Unlock the ultimate parenting experience.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
@@ -90,7 +93,8 @@ class SubscriptionScreen extends ConsumerWidget {
                 _buildFeatureRow(
                   icon: Icons.family_restroom,
                   title: 'Family Sharing',
-                  description: 'Manage multiple babies and share across devices.',
+                  description:
+                      'Manage multiple babies and share across devices.',
                   isDark: isDark,
                 ),
                 const SizedBox(height: 24),
@@ -116,7 +120,8 @@ class SubscriptionScreen extends ConsumerWidget {
                   decoration: BoxDecoration(
                     color: isDark ? const Color(0xFF2C2C3E) : Colors.white,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.primary.withOpacity(0.5), width: 2),
+                    border: Border.all(
+                        color: AppColors.primary.withOpacity(0.5), width: 2),
                     boxShadow: [
                       BoxShadow(
                         color: AppColors.primary.withOpacity(0.1),
@@ -136,7 +141,9 @@ class SubscriptionScreen extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white70 : Colors.grey.shade800,
+                              color: isDark
+                                  ? Colors.white70
+                                  : Colors.grey.shade800,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -151,7 +158,8 @@ class SubscriptionScreen extends ConsumerWidget {
                         ],
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
@@ -176,23 +184,27 @@ class SubscriptionScreen extends ConsumerWidget {
                   onPressed: () {
                     if (isPremium) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Manage subscriptions via Google Play Store or App Store.')),
+                        const SnackBar(
+                            content: Text(
+                                'Manage subscriptions via Google Play Store or App Store.')),
                       );
                     } else {
                       // MOCK PURCHASE LOGIC
                       ref.read(premiumProvider.notifier).unlockPremium();
-                      
+
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('🎉 Welcome to Baby Corn Pro! Features unlocked.'),
+                          content: Text(
+                              '🎉 Welcome to Baby Corn Pro! Features unlocked.'),
                           backgroundColor: Colors.green,
                         ),
                       );
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: isPremium ? Colors.grey.shade800 : AppColors.primary,
+                    backgroundColor:
+                        isPremium ? Colors.grey.shade800 : AppColors.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     shape: RoundedRectangleBorder(
@@ -202,12 +214,15 @@ class SubscriptionScreen extends ConsumerWidget {
                   ),
                   child: Text(
                     isPremium ? 'Manage Subscription' : 'Subscribe Now',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  isPremium ? 'Your subscription is active.' : 'Cancel anytime. Auto-renews monthly.',
+                  isPremium
+                      ? 'Your subscription is active.'
+                      : 'Cancel anytime. Auto-renews monthly.',
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),

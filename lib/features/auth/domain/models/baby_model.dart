@@ -1,4 +1,4 @@
-// features/auth/domain/models/baby_model.dart
+// lib/features/auth/domain/models/baby_model.dart
 
 class BabyModel {
   final String id;
@@ -8,6 +8,7 @@ class BabyModel {
   final String gender;
   final double birthWeight;
   final double? birthHeight;
+
   /// Optional emoji avatar for visual identity across multiple baby profiles.
   /// Defaults to '👶' when not set (backward-compatible).
   final String avatarEmoji;

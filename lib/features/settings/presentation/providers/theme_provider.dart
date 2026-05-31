@@ -1,10 +1,11 @@
-// features/settings/presentation/providers/theme_provider.dart
+// lib/features/settings/presentation/providers/theme_provider.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/repositories/settings_repository.dart';
 
-final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
+final themeModeProvider =
+    StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
   final repository = ref.watch(settingsRepositoryProvider);
   return ThemeModeNotifier(repository);
 });

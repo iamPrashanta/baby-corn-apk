@@ -8,6 +8,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/bouncing_button.dart';
 import '../../../../core/widgets/app_bottom_sheet.dart';
 import '../providers/active_session_provider.dart';
+import 'feeding_options_sheet.dart';
 
 class AddRecordModal extends ConsumerWidget {
   final String? initialType;
@@ -54,15 +55,13 @@ class AddRecordModal extends ConsumerWidget {
                   isActive: true,
                   isHighlighted: initialType == 'feeding',
                   onTap: () {
-                    final notifier = ref.read(activeSessionProvider.notifier);
-                    final state = ref.read(activeSessionProvider);
-                    if (state != null) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Stop current session first')));
-                      return;
-                    }
-                    notifier.startSession('Left Feeding', metadata: {'side': 'Left Breast'});
                     Navigator.pop(context);
+                    showModalBottomSheet(
+                      context: context,
+                      backgroundColor: Colors.transparent,
+                      isScrollControlled: true,
+                      builder: (ctx) => const FeedingOptionsSheet(),
+                    );
                   },
                 )
                     .animate()

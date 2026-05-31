@@ -1,3 +1,5 @@
+// lib/features/development/domain/models/moment_model.g.dart
+
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'moment_model.dart';

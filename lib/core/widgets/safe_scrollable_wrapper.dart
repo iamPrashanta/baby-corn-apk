@@ -1,3 +1,5 @@
+// lib/core/widgets/safe_scrollable_wrapper.dart
+
 import 'package:flutter/material.dart';
 
 /// A helper widget that ensures content is scrollable if it exceeds the screen height,

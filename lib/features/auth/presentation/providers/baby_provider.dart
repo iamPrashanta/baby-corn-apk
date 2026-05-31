@@ -1,10 +1,11 @@
-// features/auth/presentation/providers/baby_provider.dart
+// lib/features/auth/presentation/providers/baby_provider.dart
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/baby_model.dart';
 import '../../data/repositories/baby_repository.dart';
 
-final activeBabyProvider = StateNotifierProvider<ActiveBabyNotifier, BabyModel?>((ref) {
+final activeBabyProvider =
+    StateNotifierProvider<ActiveBabyNotifier, BabyModel?>((ref) {
   final repository = ref.watch(babyRepositoryProvider);
   return ActiveBabyNotifier(repository);
 });
@@ -27,10 +28,11 @@ class ActiveBabyNotifier extends StateNotifier<BabyModel?> {
   void _loadActiveBaby() {
     final activeId = _repository.getActiveBabyId();
     final babies = _repository.getBabies();
-    
+
     if (babies.isNotEmpty) {
       if (activeId != null) {
-        state = babies.firstWhere((b) => b.id == activeId, orElse: () => babies.first);
+        state = babies.firstWhere((b) => b.id == activeId,
+            orElse: () => babies.first);
       } else {
         state = babies.first;
         _repository.setActiveBabyId(state!.id);

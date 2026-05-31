@@ -1,4 +1,4 @@
-// features/settings/data/repositories/settings_repository.dart
+// lib/features/settings/data/repositories/settings_repository.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,7 +16,8 @@ class SettingsRepository {
 
   ThemeMode getThemeMode() {
     final box = HiveManager.getSettingsBox();
-    final modeIndex = box.get('theme_mode', defaultValue: ThemeMode.system.index) as int;
+    final modeIndex =
+        box.get('theme_mode', defaultValue: ThemeMode.system.index) as int;
     return ThemeMode.values[modeIndex];
   }
 

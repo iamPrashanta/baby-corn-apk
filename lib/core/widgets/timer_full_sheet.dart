@@ -1,4 +1,4 @@
-// core/widgets/timer_full_sheet.dart
+// lib/core/widgets/timer_full_sheet.dart
 
 import 'dart:math' as math;
 
@@ -73,7 +73,8 @@ class _TimerFullSheetState extends ConsumerState<TimerFullSheet>
   String _getDisplayName(String type) {
     final t = type.toLowerCase();
     if (t.contains('left') && t.contains('feed')) return 'Left Breast Feeding';
-    if (t.contains('right') && t.contains('feed')) return 'Right Breast Feeding';
+    if (t.contains('right') && t.contains('feed'))
+      return 'Right Breast Feeding';
     if (t.contains('feed')) return 'Feeding';
     if (t.contains('sleep')) return 'Sleep';
     if (t.contains('tummy')) return 'Tummy Time';
@@ -148,208 +149,209 @@ class _TimerFullSheetState extends ConsumerState<TimerFullSheet>
       child: Column(
         children: [
           // Activity icon + title
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: accentColor.withOpacity(0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(icon, color: accentColor, size: 22),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: accentColor.withOpacity(0.15),
+                  shape: BoxShape.circle,
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  displayName,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white : AppColors.textPrimary,
-                  ),
+                child: Icon(icon, color: accentColor, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                displayName,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : AppColors.textPrimary,
                 ),
-              ],
-            )
-                .animate()
-                .fadeIn(duration: 300.ms)
-                .slideY(begin: -0.1, end: 0, duration: 300.ms),
-
-            const SizedBox(height: 32),
-
-            // Timer ring + display
-            SizedBox(
-              width: 200,
-              height: 200,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Animated progress ring
-                  AnimatedBuilder(
-                    animation: _ringController,
-                    builder: (context, child) {
-                      return CustomPaint(
-                        size: const Size(200, 200),
-                        painter: _TimerRingPainter(
-                          progress: (duration.inSeconds % 60) / 60.0,
-                          color: accentColor,
-                          isRunning: activeSession.isRunning,
-                          glowOpacity:
-                              0.3 + 0.2 * math.sin(_ringController.value * 2 * math.pi),
-                        ),
-                      );
-                    },
-                  ),
-                  // Timer text
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        durationStr,
-                        style: TextStyle(
-                          fontSize: 36,
-                          fontWeight: FontWeight.w300,
-                          color: isDark ? Colors.white : AppColors.textPrimary,
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                          letterSpacing: 2,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: activeSession.isRunning
-                              ? accentColor.withOpacity(0.12)
-                              : Colors.orange.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          activeSession.isRunning ? 'Running' : 'Paused',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: activeSession.isRunning
-                                ? accentColor
-                                : Colors.orange,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
               ),
-            )
-                .animate()
-                .scaleXY(begin: 0.8, end: 1.0, duration: 400.ms,
-                    curve: Curves.easeOutBack)
-                .fadeIn(duration: 300.ms),
-
-            const SizedBox(height: 28),
-
-            // Feeding side switch
-            if (isFeeding) ...[
-              _FeedingSideSwitch(
-                currentSide: currentSide,
-                accentColor: accentColor,
-                isDark: isDark,
-                onSwitch: _switchFeedingSide,
-              ),
-              const SizedBox(height: 20),
             ],
+          )
+              .animate()
+              .fadeIn(duration: 300.ms)
+              .slideY(begin: -0.1, end: 0, duration: 300.ms),
 
-            // Controls row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+          const SizedBox(height: 32),
+
+          // Timer ring + display
+          SizedBox(
+            width: 200,
+            height: 200,
+            child: Stack(
+              alignment: Alignment.center,
               children: [
-                // Pause/Resume button
-                _ControlButton(
-                  icon: activeSession.isRunning
-                      ? Icons.pause_rounded
-                      : Icons.play_arrow_rounded,
-                  label: activeSession.isRunning ? 'Pause' : 'Resume',
-                  color: accentColor,
-                  isDark: isDark,
-                  size: 64,
-                  onTap: () {
-                    HapticService.mediumImpact();
-                    if (activeSession.isRunning) {
-                      ref.read(activeSessionProvider.notifier).pauseSession();
-                    } else {
-                      ref.read(activeSessionProvider.notifier).resumeSession();
-                    }
+                // Animated progress ring
+                AnimatedBuilder(
+                  animation: _ringController,
+                  builder: (context, child) {
+                    return CustomPaint(
+                      size: const Size(200, 200),
+                      painter: _TimerRingPainter(
+                        progress: (duration.inSeconds % 60) / 60.0,
+                        color: accentColor,
+                        isRunning: activeSession.isRunning,
+                        glowOpacity: 0.3 +
+                            0.2 * math.sin(_ringController.value * 2 * math.pi),
+                      ),
+                    );
                   },
                 ),
-                const SizedBox(width: 24),
-                // Stop/Save button
-                _ControlButton(
-                  icon: Icons.stop_rounded,
-                  label: 'Save',
-                  color: const Color(0xFFFF6B6B),
-                  isDark: isDark,
-                  size: 56,
-                  onTap: _handleStop,
+                // Timer text
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      durationStr,
+                      style: TextStyle(
+                        fontSize: 36,
+                        fontWeight: FontWeight.w300,
+                        color: isDark ? Colors.white : AppColors.textPrimary,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                        letterSpacing: 2,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: activeSession.isRunning
+                            ? accentColor.withOpacity(0.12)
+                            : Colors.orange.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        activeSession.isRunning ? 'Running' : 'Paused',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: activeSession.isRunning
+                              ? accentColor
+                              : Colors.orange,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
-            )
-                .animate()
-                .fadeIn(duration: 300.ms, delay: 200.ms)
-                .slideY(begin: 0.2, end: 0, duration: 300.ms, delay: 200.ms),
+            ),
+          )
+              .animate()
+              .scaleXY(
+                  begin: 0.8,
+                  end: 1.0,
+                  duration: 400.ms,
+                  curve: Curves.easeOutBack)
+              .fadeIn(duration: 300.ms),
 
-            const SizedBox(height: 24),
+          const SizedBox(height: 28),
 
-            // Notes field
-            Container(
-              decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.white.withOpacity(0.05)
-                    : Colors.black.withOpacity(0.03),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isDark
-                      ? Colors.white.withOpacity(0.08)
-                      : Colors.black.withOpacity(0.06),
-                ),
-              ),
-              child: TextField(
-                controller: _notesController,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isDark ? Colors.white70 : AppColors.textPrimary,
-                ),
-                decoration: InputDecoration(
-                  hintText: 'Add a note...',
-                  hintStyle: TextStyle(
-                    color: isDark
-                        ? Colors.white.withOpacity(0.25)
-                        : Colors.grey.shade400,
-                    fontSize: 14,
-                  ),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
-                  prefixIcon: Icon(
-                    Icons.edit_note_rounded,
-                    size: 20,
-                    color: isDark
-                        ? Colors.white.withOpacity(0.2)
-                        : Colors.grey.shade400,
-                  ),
-                ),
-                onChanged: (value) {
-                  ref
-                      .read(activeSessionProvider.notifier)
-                      .updateMetadata({'note': value});
+          // Feeding side switch
+          if (isFeeding) ...[
+            _FeedingSideSwitch(
+              currentSide: currentSide,
+              accentColor: accentColor,
+              isDark: isDark,
+              onSwitch: _switchFeedingSide,
+            ),
+            const SizedBox(height: 20),
+          ],
+
+          // Controls row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Pause/Resume button
+              _ControlButton(
+                icon: activeSession.isRunning
+                    ? Icons.pause_rounded
+                    : Icons.play_arrow_rounded,
+                label: activeSession.isRunning ? 'Pause' : 'Resume',
+                color: accentColor,
+                isDark: isDark,
+                size: 64,
+                onTap: () {
+                  HapticService.mediumImpact();
+                  if (activeSession.isRunning) {
+                    ref.read(activeSessionProvider.notifier).pauseSession();
+                  } else {
+                    ref.read(activeSessionProvider.notifier).resumeSession();
+                  }
                 },
               ),
-            )
-                .animate()
-                .fadeIn(duration: 300.ms, delay: 300.ms),
+              const SizedBox(width: 24),
+              // Stop/Save button
+              _ControlButton(
+                icon: Icons.stop_rounded,
+                label: 'Save',
+                color: const Color(0xFFFF6B6B),
+                isDark: isDark,
+                size: 56,
+                onTap: _handleStop,
+              ),
+            ],
+          )
+              .animate()
+              .fadeIn(duration: 300.ms, delay: 200.ms)
+              .slideY(begin: 0.2, end: 0, duration: 300.ms, delay: 200.ms),
 
-            const SizedBox(height: 8),
-          ],
-        ),
+          const SizedBox(height: 24),
+
+          // Notes field
+          Container(
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withOpacity(0.05)
+                  : Colors.black.withOpacity(0.03),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withOpacity(0.08)
+                    : Colors.black.withOpacity(0.06),
+              ),
+            ),
+            child: TextField(
+              controller: _notesController,
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark ? Colors.white70 : AppColors.textPrimary,
+              ),
+              decoration: InputDecoration(
+                hintText: 'Add a note...',
+                hintStyle: TextStyle(
+                  color: isDark
+                      ? Colors.white.withOpacity(0.25)
+                      : Colors.grey.shade400,
+                  fontSize: 14,
+                ),
+                border: InputBorder.none,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                prefixIcon: Icon(
+                  Icons.edit_note_rounded,
+                  size: 20,
+                  color: isDark
+                      ? Colors.white.withOpacity(0.2)
+                      : Colors.grey.shade400,
+                ),
+              ),
+              onChanged: (value) {
+                ref
+                    .read(activeSessionProvider.notifier)
+                    .updateMetadata({'note': value});
+              },
+            ),
+          ).animate().fadeIn(duration: 300.ms, delay: 300.ms),
+
+          const SizedBox(height: 8),
+        ],
+      ),
     );
   }
 }

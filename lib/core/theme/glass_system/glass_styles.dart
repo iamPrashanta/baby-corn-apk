@@ -1,3 +1,5 @@
+// lib/core/theme/glass_system/glass_styles.dart
+
 import 'package:flutter/material.dart';
 import 'glass_colors.dart';
 
@@ -43,19 +45,23 @@ class GlassStyles {
   }
 
   /// Adaptive decoration based on Theme mode
-  static BoxDecoration adaptiveGlassDecoration(BuildContext context, {double borderRadius = 24.0}) {
+  static BoxDecoration adaptiveGlassDecoration(BuildContext context,
+      {double borderRadius = 24.0}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return isDark 
-      ? darkGlassDecoration(borderRadius: borderRadius)
-      : lightGlassDecoration(borderRadius: borderRadius);
+    return isDark
+        ? darkGlassDecoration(borderRadius: borderRadius)
+        : lightGlassDecoration(borderRadius: borderRadius);
   }
 
   /// Adaptive gradient highlight overlay (for liquid shine effect)
-  static BoxDecoration adaptiveLiquidHighlight(BuildContext context, {double borderRadius = 24.0}) {
+  static BoxDecoration adaptiveLiquidHighlight(BuildContext context,
+      {double borderRadius = 24.0}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return BoxDecoration(
       borderRadius: BorderRadius.circular(borderRadius),
-      gradient: isDark ? GlassColors.darkLiquidHighlight : GlassColors.lightLiquidHighlight,
+      gradient: isDark
+          ? GlassColors.darkLiquidHighlight
+          : GlassColors.lightLiquidHighlight,
     );
   }
 }

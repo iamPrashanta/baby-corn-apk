@@ -1,3 +1,5 @@
+// lib/features/guide/presentation/screens/sanskar_journey_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -72,8 +74,10 @@ class SanskarJourneyScreen extends ConsumerWidget {
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 final sanskar = sortedSanskars[index];
-                final effectiveDate = SanskarDateEngine.getEffectiveDate(sanskar, birthDate);
-                return _buildTimelineCard(context, ref, sanskar, effectiveDate, index, isDark, isHindi, l10n)
+                final effectiveDate =
+                    SanskarDateEngine.getEffectiveDate(sanskar, birthDate);
+                return _buildTimelineCard(context, ref, sanskar, effectiveDate,
+                        index, isDark, isHindi, l10n)
                     .animate()
                     .fadeIn(duration: 200.ms)
                     .slideY(begin: 0.05, end: 0, duration: 200.ms);
@@ -82,20 +86,29 @@ class SanskarJourneyScreen extends ConsumerWidget {
             ),
           ),
         ),
-        const SliverToBoxAdapter(child: SizedBox(height: 120)), // Bottom nav padding
+        const SliverToBoxAdapter(
+            child: SizedBox(height: 120)), // Bottom nav padding
       ],
     );
   }
 
   // Removed _buildHeroHeader
 
-  Widget _buildTimelineCard(BuildContext context, WidgetRef ref, SanskarModel sanskar, DateTime date, int index, bool isDark, bool isHindi, AppLocalizations l10n) {
+  Widget _buildTimelineCard(
+      BuildContext context,
+      WidgetRef ref,
+      SanskarModel sanskar,
+      DateTime date,
+      int index,
+      bool isDark,
+      bool isHindi,
+      AppLocalizations l10n) {
     final now = DateTime.now();
     final diff = date.difference(now).inDays;
-    
+
     String timeText;
     Color timeColor = isDark ? Colors.white54 : Colors.black54;
-    
+
     if (sanskar.isCompleted) {
       timeText = l10n.completedStatus;
       timeColor = Colors.green;
@@ -115,7 +128,8 @@ class SanskarJourneyScreen extends ConsumerWidget {
           context: context,
           isScrollControlled: true,
           backgroundColor: Colors.transparent,
-          builder: (context) => SanskarDetailSheet(sanskar: sanskar, effectiveDate: date),
+          builder: (context) =>
+              SanskarDetailSheet(sanskar: sanskar, effectiveDate: date),
         );
       },
       child: Container(
@@ -151,8 +165,10 @@ class SanskarJourneyScreen extends ConsumerWidget {
                   ),
                   child: Center(
                     child: sanskar.isCompleted
-                        ? const Icon(Icons.check_rounded, color: Colors.green, size: 28)
-                        : Text(sanskar.emojiIcon, style: const TextStyle(fontSize: 28)),
+                        ? const Icon(Icons.check_rounded,
+                            color: Colors.green, size: 28)
+                        : Text(sanskar.emojiIcon,
+                            style: const TextStyle(fontSize: 28)),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -169,7 +185,9 @@ class SanskarJourneyScreen extends ConsumerWidget {
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w900,
-                                color: isDark ? Colors.white : AppColors.textPrimary,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppColors.textPrimary,
                               ),
                             ),
                           ),
@@ -178,14 +196,17 @@ class SanskarJourneyScreen extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white70 : AppColors.textSecondary,
+                              color: isDark
+                                  ? Colors.white70
+                                  : AppColors.textSecondary,
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
                           color: sanskar.isCompleted
                               ? Colors.green.withOpacity(0.1)
@@ -197,7 +218,9 @@ class SanskarJourneyScreen extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
-                            color: sanskar.isCompleted ? Colors.green : AppColors.primary,
+                            color: sanskar.isCompleted
+                                ? Colors.green
+                                : AppColors.primary,
                           ),
                         ),
                       ),

@@ -1,3 +1,5 @@
+// lib/features/development/presentation/providers/moments_provider.dart
+
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -8,7 +10,9 @@ import '../../../../core/local_storage/hive_manager.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
 import '../../domain/models/moment_model.dart';
 
-final momentsProvider = StateNotifierProvider<MomentsNotifier, AsyncValue<List<MomentModel>>>((ref) {
+final momentsProvider =
+    StateNotifierProvider<MomentsNotifier, AsyncValue<List<MomentModel>>>(
+        (ref) {
   final activeBaby = ref.watch(activeBabyProvider);
   return MomentsNotifier(activeBaby?.id);
 });
@@ -32,7 +36,7 @@ class MomentsNotifier extends StateNotifier<AsyncValue<List<MomentModel>>> {
           .where((m) => m.babyId == _activeBabyId)
           .toList()
         ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
-        
+
       state = AsyncValue.data(allMoments);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -53,10 +57,11 @@ class MomentsNotifier extends StateNotifier<AsyncValue<List<MomentModel>>> {
       if (!await momentsDir.exists()) {
         await momentsDir.create(recursive: true);
       }
-      
+
       final fileName = '${const Uuid().v4()}${path.extension(tempImagePath)}';
-      final savedImage = await File(tempImagePath).copy(path.join(momentsDir.path, fileName));
-      
+      final savedImage =
+          await File(tempImagePath).copy(path.join(momentsDir.path, fileName));
+
       // 2. Create MomentModel
       final moment = MomentModel(
         id: const Uuid().v4(),
@@ -69,7 +74,7 @@ class MomentsNotifier extends StateNotifier<AsyncValue<List<MomentModel>>> {
 
       // 3. Save to Hive
       await _box.put(moment.id, moment);
-      
+
       // 4. Reload state
       _loadMoments();
     } catch (e, st) {

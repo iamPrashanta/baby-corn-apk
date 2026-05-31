@@ -1,4 +1,4 @@
-// core/widgets/app_lifecycle_wrapper.dart
+// lib/core/widgets/app_lifecycle_wrapper.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,24 +10,29 @@ import '../../features/records/presentation/providers/active_session_provider.da
 
 class AppLifecycleWrapper extends ConsumerStatefulWidget {
   final Widget child;
-  
+
   const AppLifecycleWrapper({super.key, required this.child});
 
   @override
-  ConsumerState<AppLifecycleWrapper> createState() => _AppLifecycleWrapperState();
+  ConsumerState<AppLifecycleWrapper> createState() =>
+      _AppLifecycleWrapperState();
 }
 
-class _AppLifecycleWrapperState extends ConsumerState<AppLifecycleWrapper> with WidgetsBindingObserver {
-  
+class _AppLifecycleWrapperState extends ConsumerState<AppLifecycleWrapper>
+    with WidgetsBindingObserver {
+  bool _hasNavigated = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initSecurityFeatures();
+    _hasNavigated = false;
   }
-  
+
   Future<void> _initSecurityFeatures() async {
-    final screenshotEnabled = await SecureStorageManager.isScreenshotProtectionEnabled();
+    final screenshotEnabled =
+        await SecureStorageManager.isScreenshotProtectionEnabled();
     if (screenshotEnabled) {
       await SecurityService.enableScreenshotProtection();
     }
@@ -41,32 +46,35 @@ class _AppLifecycleWrapperState extends ConsumerState<AppLifecycleWrapper> with 
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
-      // App went to background — stop the timer ticker to save battery
-      // The session data is persisted in Hive, and currentDuration uses
-      // DateTime.now() math, so it stays accurate without ticking.
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      // App went to background — reset navigation guard and pause ticker
+      _hasNavigated = false;
       ref.read(activeSessionProvider.notifier).pauseTicker();
-      
       await SecureStorageManager.updateLastActiveTime();
     } else if (state == AppLifecycleState.resumed) {
       // App came to foreground — restart the timer ticker for UI updates
       ref.read(activeSessionProvider.notifier).resumeTicker();
-      
+
       final hasPin = await SecureStorageManager.hasPin();
       if (hasPin) {
         final isExpired = await SecureStorageManager.isSessionExpired();
         if (isExpired) {
-          final isBiometricEnabled = await SecureStorageManager.isBiometricEnabled();
+          final isBiometricEnabled =
+              await SecureStorageManager.isBiometricEnabled();
           bool unlocked = false;
-          
+
           if (isBiometricEnabled && await BiometricService.isAvailable()) {
             unlocked = await BiometricService.authenticate();
           }
-          
+
           if (unlocked) {
             await SecureStorageManager.updateLastActiveTime();
           } else {
-            if (mounted) GoRouter.of(context).push('/pin_verify');
+            if (mounted && !_hasNavigated) {
+              _hasNavigated = true;
+              GoRouter.of(context).go('/pin_verify');
+            }
           }
         } else {
           await SecureStorageManager.updateLastActiveTime();

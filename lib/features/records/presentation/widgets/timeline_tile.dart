@@ -204,7 +204,18 @@ class TimelineTile extends ConsumerWidget {
         final method = r.metadata['side'] ?? r.metadata['method'] ?? r.metadata['originalType'] ?? 'Feeding';
         final dur = r.metadata['durationSeconds'];
         final durMin = dur != null ? (dur as int) ~/ 60 : r.metadata['duration'];
-        return ('🍼', 'Feeding', durMin != null && durMin > 0 ? '$method • ${durMin}m' : '$method', AppColors.feeding);
+        final amount = r.metadata['amount']?.toString() ?? '';
+        // Build subtitle: show amount if present, else duration
+        String sub;
+        if (amount.isNotEmpty) {
+          final unit = (method == 'Bottle') ? 'ml' : '';
+          sub = amount.contains(RegExp(r'[a-zA-Z]')) ? '$method • $amount' : '$method • $amount$unit';
+        } else if (durMin != null && durMin > 0) {
+          sub = '$method • ${durMin}m';
+        } else {
+          sub = '$method';
+        }
+        return ('🍼', 'Feeding', sub, AppColors.feeding);
       case 'sleep':
         final durSec = r.metadata['durationSeconds'];
         final durMin = durSec != null ? (durSec as int) ~/ 60 : r.metadata['durationMinutes'];

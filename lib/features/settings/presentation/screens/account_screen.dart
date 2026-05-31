@@ -1,4 +1,4 @@
-// features/settings/presentation/screens/account_screen.dart
+// lib/features/settings/presentation/screens/account_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +10,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../widgets/sync_details_sheet.dart';
 import '../../../../core/local_storage/secure_storage_manager.dart';
 import '../../../../core/config/app_config.dart';
+import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/services/backup_service.dart';
 import '../../../../core/services/sync_service.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
@@ -90,7 +91,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
         await SyncService.syncCloudDataToLocal();
         // Then sync any local data up to cloud
         await SyncService.syncOfflineDataToCloud();
-        
+
         // Invalidate providers to force UI refresh with new Hive data
         ref.invalidate(activeBabyProvider);
         ref.invalidate(recordsProvider);
@@ -131,7 +132,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
     final isPremium = ref.watch(premiumProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Account & Settings')),
+      appBar: const CustomAppBar(title: 'Account & Settings'),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
@@ -214,7 +215,6 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                   ],
                 ),
               ),
-
             ],
           ),
           const SizedBox(height: 16),
@@ -309,7 +309,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                       context.push('/subscription');
                       return;
                     }
-                    
+
                     // 1. Request Contacts Permission
                     final status = await Permission.contacts.request();
                     if (!status.isGranted) {
@@ -404,7 +404,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                       'assets/images/logo.png', // Assuming there's a logo in assets, otherwise a generic icon
                       width: 48,
                       height: 48,
-                      errorBuilder: (_, __, ___) => const Icon(Icons.child_care, size: 48),
+                      errorBuilder: (_, __, ___) =>
+                          const Icon(Icons.child_care, size: 48),
                     ),
                     applicationLegalese: '© 2026 Baby Corn App',
                     children: [
@@ -425,8 +426,10 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                 )
               else if (AppConfig.enableFirebaseAuth)
                 ListTile(
-                  leading: const Icon(Icons.g_mobiledata, size: 32, color: Colors.blue),
-                  title: Text(AppLocalizations.of(context)?.signInWithGoogle ?? 'Sign in with Google'),
+                  leading: const Icon(Icons.g_mobiledata,
+                      size: 32, color: Colors.blue),
+                  title: Text(AppLocalizations.of(context)?.signInWithGoogle ??
+                      'Sign in with Google'),
                   onTap: _signInWithGoogle,
                 ),
             ],
@@ -612,8 +615,10 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
           ),
         ),
         Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          clipBehavior: Clip.antiAlias, // This clips the rectangular ripple animations of ListTiles inside
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          clipBehavior: Clip
+              .antiAlias, // This clips the rectangular ripple animations of ListTiles inside
           child: Column(children: children),
         ),
       ],

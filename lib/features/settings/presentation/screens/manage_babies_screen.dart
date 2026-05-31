@@ -1,4 +1,4 @@
-// features/settings/presentation/screens/manage_babies_screen.dart
+// lib/features/settings/presentation/screens/manage_babies_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -79,8 +79,8 @@ class ManageBabiesScreen extends ConsumerWidget {
                 Navigator.pop(ctx, true);
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child:
-                  const Text('Stop Timer', style: TextStyle(color: Colors.white)),
+              child: const Text('Stop Timer',
+                  style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -90,8 +90,7 @@ class ManageBabiesScreen extends ConsumerWidget {
     await ref.read(activeBabyProvider.notifier).setActiveBaby(baby.id);
   }
 
-  void _showDeleteConfirm(
-      BuildContext context, WidgetRef ref, BabyModel baby) {
+  void _showDeleteConfirm(BuildContext context, WidgetRef ref, BabyModel baby) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -276,7 +275,8 @@ class _BabyCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          color: isDark ? Colors.white54 : const Color(0xFF9A8C98),
+                          color:
+                              isDark ? Colors.white54 : const Color(0xFF9A8C98),
                         ),
                       ),
                     ],
@@ -313,8 +313,7 @@ class _BabyCard extends StatelessWidget {
                             Icon(Icons.delete_outline,
                                 size: 18, color: Colors.red),
                             SizedBox(width: 10),
-                            Text('Delete',
-                                style: TextStyle(color: Colors.red)),
+                            Text('Delete', style: TextStyle(color: Colors.red)),
                           ],
                         ),
                       ),
@@ -342,8 +341,7 @@ class _BabyCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 _Badge(
-                  label:
-                      '⚖️ ${baby.birthWeight.toStringAsFixed(1)} kg',
+                  label: '⚖️ ${baby.birthWeight.toStringAsFixed(1)} kg',
                   color: isDark
                       ? Colors.white.withOpacity(0.08)
                       : Colors.black.withOpacity(0.05),

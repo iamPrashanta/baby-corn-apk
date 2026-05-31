@@ -1,3 +1,5 @@
+// lib/core/widgets/app_bottom_sheet.dart
+
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
@@ -43,7 +45,9 @@ class AppBottomSheet extends StatelessWidget {
     final border = Border(
       top: BorderSide(
         color: borderColor ??
-            (isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.05)),
+            (isDark
+                ? Colors.white.withOpacity(0.08)
+                : Colors.black.withOpacity(0.05)),
         width: 0.5,
       ),
     );

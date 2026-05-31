@@ -1,3 +1,5 @@
+// lib/features/development/domain/models/moment_model.dart
+
 import 'package:hive/hive.dart';
 
 part 'moment_model.g.dart';

@@ -1,3 +1,5 @@
+// lib/features/development/presentation/screens/tabs/milestones_tab.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../../core/constants/app_colors.dart';
@@ -12,10 +14,22 @@ class MilestonesTab extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final milestones = [
-      {'emoji': '😊', 'title': l10n.firstSmile, 'subtitle': 'A heartwarming moment'},
-      {'emoji': '🔄', 'title': l10n.firstRoll, 'subtitle': 'Tummy to back, or back to tummy'},
+      {
+        'emoji': '😊',
+        'title': l10n.firstSmile,
+        'subtitle': 'A heartwarming moment'
+      },
+      {
+        'emoji': '🔄',
+        'title': l10n.firstRoll,
+        'subtitle': 'Tummy to back, or back to tummy'
+      },
       {'emoji': '🚼', 'title': l10n.firstCrawl, 'subtitle': 'On the move!'},
-      {'emoji': '👣', 'title': l10n.firstSteps, 'subtitle': 'Walking into a new world'},
+      {
+        'emoji': '👣',
+        'title': l10n.firstSteps,
+        'subtitle': 'Walking into a new world'
+      },
     ];
 
     return ListView.builder(
@@ -35,7 +49,8 @@ class MilestonesTab extends StatelessWidget {
               showDialog(
                 context: context,
                 builder: (ctx) => AlertDialog(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24)),
                   contentPadding: const EdgeInsets.all(32),
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -46,17 +61,20 @@ class MilestonesTab extends StatelessWidget {
                           color: AppColors.primaryContainer.withOpacity(0.4),
                           shape: BoxShape.circle,
                         ),
-                        child: Text(milestone['emoji']!, style: const TextStyle(fontSize: 48)),
+                        child: Text(milestone['emoji']!,
+                            style: const TextStyle(fontSize: 48)),
                       ),
                       const SizedBox(height: 24),
                       Text(
                         l10n.comingSoon,
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                            fontSize: 22, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Soon you can log your baby\'s ${milestone['title']} here.',
-                        style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
+                        style: TextStyle(
+                            fontSize: 16, color: Colors.grey.shade500),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 24),
@@ -66,10 +84,14 @@ class MilestonesTab extends StatelessWidget {
                           onPressed: () => Navigator.pop(ctx),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16)),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                          child: const Text('Got it', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          child: const Text('Got it',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ],
@@ -77,7 +99,10 @@ class MilestonesTab extends StatelessWidget {
                 ),
               );
             },
-          ).animate().fadeIn(duration: 400.ms, delay: (index * 100).ms).slideY(begin: 0.1, end: 0),
+          )
+              .animate()
+              .fadeIn(duration: 400.ms, delay: (index * 100).ms)
+              .slideY(begin: 0.1, end: 0),
         );
       },
     );

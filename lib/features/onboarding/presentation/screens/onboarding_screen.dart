@@ -1,4 +1,4 @@
-// features/onboarding/presentation/screens/onboarding_screen.dart
+// lib/features/onboarding/presentation/screens/onboarding_screen.dart
 
 import 'package:flutter/material.dart';
 
@@ -68,7 +68,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     // Validate required
     if (_nameController.text.trim().isEmpty || _birthDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill out your baby\'s name and birth date.')),
+        const SnackBar(
+            content: Text('Please fill out your baby\'s name and birth date.')),
       );
       return;
     }
@@ -86,8 +87,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     await ref.read(babyRepositoryProvider).addBaby(baby);
     await ref.read(activeBabyProvider.notifier).setActiveBaby(baby.id);
 
-    // ✅ Mark onboarding as complete so the app never shows it again
-    await HiveManager.getSettingsBox().put('onboarding_complete', true);
+    // Mark onboarding as complete so the app never shows it again
+    await HiveManager.getProfileBox().put('onboarding_complete', true);
 
     if (mounted) {
       if (widget.isAddingBaby) {
@@ -117,74 +118,78 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Positioned(
             top: -50,
             left: -50,
-            child: _AnimatedBlob(color: const Color(0xFFFFD8D3).withOpacity(0.3), size: 300),
+            child: _AnimatedBlob(
+                color: const Color(0xFFFFD8D3).withOpacity(0.3), size: 300),
           ),
           Positioned(
             bottom: -100,
             right: -50,
-            child: _AnimatedBlob(color: const Color(0xFFE2D5F8).withOpacity(0.3), size: 350),
+            child: _AnimatedBlob(
+                color: const Color(0xFFE2D5F8).withOpacity(0.3), size: 350),
           ),
           SafeArea(
             child: Column(
-          children: [
-            // Top App Bar area with Back button and Progress
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Row(
-                children: [
-                  if (_currentPage > 0)
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-                      onPressed: _prevPage,
-                    )
-                  else
-                    const SizedBox(width: 48),
-                    
-                  Expanded(
-                    child: Center(
-                      child: _buildProgressIndicator(),
-                    ),
+              children: [
+                // Top App Bar area with Back button and Progress
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 8.0),
+                  child: Row(
+                    children: [
+                      if (_currentPage > 0)
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+                          onPressed: _prevPage,
+                        )
+                      else
+                        const SizedBox(width: 48),
+                      Expanded(
+                        child: Center(
+                          child: _buildProgressIndicator(),
+                        ),
+                      ),
+                      if (widget.isAddingBaby)
+                        TextButton(
+                          onPressed: () => context.pop(),
+                          child: const Text('Cancel',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 16)),
+                        )
+                      else
+                        const SizedBox(width: 48),
+                    ],
                   ),
-                  
-                  if (widget.isAddingBaby)
-                    TextButton(
-                      onPressed: () => context.pop(),
-                      child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    )
-                  else
-                    const SizedBox(width: 48),
-                ],
-              ),
+                ),
+
+                Expanded(
+                  child: PageView(
+                    controller: _pageController,
+                    physics:
+                        const NeverScrollableScrollPhysics(), // Disable swipe to enforce validation
+                    onPageChanged: (index) {
+                      setState(() => _currentPage = index);
+                    },
+                    children: [
+                      _buildWelcomeStep(),
+                      _buildNameStep(),
+                      _buildBirthDateStep(),
+                      _buildGenderStep(),
+                      _buildWeightStep(),
+                      _buildHeightStep(),
+                      _buildFeedingStep(),
+                      if (!widget.isAddingBaby) ...[
+                        _buildReminderIntroStep(),
+                        _buildPrivacyStep(),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
             ),
-            
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(), // Disable swipe to enforce validation
-                onPageChanged: (index) {
-                  setState(() => _currentPage = index);
-                },
-                children: [
-                  _buildWelcomeStep(),
-                  _buildNameStep(),
-                  _buildBirthDateStep(),
-                  _buildGenderStep(),
-                  _buildWeightStep(),
-                  _buildHeightStep(),
-                  _buildFeedingStep(),
-                  if (!widget.isAddingBaby) ...[
-                    _buildReminderIntroStep(),
-                    _buildPrivacyStep(),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
-          ],
-        ),
-      );
+    );
   }
 
   Widget _buildProgressIndicator() {
@@ -200,7 +205,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           height: 8.0,
           width: isActive ? 24.0 : 8.0,
           decoration: BoxDecoration(
-            color: isActive ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.surfaceContainerHighest,
+            color: isActive
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(4.0),
           ),
         );
@@ -227,17 +234,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Text(
             'Welcome to Baby Corn',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
+                  fontWeight: FontWeight.w800,
+                ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           Text(
             'Track your baby’s little moments\nwith less stress.',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.grey.shade600,
-              height: 1.5,
-            ),
+                  color: Colors.grey.shade600,
+                  height: 1.5,
+                ),
             textAlign: TextAlign.center,
           ),
           const Spacer(),
@@ -255,7 +262,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const Spacer(flex: 1),
           Text(
             'Tell us about your baby',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(context)
+                .textTheme
+                .headlineMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 40),
           TextField(
@@ -264,7 +274,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             decoration: InputDecoration(
               hintText: 'Baby Name',
-              hintStyle: TextStyle(color: Colors.grey.shade400, fontWeight: FontWeight.normal),
+              hintStyle: TextStyle(
+                  color: Colors.grey.shade400, fontWeight: FontWeight.normal),
               border: InputBorder.none,
               focusedBorder: InputBorder.none,
               enabledBorder: InputBorder.none,
@@ -276,7 +287,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const Spacer(flex: 2),
           _buildPrimaryButton('Continue', () {
             if (_nameController.text.trim().isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a name')));
+              ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter a name')));
               return;
             }
             _nextPage();
@@ -294,7 +306,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const Spacer(flex: 1),
           Text(
             'When was your baby born?',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(context)
+                .textTheme
+                .headlineMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 40),
           InkWell(
@@ -308,8 +323,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   return Theme(
                     data: Theme.of(context).copyWith(
                       colorScheme: Theme.of(context).colorScheme.copyWith(
-                        primary: const Color(0xFFFFB2A6), // Warm coral
-                      ),
+                            primary: const Color(0xFFFFB2A6), // Warm coral
+                          ),
                     ),
                     child: child!,
                   );
@@ -324,21 +339,29 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.4),
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHighest
+                    .withOpacity(0.4),
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.3)),
+                border: Border.all(
+                    color:
+                        Theme.of(context).colorScheme.outline.withOpacity(0.3)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.cake_outlined, size: 32, color: Color(0xFFFFB2A6)),
+                  const Icon(Icons.cake_outlined,
+                      size: 32, color: Color(0xFFFFB2A6)),
                   const SizedBox(width: 16),
                   Text(
-                    _birthDate == null 
-                        ? 'Select Date' 
+                    _birthDate == null
+                        ? 'Select Date'
                         : '${_birthDate!.day}/${_birthDate!.month}/${_birthDate!.year}',
                     style: TextStyle(
-                      fontSize: 24, 
-                      fontWeight: _birthDate == null ? FontWeight.normal : FontWeight.bold,
+                      fontSize: 24,
+                      fontWeight: _birthDate == null
+                          ? FontWeight.normal
+                          : FontWeight.bold,
                       color: _birthDate == null ? Colors.grey.shade500 : null,
                     ),
                   ),
@@ -349,7 +372,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const Spacer(flex: 2),
           _buildPrimaryButton('Continue', () {
             if (_birthDate == null) {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a birth date')));
+              ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please select a birth date')));
               return;
             }
             _nextPage();
@@ -367,7 +391,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const Spacer(flex: 1),
           Text(
             'Tell us about your baby',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(context)
+                .textTheme
+                .headlineMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
@@ -422,7 +449,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const Spacer(flex: 1),
           Text(
             'Birth Weight',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(context)
+                .textTheme
+                .headlineMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
@@ -430,11 +460,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
           ),
           const SizedBox(height: 40),
-          
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+              color: Theme.of(context)
+                  .colorScheme
+                  .surfaceContainerHighest
+                  .withOpacity(0.3),
               borderRadius: BorderRadius.circular(24),
             ),
             child: Column(
@@ -451,11 +483,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 SliderTheme(
                   data: SliderTheme.of(context).copyWith(
                     activeTrackColor: Theme.of(context).colorScheme.primary,
-                    inactiveTrackColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                    inactiveTrackColor:
+                        Theme.of(context).colorScheme.primary.withOpacity(0.2),
                     thumbColor: Theme.of(context).colorScheme.primary,
-                    overlayColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    overlayColor:
+                        Theme.of(context).colorScheme.primary.withOpacity(0.1),
                     trackHeight: 8,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 16),
+                    thumbShape:
+                        const RoundSliderThumbShape(enabledThumbRadius: 16),
                   ),
                   child: Slider(
                     value: _birthWeight,
@@ -496,12 +531,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   children: [
                     Text(
                       'Birth Height',
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'You can change this later.',
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                      style:
+                          TextStyle(color: Colors.grey.shade600, fontSize: 16),
                     ),
                   ],
                 ),
@@ -520,11 +559,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ],
           ),
           const SizedBox(height: 40),
-          
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+              color: Theme.of(context)
+                  .colorScheme
+                  .surfaceContainerHighest
+                  .withOpacity(0.3),
               borderRadius: BorderRadius.circular(24),
             ),
             child: Column(
@@ -541,11 +582,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 SliderTheme(
                   data: SliderTheme.of(context).copyWith(
                     activeTrackColor: Theme.of(context).colorScheme.primary,
-                    inactiveTrackColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                    inactiveTrackColor:
+                        Theme.of(context).colorScheme.primary.withOpacity(0.2),
                     thumbColor: Theme.of(context).colorScheme.primary,
-                    overlayColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    overlayColor:
+                        Theme.of(context).colorScheme.primary.withOpacity(0.1),
                     trackHeight: 8,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 16),
+                    thumbShape:
+                        const RoundSliderThumbShape(enabledThumbRadius: 16),
                   ),
                   child: Slider(
                     value: _birthHeight,
@@ -575,7 +619,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const Spacer(flex: 1),
           Text(
             'Primary Feeding Type',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(context)
+                .textTheme
+                .headlineMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
@@ -634,15 +681,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               color: const Color(0xFFFFB2A6).withOpacity(0.2),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.notifications_none_rounded, size: 80, color: Color(0xFFFFB2A6)),
+            child: const Icon(Icons.notifications_none_rounded,
+                size: 80, color: Color(0xFFFFB2A6)),
           ),
           const SizedBox(height: 40),
           Text(
             'We’ll gently remind you about feeding, sleep, and diaper changes.',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              height: 1.4,
-            ),
+                  fontWeight: FontWeight.bold,
+                  height: 1.4,
+                ),
             textAlign: TextAlign.center,
           ),
           const Spacer(),
@@ -664,23 +712,24 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               color: const Color(0xFFE2D5F8).withOpacity(0.3),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.lock_outline_rounded, size: 80, color: Color(0xFF9C7CD8)),
+            child: const Icon(Icons.lock_outline_rounded,
+                size: 80, color: Color(0xFF9C7CD8)),
           ),
           const SizedBox(height: 40),
           Text(
             'Your data stays with you',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
+                  fontWeight: FontWeight.w800,
+                ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           Text(
             'No account required. Works offline.\nYour baby’s records stay securely on your device.',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.grey.shade600,
-              height: 1.5,
-            ),
+                  color: Colors.grey.shade600,
+                  height: 1.5,
+                ),
             textAlign: TextAlign.center,
           ),
           const Spacer(),
@@ -725,7 +774,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           child: Center(
             child: Text(
               text,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onPrimary),
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onPrimary),
             ),
           ),
         ),
@@ -747,7 +799,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.3) : Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+          color: isSelected
+              ? color.withOpacity(0.3)
+              : Theme.of(context)
+                  .colorScheme
+                  .surfaceContainerHighest
+                  .withOpacity(0.3),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
             color: isSelected ? color : Colors.transparent,
@@ -756,7 +813,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         ),
         child: Row(
           children: [
-            Icon(icon, size: 32, color: isSelected ? color.withOpacity(1.0) : Colors.grey),
+            Icon(icon,
+                size: 32,
+                color: isSelected ? color.withOpacity(1.0) : Colors.grey),
             const SizedBox(width: 16),
             Text(
               title,
@@ -766,8 +825,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ),
             ),
             const Spacer(),
-            if (isSelected)
-              Icon(Icons.check_circle_rounded, color: color),
+            if (isSelected) Icon(Icons.check_circle_rounded, color: color),
           ],
         ),
       ),
@@ -784,7 +842,8 @@ class _AnimatedBlob extends StatefulWidget {
   State<_AnimatedBlob> createState() => _AnimatedBlobState();
 }
 
-class _AnimatedBlobState extends State<_AnimatedBlob> with SingleTickerProviderStateMixin {
+class _AnimatedBlobState extends State<_AnimatedBlob>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -825,6 +884,10 @@ class _AnimatedBlobState extends State<_AnimatedBlob> with SingleTickerProviderS
           ),
         ),
       ),
-    ).animate(onPlay: (controller) => controller.repeat(reverse: true)).scale(begin: const Offset(0.95, 0.95), end: const Offset(1.05, 1.05), duration: 4.seconds, curve: Curves.easeInOutSine);
+    ).animate(onPlay: (controller) => controller.repeat(reverse: true)).scale(
+        begin: const Offset(0.95, 0.95),
+        end: const Offset(1.05, 1.05),
+        duration: 4.seconds,
+        curve: Curves.easeInOutSine);
   }
 }

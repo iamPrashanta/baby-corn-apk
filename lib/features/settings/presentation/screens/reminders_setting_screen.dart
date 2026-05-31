@@ -1,8 +1,10 @@
-// features/settings/presentation/screens/reminders_setting_screen.dart
+// lib/features/settings/presentation/screens/reminders_setting_screen.dart
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../providers/reminder_settings_provider.dart';
 import '../../domain/models/reminder_settings_model.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -37,7 +39,8 @@ class RemindersSettingScreen extends ConsumerWidget {
                 'Enable Reminders',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
               ),
-              subtitle: const Text('Turn on to manage daily reminders for your baby'),
+              subtitle:
+                  const Text('Turn on to manage daily reminders for your baby'),
               value: settings.isMasterEnabled,
               activeColor: AppColors.primary,
               onChanged: (val) async {
@@ -48,11 +51,70 @@ class RemindersSettingScreen extends ConsumerWidget {
               },
             ),
           ),
+
+          // Exact Alarm Warning (Android 12+)
+          if (Platform.isAndroid && settings.isMasterEnabled)
+            FutureBuilder<PermissionStatus>(
+              future: Permission.scheduleExactAlarm.status,
+              builder: (context, snapshot) {
+                if (snapshot.hasData && !snapshot.data!.isGranted) {
+                  return Container(
+                    margin: const EdgeInsets.only(top: 16),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.red.withOpacity(0.5)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.warning_amber_rounded,
+                            color: Colors.red),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Exact Alarms Denied',
+                                  style: TextStyle(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 4),
+                              const Text(
+                                  'Reminders may be delayed or missed. Please enable "Alarms & reminders" in settings.',
+                                  style: TextStyle(
+                                      color: Colors.red, fontSize: 12)),
+                              TextButton(
+                                onPressed: () {
+                                  openAppSettings();
+                                },
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: const Size(50, 30),
+                                  alignment: Alignment.centerLeft,
+                                ),
+                                child: const Text('Open Settings',
+                                    style: TextStyle(
+                                        color: Colors.red,
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+
           const SizedBox(height: 24),
-          
+
           if (settings.isMasterEnabled) ...[
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
               child: Text(
                 'CATEGORIES',
                 style: TextStyle(
@@ -102,6 +164,36 @@ class RemindersSettingScreen extends ConsumerWidget {
                 ],
               ),
             ),
+
+            // Diagnostic Test
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: () async {
+                await ReminderService.scheduleReminder(
+                  id: 5000,
+                  title: 'Debug Test',
+                  body: 'Reminder engine working',
+                  delay: const Duration(seconds: 10),
+                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text(
+                            'Test alarm scheduled in 10 seconds. Close or background the app to test!')),
+                  );
+                }
+              },
+              icon: const Icon(Icons.bug_report),
+              label: const Text('Run Diagnostic Test (30s delay)'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange.withOpacity(0.1),
+                foregroundColor: Colors.orange[800],
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 24),
           ],
         ],
       ),
@@ -133,7 +225,7 @@ class RemindersSettingScreen extends ConsumerWidget {
           if (category == 'feeding') notifier.updateFeeding(updated);
           if (category == 'sleep') notifier.updateSleep(updated);
           if (category == 'diaper') notifier.updateDiaper(updated);
-          
+
           if (val) {
             final now = DateTime.now();
             DateTime ringTime;
@@ -152,13 +244,15 @@ class RemindersSettingScreen extends ConsumerWidget {
                 ringTime = now;
               }
             }
-            final timeString = "${ringTime.hour.toString().padLeft(2, '0')}:${ringTime.minute.toString().padLeft(2, '0')}";
+            final timeString =
+                "${ringTime.hour.toString().padLeft(2, '0')}:${ringTime.minute.toString().padLeft(2, '0')}";
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('$emoji $title set to ring at $timeString'),
                 behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
               ),
             );
           }
