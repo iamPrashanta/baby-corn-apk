@@ -2,37 +2,38 @@ class FoodLibraryItem {
   final String name;
   final String ageRecommendation;
   final bool isHighAllergyRisk;
+  final String category;
+  final String emoji;
+  final String? imageAssetPath;
 
   const FoodLibraryItem({
     required this.name,
     this.ageRecommendation = "6+ Months",
     this.isHighAllergyRisk = false,
+    required this.category,
+    required this.emoji,
+    this.imageAssetPath,
   });
 }
 
 const List<FoodLibraryItem> standardFirstFoods = [
-  // Fruits
-  FoodLibraryItem(name: 'Apple Puree'),
-  FoodLibraryItem(name: 'Banana Puree'),
-  FoodLibraryItem(name: 'Pear Puree'),
-  FoodLibraryItem(name: 'Papaya Puree'),
-  FoodLibraryItem(name: 'Avocado Puree'),
-  
-  // Vegetables
-  FoodLibraryItem(name: 'Carrot Puree'),
-  FoodLibraryItem(name: 'Sweet Potato Puree'),
-  FoodLibraryItem(name: 'Pumpkin Puree'),
-  FoodLibraryItem(name: 'Beetroot Puree'),
-  FoodLibraryItem(name: 'Peas Puree'),
-  FoodLibraryItem(name: 'Spinach Puree'),
-  
-  // High Allergy Risk (Common Allergens)
-  FoodLibraryItem(name: 'Egg', isHighAllergyRisk: true),
-  FoodLibraryItem(name: 'Peanut', isHighAllergyRisk: true),
-  FoodLibraryItem(name: 'Dairy', isHighAllergyRisk: true),
-  FoodLibraryItem(name: 'Wheat', isHighAllergyRisk: true),
-  FoodLibraryItem(name: 'Soy', isHighAllergyRisk: true),
-  FoodLibraryItem(name: 'Tree Nuts', isHighAllergyRisk: true),
-  FoodLibraryItem(name: 'Fish', isHighAllergyRisk: true),
-  FoodLibraryItem(name: 'Shellfish', isHighAllergyRisk: true),
+  FoodLibraryItem(name: "Apple", category: "Fruit", emoji: "🍎", imageAssetPath: "assets/foods/apple.png"),
+  FoodLibraryItem(name: "Banana", category: "Fruit", emoji: "🍌", imageAssetPath: "assets/foods/banana.png"),
+  FoodLibraryItem(name: "Carrot", category: "Vegetable", emoji: "🥕", imageAssetPath: "assets/foods/carrot.png"),
+  FoodLibraryItem(name: "Avocado", category: "Vegetable/Fruit", emoji: "🥑", imageAssetPath: "assets/foods/avocado.png"),
+  FoodLibraryItem(name: "Sweet Potato", category: "Vegetable", emoji: "🍠"),
+  FoodLibraryItem(name: "Pumpkin", category: "Vegetable", emoji: "🎃"),
+  FoodLibraryItem(name: "Beetroot", category: "Vegetable", emoji: "🩸"),
+  FoodLibraryItem(name: "Peas", category: "Vegetable", emoji: "🟢"),
+  FoodLibraryItem(name: "Spinach", category: "Vegetable", emoji: "🥬"),
+  FoodLibraryItem(name: "Pear", category: "Fruit", emoji: "🍐"),
+  FoodLibraryItem(name: "Papaya", category: "Fruit", emoji: "🥭"),
+  FoodLibraryItem(name: "Egg", isHighAllergyRisk: true, category: "Protein", emoji: "🥚", imageAssetPath: "assets/foods/egg.png"),
+  FoodLibraryItem(name: "Peanut", isHighAllergyRisk: true, category: "Nut", emoji: "🥜"),
+  FoodLibraryItem(name: "Dairy", isHighAllergyRisk: true, category: "Dairy", emoji: "🥛"),
+  FoodLibraryItem(name: "Wheat", isHighAllergyRisk: true, category: "Grain", emoji: "🌾"),
+  FoodLibraryItem(name: "Soy", isHighAllergyRisk: true, category: "Legume", emoji: "🌱"),
+  FoodLibraryItem(name: "Tree Nuts", isHighAllergyRisk: true, category: "Nut", emoji: "🌰"),
+  FoodLibraryItem(name: "Fish", isHighAllergyRisk: true, category: "Seafood", emoji: "🐟"),
+  FoodLibraryItem(name: "Shellfish", isHighAllergyRisk: true, category: "Seafood", emoji: "🦐"),
 ];

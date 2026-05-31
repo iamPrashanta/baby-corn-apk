@@ -82,6 +82,7 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/animations/
+    - assets/foods/
 
 flutter_launcher_icons:
   android: "launcher_icon"

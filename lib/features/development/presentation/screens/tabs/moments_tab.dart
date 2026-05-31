@@ -213,10 +213,15 @@ class _MomentsTabState extends ConsumerState<MomentsTab> {
                                   Icons.broken_image,
                                   color: Colors.grey),
                             )
-                          : Image.file(
-                              File(moment.imagePath),
-                              fit: BoxFit.cover,
-                            ),
+                          : moment.imagePath.startsWith('assets/')
+                              ? Image.asset(
+                                  moment.imagePath,
+                                  fit: BoxFit.cover,
+                                )
+                              : Image.file(
+                                  File(moment.imagePath),
+                                  fit: BoxFit.cover,
+                                ),
                     ),
                     // Gradient overlay
                     Container(
@@ -381,10 +386,15 @@ class _MomentViewerScreen extends StatelessWidget {
                         color: Colors.grey,
                         size: 64),
                   )
-                : Image.file(
-                    File(moment.imagePath),
-                    fit: BoxFit.contain,
-                  ),
+                : moment.imagePath.startsWith('assets/')
+                    ? Image.asset(
+                        moment.imagePath,
+                        fit: BoxFit.contain,
+                      )
+                    : Image.file(
+                        File(moment.imagePath),
+                        fit: BoxFit.contain,
+                      ),
           ),
         ),
       ),

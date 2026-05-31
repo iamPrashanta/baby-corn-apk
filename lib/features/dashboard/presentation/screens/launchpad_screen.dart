@@ -441,20 +441,31 @@ class LaunchpadScreen extends ConsumerWidget {
     
     int day;
     String timeRemaining;
+    double progress = 0.0;
     
     if (difference < 24) {
       day = 1;
-      timeRemaining = "${24 - difference}h remaining";
+      timeRemaining = "${24 - difference} Hours Remaining";
+      progress = difference / 72;
     } else if (difference < 48) {
       day = 2;
-      timeRemaining = "1 day remaining";
+      timeRemaining = "${48 - difference} Hours Remaining";
+      progress = difference / 72;
     } else if (difference < 72) {
       day = 3;
-      timeRemaining = "Last day of observation";
+      timeRemaining = "${72 - difference} Hours Remaining";
+      progress = difference / 72;
     } else {
       day = 3;
       timeRemaining = "Observation complete.";
+      progress = 1.0;
     }
+
+    final emoji = activeRecord.foodName.toLowerCase().contains("apple") ? "🍎" : 
+                  activeRecord.foodName.toLowerCase().contains("banana") ? "🍌" :
+                  activeRecord.foodName.toLowerCase().contains("carrot") ? "🥕" :
+                  activeRecord.foodName.toLowerCase().contains("avocado") ? "🥑" :
+                  activeRecord.foodName.toLowerCase().contains("egg") ? "🥚" : "🍽️";
 
     return GestureDetector(
       onTap: () => context.push('/guide/food_tracker'),
@@ -473,50 +484,71 @@ class LaunchpadScreen extends ConsumerWidget {
             )
           ],
         ),
-        child: Row(
+        child: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Text('🍎', style: TextStyle(fontSize: 24)),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(emoji, style: const TextStyle(fontSize: 24)),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        activeRecord.foodName,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : const Color(0xFF4A4458),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Day $day of 3',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? Colors.white60 : Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.chevron_right, color: Colors.orange),
+              ],
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Food Observation',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.orange,
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 8,
+                      backgroundColor: Colors.orange.withOpacity(0.2),
+                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.orange),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    activeRecord.foodName,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : const Color(0xFF4A4458),
-                    ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  timeRemaining,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange.shade700,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Day $day of 3 • $timeRemaining',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isDark ? Colors.white60 : Colors.black54,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-            const Icon(Icons.chevron_right, color: Colors.orange),
           ],
         ),
       )

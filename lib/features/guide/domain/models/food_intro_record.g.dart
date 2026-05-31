@@ -25,13 +25,15 @@ class FoodIntroRecordAdapter extends TypeAdapter<FoodIntroRecord> {
       symptoms: (fields[5] as List).cast<String>(),
       notes: fields[6] as String,
       ageInMonthsAtIntroduction: fields[7] as int,
+      doctorNote: fields[8] as String?,
+      doctorVisitDate: fields[9] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, FoodIntroRecord obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -47,7 +49,11 @@ class FoodIntroRecordAdapter extends TypeAdapter<FoodIntroRecord> {
       ..writeByte(6)
       ..write(obj.notes)
       ..writeByte(7)
-      ..write(obj.ageInMonthsAtIntroduction);
+      ..write(obj.ageInMonthsAtIntroduction)
+      ..writeByte(8)
+      ..write(obj.doctorNote)
+      ..writeByte(9)
+      ..write(obj.doctorVisitDate);
   }
 
   @override
@@ -74,6 +80,8 @@ class FoodIntroStatusAdapter extends TypeAdapter<FoodIntroStatus> {
         return FoodIntroStatus.safe;
       case 2:
         return FoodIntroStatus.reaction;
+      case 3:
+        return FoodIntroStatus.avoid;
       default:
         return FoodIntroStatus.observing;
     }
@@ -90,6 +98,9 @@ class FoodIntroStatusAdapter extends TypeAdapter<FoodIntroStatus> {
         break;
       case FoodIntroStatus.reaction:
         writer.writeByte(2);
+        break;
+      case FoodIntroStatus.avoid:
+        writer.writeByte(3);
         break;
     }
   }

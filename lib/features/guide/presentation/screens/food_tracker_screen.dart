@@ -65,6 +65,10 @@ class FoodTrackerScreen extends ConsumerWidget {
       statusColor = Colors.green;
       statusIcon = Icons.check_circle_rounded;
       statusText = "Safe ✅";
+    } else if (record.status == FoodIntroStatus.avoid) {
+      statusColor = Colors.red.shade900;
+      statusIcon = Icons.block_rounded;
+      statusText = "Avoid 🚫";
     } else if (record.status == FoodIntroStatus.reaction) {
       statusColor = Colors.red;
       statusIcon = Icons.warning_rounded;
@@ -132,7 +136,33 @@ class FoodTrackerScreen extends ConsumerWidget {
                 const SizedBox(height: 4),
                 Text(
                   "Symptoms: ${record.symptoms.join(', ')}",
-                  style: TextStyle(color: Colors.red.shade300, fontSize: 12),
+                  style: TextStyle(color: Colors.red.shade400, fontSize: 12),
+                ),
+              ],
+              if (record.doctorNote != null) ...[
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.medical_services_outlined, size: 12, color: Colors.blue),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          record.doctorNote!,
+                          style: TextStyle(color: isDark ? Colors.blue.shade200 : Colors.blue.shade800, fontSize: 12),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ]
             ],
@@ -144,18 +174,23 @@ class FoodTrackerScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (record.status != FoodIntroStatus.reaction)
+                if (record.status != FoodIntroStatus.reaction && record.status != FoodIntroStatus.avoid)
                   ElevatedButton.icon(
                     onPressed: () async {
-                      final symptoms = await showDialog<List<String>>(
+                      final result = await showDialog<Map<String, dynamic>>(
                         context: context,
                         builder: (ctx) => const ReactionSymptomsDialog(),
                       );
                       
-                      if (symptoms != null && symptoms.isNotEmpty) {
+                      if (result != null) {
+                        final symptoms = result['symptoms'] as List<String>;
+                        final doctorNote = result['doctorNote'] as String?;
+                        final markAsAvoid = result['markAsAvoid'] as bool;
+
                         final updated = record.copyWith(
-                          status: FoodIntroStatus.reaction,
+                          status: markAsAvoid ? FoodIntroStatus.avoid : FoodIntroStatus.reaction,
                           symptoms: symptoms,
+                          doctorNote: doctorNote,
                         );
                         ref.read(foodTrackerProvider.notifier).updateRecord(updated);
                       }

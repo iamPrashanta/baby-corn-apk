@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
 import '../../../../core/local_storage/hive_manager.dart';
 import '../../domain/models/food_intro_record.dart';
 

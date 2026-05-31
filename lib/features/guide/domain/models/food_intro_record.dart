@@ -10,6 +10,8 @@ enum FoodIntroStatus {
   safe,
   @HiveField(2)
   reaction,
+  @HiveField(3)
+  avoid,
 }
 
 @HiveType(typeId: 51)
@@ -38,6 +40,12 @@ class FoodIntroRecord extends HiveObject {
   @HiveField(7)
   final int ageInMonthsAtIntroduction;
 
+  @HiveField(8)
+  String? doctorNote;
+
+  @HiveField(9)
+  DateTime? doctorVisitDate;
+
   FoodIntroRecord({
     required this.id,
     required this.babyId,
@@ -47,6 +55,8 @@ class FoodIntroRecord extends HiveObject {
     this.symptoms = const [],
     this.notes = '',
     this.ageInMonthsAtIntroduction = 0,
+    this.doctorNote,
+    this.doctorVisitDate,
   });
 
   FoodIntroRecord copyWith({
@@ -58,6 +68,8 @@ class FoodIntroRecord extends HiveObject {
     List<String>? symptoms,
     String? notes,
     int? ageInMonthsAtIntroduction,
+    String? doctorNote,
+    DateTime? doctorVisitDate,
   }) {
     return FoodIntroRecord(
       id: id ?? this.id,
@@ -68,6 +80,8 @@ class FoodIntroRecord extends HiveObject {
       symptoms: symptoms ?? this.symptoms,
       notes: notes ?? this.notes,
       ageInMonthsAtIntroduction: ageInMonthsAtIntroduction ?? this.ageInMonthsAtIntroduction,
+      doctorNote: doctorNote ?? this.doctorNote,
+      doctorVisitDate: doctorVisitDate ?? this.doctorVisitDate,
     );
   }
 }
