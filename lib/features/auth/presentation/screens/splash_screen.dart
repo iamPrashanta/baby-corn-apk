@@ -35,22 +35,30 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           FlutterLocalNotificationsPlugin();
       final NotificationAppLaunchDetails? notificationAppLaunchDetails =
           await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
-      
-      final didNotificationLaunchApp = notificationAppLaunchDetails?.didNotificationLaunchApp ?? false;
-      final payload = notificationAppLaunchDetails?.notificationResponse?.payload;
+
+      final didNotificationLaunchApp =
+          notificationAppLaunchDetails?.didNotificationLaunchApp ?? false;
+      final payload =
+          notificationAppLaunchDetails?.notificationResponse?.payload;
 
       if (!mounted) return;
 
-      if (didNotificationLaunchApp && payload != null && payload.startsWith('alarm|')) {
+      if (didNotificationLaunchApp &&
+          payload != null &&
+          payload.startsWith('alarm|')) {
+        debugPrint('🔔 [Splash] Launched from alarm notification');
         context.go('/alarm', extra: payload);
         return;
       }
 
       // --- Check language selection ---
       final prefs = await SharedPreferences.getInstance();
-      final hasSelectedLanguage = prefs.getBool('has_selected_language') ?? false;
+      final hasSelectedLanguage =
+          prefs.getBool('has_selected_language') ?? false;
+      debugPrint('🔍 [Splash] has_selected_language=$hasSelectedLanguage');
 
       if (!hasSelectedLanguage) {
+        debugPrint('🔍 [Splash] → /language (language not selected yet)');
         if (mounted) context.go('/language');
         return;
       }
@@ -58,42 +66,69 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       // --- Read baby list (migration already complete by this point) ---
       final babies = ref.read(babyRepositoryProvider).getBabies();
       final hasBabies = babies.isNotEmpty;
-      debugPrint("🔍 [Splash] hasSelectedLanguage=$hasSelectedLanguage, hasBabies=$hasBabies (count=${babies.length})");
+      final activeBabyId =
+          ref.read(babyRepositoryProvider).getActiveBabyId();
+      debugPrint(
+          '🔍 [Splash] babies.count=${babies.length}, hasBabies=$hasBabies, activeBabyId=$activeBabyId');
 
       if (AppConfig.enableFirebaseAuth) {
-        // Check if already signed in to Firebase
-        final currentUser = FirebaseAuth.instance.currentUser;
-        debugPrint("🔍 [Splash] currentUser=${currentUser?.email}");
+        // FIX #1: Await full Firebase auth state restoration before reading currentUser.
+        // FirebaseAuth.instance.currentUser is synchronous and may be null on cold
+        // start even for signed-in users — the SDK hasn't finished restoring the
+        // persisted token yet. authStateChanges().first waits until it is ready.
+        debugPrint('🔍 [Splash] Awaiting Firebase auth state...');
+        final currentUser = await FirebaseAuth.instance
+            .authStateChanges()
+            .first
+            .timeout(
+              const Duration(seconds: 5),
+              onTimeout: () {
+                debugPrint(
+                    '⚠️ [Splash] Firebase auth state timeout — treating as signed out');
+                return null;
+              },
+            );
+
+        debugPrint(
+            '🔍 [Splash] currentUser.uid=${currentUser?.uid}, currentUser.email=${currentUser?.email}');
+
+        if (!mounted) return;
 
         if (currentUser != null) {
-          // ✅ Returning user: already authenticated with Firebase
-          // Check session expiry for biometric re-verification
-          if (!mounted) return;
+          // ✅ Returning user: Firebase session confirmed, check local session expiry
           final isExpired = await SecureStorageManager.isSessionExpired();
+          debugPrint('🔍 [Splash] isSessionExpired=$isExpired');
+
           if (!mounted) return;
+
           if (isExpired) {
-            // Ask for biometric re-authentication
+            debugPrint('🔍 [Splash] → /pin_verify (session expired, need biometric)');
             context.go('/pin_verify');
           } else {
             await SecureStorageManager.updateLastActiveTime();
-            context.go(hasBabies ? '/home' : '/onboarding');
+            final route = hasBabies ? '/home' : '/onboarding';
+            debugPrint('🔍 [Splash] → $route');
+            context.go(route);
           }
         } else {
-          // Not signed in → show auth/Google sign-in screen
-          if (mounted) context.go('/auth');
+          // Not signed in → show Google sign-in screen
+          debugPrint('🔍 [Splash] → /auth (no Firebase session)');
+          context.go('/auth');
         }
       } else {
         // Local-First Offline mode — no Firebase auth required
         if (!hasBabies) {
+          debugPrint('🔍 [Splash] → /onboarding (offline, no babies)');
           if (mounted) context.go('/onboarding');
         } else {
+          debugPrint('🔍 [Splash] → /home (offline)');
           await SecureStorageManager.updateLastActiveTime();
           if (mounted) context.go('/home');
         }
       }
-    } catch (e) {
-      debugPrint('🔴 [Splash] Routing error: $e');
-      // Safe fallback: show onboarding (never show auth on error to avoid loop)
+    } catch (e, st) {
+      debugPrint('🔴 [Splash] Routing error: $e\n$st');
+      // Safe fallback — never loop back to /auth
       if (mounted) context.go('/onboarding');
     }
   }

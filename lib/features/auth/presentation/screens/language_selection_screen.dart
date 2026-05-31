@@ -8,6 +8,7 @@ import '../../../../core/providers/locale_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/config/app_config.dart';
 import '../../data/repositories/baby_repository.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LanguageSelectionScreen extends ConsumerWidget {
   const LanguageSelectionScreen({super.key});
@@ -61,25 +62,63 @@ class LanguageSelectionScreen extends ConsumerWidget {
                             .read(localeProvider.notifier)
                             .setLocale(Locale(lang['code']!));
 
-                        // Mark as selected
+                        // Mark language as selected
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.setBool('has_selected_language', true);
+                        debugPrint('🌐 [Language] Selected: ${lang['code']}');
 
-                        // Route
-                        if (context.mounted) {
-                          if (AppConfig.enableFirebaseAuth) {
-                            context.go('/auth');
-                          } else {
+                        if (!context.mounted) return;
+
+                        if (AppConfig.enableFirebaseAuth) {
+                          // FIX #2: Check Firebase auth state BEFORE routing.
+                          // Previously this always routed to /auth even for
+                          // signed-in users whose SharedPrefs were cleared.
+                          debugPrint(
+                              '🌐 [Language] Awaiting Firebase auth state...');
+                          final currentUser = await FirebaseAuth.instance
+                              .authStateChanges()
+                              .first
+                              .timeout(
+                                const Duration(seconds: 5),
+                                onTimeout: () {
+                                  debugPrint(
+                                      '⚠️ [Language] Firebase auth state timeout — routing to /auth');
+                                  return null;
+                                },
+                              );
+
+                          debugPrint(
+                              '🌐 [Language] currentUser=${currentUser?.email}');
+
+                          if (!context.mounted) return;
+
+                          if (currentUser != null) {
+                            // Already signed in — skip auth screen entirely
                             final hasBabies = ref
                                 .read(babyRepositoryProvider)
                                 .getBabies()
                                 .isNotEmpty;
-                            if (hasBabies) {
-                              context.go('/home');
-                            } else {
-                              context.go('/onboarding');
-                            }
+                            final route =
+                                hasBabies ? '/home' : '/onboarding';
+                            debugPrint(
+                                '🌐 [Language] Already signed in → $route');
+                            context.go(route);
+                          } else {
+                            // Not signed in — show Google sign-in
+                            debugPrint(
+                                '🌐 [Language] Not signed in → /auth');
+                            context.go('/auth');
                           }
+                        } else {
+                          // Offline mode — route based on baby list
+                          final hasBabies = ref
+                              .read(babyRepositoryProvider)
+                              .getBabies()
+                              .isNotEmpty;
+                          final route = hasBabies ? '/home' : '/onboarding';
+                          debugPrint(
+                              '🌐 [Language] Offline mode → $route');
+                          context.go(route);
                         }
                       },
                       borderRadius: BorderRadius.circular(16),

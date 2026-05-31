@@ -108,16 +108,23 @@ class SecureStorageManager {
   
   static Future<bool> isSessionExpired() async {
     final lastActiveStr = await _storage.read(key: _lastActiveTimeKey);
-    if (lastActiveStr == null) return true;
-    
-    final lastActiveTime = DateTime.fromMillisecondsSinceEpoch(int.parse(lastActiveStr));
+
+    // FIX #3: If the timestamp is missing (e.g. after app reinstall or
+    // Android clearing secure storage), do NOT treat the session as expired.
+    // Firebase auth state is the authoritative source — if the user is
+    // signed in via Firebase, we trust that session.
+    // Returning true here caused biometric prompts on every reinstall.
+    if (lastActiveStr == null) return false;
+
+    final lastActiveTime =
+        DateTime.fromMillisecondsSinceEpoch(int.parse(lastActiveStr));
     final timeoutMinutes = await getSessionTimeout();
-    
+
     // If timeout is -1, it means 'Never'
     if (timeoutMinutes == -1) return false;
     // If timeout is 0, it means 'Immediately'
     if (timeoutMinutes == 0) return true;
-    
+
     final difference = DateTime.now().difference(lastActiveTime).inMinutes;
     return difference >= timeoutMinutes;
   }

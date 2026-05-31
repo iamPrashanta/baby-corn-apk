@@ -7,10 +7,8 @@ import 'package:go_router/go_router.dart';
 import '../../../auth/data/repositories/baby_repository.dart';
 import '../../../auth/domain/models/baby_model.dart';
 import 'package:uuid/uuid.dart';
-import '../../../../core/local_storage/secure_storage_manager.dart';
 
 import '../../../../core/widgets/bouncing_button.dart';
-import '../../../../core/config/app_config.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:math' as math;
@@ -92,17 +90,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         context.pop();
         return;
       }
-      if (AppConfig.enableFirebaseAuth) {
-        final hasPin = await SecureStorageManager.hasPin();
-        if (hasPin) {
-          context.go('/home');
-        } else {
-          context.go('/pin_setup');
-        }
-      } else {
-        // Offline mode users don't need a PIN
-        context.go('/home');
-      }
+      context.go('/home');
     }
   }
 

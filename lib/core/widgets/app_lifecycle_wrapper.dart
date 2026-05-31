@@ -7,6 +7,8 @@ import '../local_storage/secure_storage_manager.dart';
 import '../services/biometric_service.dart';
 import '../services/security_service.dart';
 import '../../features/records/presentation/providers/active_session_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../core/config/app_config.dart';
 
 class AppLifecycleWrapper extends ConsumerStatefulWidget {
   final Widget child;
@@ -56,8 +58,11 @@ class _AppLifecycleWrapperState extends ConsumerState<AppLifecycleWrapper>
       // App came to foreground — restart the timer ticker for UI updates
       ref.read(activeSessionProvider.notifier).resumeTicker();
 
-      final hasPin = await SecureStorageManager.hasPin();
-      if (hasPin) {
+      final isSignedIn = AppConfig.enableFirebaseAuth
+          ? FirebaseAuth.instance.currentUser != null
+          : true; // Offline mode: always treat as signed in for session tracking
+
+      if (isSignedIn) {
         final isExpired = await SecureStorageManager.isSessionExpired();
         if (isExpired) {
           final isBiometricEnabled =

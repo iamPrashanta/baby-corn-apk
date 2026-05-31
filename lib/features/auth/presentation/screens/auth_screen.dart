@@ -29,17 +29,36 @@ class _AuthScreenState extends State<AuthScreen> {
     try {
       final googleSignIn = GoogleSignIn();
 
-      // Try silent sign-in first (for returning users — no dialog, no error)
-      GoogleSignInAccount? googleUser = await googleSignIn.signInSilently();
+      // FIX #4: signInSilently() can throw (not just return null) on some
+      // devices when there is a stale token or account conflict. Wrap it
+      // in its own try/catch so errors are logged and we fall back to
+      // interactive sign-in instead of showing "unexpected error".
+      GoogleSignInAccount? googleUser;
+      try {
+        debugPrint('🔑 [Auth] Attempting signInSilently...');
+        googleUser = await googleSignIn.signInSilently();
+        debugPrint(
+            '🔑 [Auth] signInSilently result: ${googleUser?.email ?? 'null'}');
+      } catch (silentError) {
+        debugPrint(
+            '⚠️ [Auth] signInSilently threw: $silentError — falling back to signIn()');
+        googleUser = null;
+      }
 
-      // If silent failed (first time or signed out), show the full sign-in dialog
-      googleUser ??= await googleSignIn.signIn();
+      // If silent failed, show full interactive Google sign-in dialog
+      if (googleUser == null) {
+        debugPrint('🔑 [Auth] Showing interactive Google sign-in...');
+        googleUser = await googleSignIn.signIn();
+      }
 
       if (googleUser == null) {
         // User cancelled the sign-in dialog
+        debugPrint('🔑 [Auth] User cancelled sign-in');
         setState(() => _isLoading = false);
         return;
       }
+
+      debugPrint('🔑 [Auth] Google account obtained: ${googleUser.email}');
 
       // Obtain auth details
       final GoogleSignInAuthentication googleAuth =
@@ -52,7 +71,11 @@ class _AuthScreenState extends State<AuthScreen> {
       );
 
       // Sign in to Firebase
-      await FirebaseAuth.instance.signInWithCredential(credential);
+      debugPrint('🔑 [Auth] Signing in to Firebase...');
+      final userCredential =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+      debugPrint(
+          '🔑 [Auth] Firebase sign-in success: ${userCredential.user?.email}');
 
       // Sync cloud data
       await SyncService.syncCloudDataToLocal();
