@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -29,18 +30,23 @@ class DevelopmentMainScreen extends ConsumerWidget {
       appBar: CustomAppBar(title: l10n.development),
       body: isPremium ? const _JourneyTimeline() : _buildPremiumLock(context),
       floatingActionButton: isPremium
-          ? FloatingActionButton.extended(
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) => const AddMomentSheet(),
-                );
-              },
-              backgroundColor: AppColors.primary,
-              icon: const Icon(Icons.add_a_photo_rounded, color: Colors.white),
-              label: Text(l10n.addMoment, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ? SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: FloatingActionButton.extended(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (context) => const AddMomentSheet(),
+                    );
+                  },
+                  backgroundColor: AppColors.primary,
+                  icon: const Icon(Icons.add_a_photo_rounded, color: Colors.white),
+                  label: Text(l10n.addMoment, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ),
             )
           : null,
     );
@@ -439,24 +445,22 @@ class _TimelineNodeItem extends StatelessWidget {
               }
               return GestureDetector(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => FullScreenImageViewer(
-                        file: file,
-                        title: moment.title,
-                      ),
-                    ),
-                  );
+                  context.push('/image_viewer', extra: {
+                    'imagePath': file.path,
+                    'tag': moment.id,
+                  });
                 },
-                child: Image.file(
-                  file,
-                  height: 250,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+                child: Hero(
+                  tag: moment.id,
+                  child: Image.file(
+                    file,
                     height: 250,
-                    color: Colors.grey.shade200,
-                    child: const Center(child: Icon(Icons.broken_image, size: 64, color: Colors.grey)),
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      height: 250,
+                      color: Colors.grey.shade200,
+                      child: const Center(child: Icon(Icons.broken_image, size: 64, color: Colors.grey)),
+                    ),
                   ),
                 ),
               );

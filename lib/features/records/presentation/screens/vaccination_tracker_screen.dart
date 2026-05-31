@@ -65,12 +65,17 @@ class VaccinationTrackerScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Vaccination Tracker'),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddCustomDialog(context, ref),
-        icon: const Icon(Icons.add),
-        label: const Text('Custom'),
-        backgroundColor: AppColors.vaccine,
-        foregroundColor: Colors.white,
+      floatingActionButton: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 16.0),
+          child: FloatingActionButton.extended(
+            onPressed: () => _showAddCustomDialog(context, ref),
+            icon: const Icon(Icons.add),
+            label: const Text('Custom'),
+            backgroundColor: AppColors.vaccine,
+            foregroundColor: Colors.white,
+          ),
+        ),
       ),
       body: recordsAsync.when(
         data: (records) {
@@ -81,11 +86,22 @@ class VaccinationTrackerScreen extends ConsumerWidget {
 
           // 1. Process standard schedule
           for (final item in standardVaccineSchedule) {
-            final dueDate = birthDate.add(Duration(days: item.recommendedDaysFromBirth));
-            final isDone = vaccineRecords.any((r) => r.metadata['vaccineName'] == item.name && r.metadata['status'] != 'pending');
+            final isDone = vaccineRecords.any((r) => r.metadata['vaccineName'] == item.name && (r.metadata['status'] == 'completed' || r.metadata['status'] == null));
             final loggedRecord = isDone
-                ? vaccineRecords.firstWhere((r) => r.metadata['vaccineName'] == item.name && r.metadata['status'] != 'pending')
+                ? vaccineRecords.firstWhere((r) => r.metadata['vaccineName'] == item.name && (r.metadata['status'] == 'completed' || r.metadata['status'] == null))
                 : null;
+            
+            final pendingRecord = vaccineRecords.where((r) => r.metadata['vaccineName'] == item.name && r.metadata['status'] == 'pending').firstOrNull;
+
+            DateTime dueDate = birthDate.add(Duration(days: item.recommendedDaysFromBirth));
+            if (pendingRecord != null) {
+              final dueDateStr = pendingRecord.metadata['dueDate'];
+              if (dueDateStr != null) {
+                 dueDate = DateTime.parse(dueDateStr);
+              } else {
+                 dueDate = pendingRecord.timestamp;
+              }
+            }
             
             allItems.add(VaccineDisplayItem(
               name: item.name,
@@ -93,6 +109,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
               dueDate: dueDate,
               isCustom: false,
               loggedRecord: loggedRecord,
+              customPendingRecord: pendingRecord,
               categoryAge: item.categoryAge,
             ));
           }
@@ -235,16 +252,17 @@ class VaccinationTrackerScreen extends ConsumerWidget {
   }
 
   Widget _buildUpcomingSection(BuildContext context, String title, List<VaccineDisplayItem> items, Color accentColor, bool isDark, WidgetRef ref) {
-    // Group by categoryAge
+    // Group by Month/Year and categoryAge
     final Map<String, List<VaccineDisplayItem>> groups = {};
     for (var item in items) {
-      groups.putIfAbsent(item.categoryAge, () => []).add(item);
+      final dateStr = DateFormat('MMMM yyyy').format(item.dueDate);
+      final suffix = item.isCustom ? 'Custom' : item.categoryAge;
+      final groupKey = '$dateStr ($suffix)';
+      groups.putIfAbsent(groupKey, () => []).add(item);
     }
 
     // Sort groups by the earliest dueDate in that group
     final sortedKeys = groups.keys.toList()..sort((a, b) {
-      if (a == 'Custom') return 1;
-      if (b == 'Custom') return -1;
       return groups[a]!.first.dueDate.compareTo(groups[b]!.first.dueDate);
     });
 
@@ -336,7 +354,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
         if (isDone) {
           _showEditOrDeleteDialog(context, ref, item.loggedRecord!, item.name);
         } else {
-          _showLogDialog(context, ref, item);
+          _showActionSheet(context, ref, item);
         }
       },
       child: Padding(
@@ -626,6 +644,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
 
   void _showLogDialog(BuildContext context, WidgetRef ref, VaccineDisplayItem item) {
     DateTime selectedDate = DateTime.now();
+    TimeOfDay selectedTime = TimeOfDay.now();
     final noteController = TextEditingController(text: item.customPendingRecord?.metadata['note'] ?? '');
     final batchController = TextEditingController();
     bool isGovtProvided = false;
@@ -659,26 +678,46 @@ class VaccinationTrackerScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
                   
-                  // Date Picker
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.calendar_today, color: AppColors.vaccine),
-                    title: const Text('Administered On'),
-                    subtitle: Text(DateFormat('MMM d, yyyy').format(selectedDate)),
-                    trailing: TextButton(
-                      child: const Text('Change'),
-                      onPressed: () async {
-                        final d = await showDatePicker(
-                          context: ctx,
-                          initialDate: selectedDate,
-                          firstDate: DateTime.now().subtract(const Duration(days: 365 * 10)),
-                          lastDate: DateTime.now().add(const Duration(days: 365)),
-                        );
-                        if (d != null) {
-                          setState(() => selectedDate = d);
-                        }
-                      },
-                    ),
+                  // Date & Time Picker
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.calendar_today, color: AppColors.vaccine),
+                          title: const Text('Date'),
+                          subtitle: Text(DateFormat('MMM d, yyyy').format(selectedDate)),
+                          onTap: () async {
+                            final d = await showDatePicker(
+                              context: ctx,
+                              initialDate: selectedDate,
+                              firstDate: DateTime.now().subtract(const Duration(days: 365 * 10)),
+                              lastDate: DateTime.now().add(const Duration(days: 365)),
+                            );
+                            if (d != null) {
+                              setState(() => selectedDate = d);
+                            }
+                          },
+                        ),
+                      ),
+                      Expanded(
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.access_time, color: AppColors.vaccine),
+                          title: const Text('Time'),
+                          subtitle: Text(selectedTime.format(context)),
+                          onTap: () async {
+                            final t = await showTimePicker(
+                              context: ctx,
+                              initialTime: selectedTime,
+                            );
+                            if (t != null) {
+                              setState(() => selectedTime = t);
+                            }
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                   const Divider(),
                   
@@ -730,10 +769,18 @@ class VaccinationTrackerScreen extends ConsumerWidget {
                         ReminderService.cancelReminder(item.customPendingRecord!.id.hashCode.abs() % 100000);
                       }
                       
+                      final finalDate = DateTime(
+                        selectedDate.year,
+                        selectedDate.month,
+                        selectedDate.day,
+                        selectedTime.hour,
+                        selectedTime.minute,
+                      );
+                      
                       final record = RecordModel(
                         id: const Uuid().v4(),
                         type: 'vaccine',
-                        timestamp: selectedDate,
+                        timestamp: finalDate,
                         metadata: {
                           'vaccineName': item.name,
                           'batchNumber': batchController.text,
@@ -820,6 +867,178 @@ class VaccinationTrackerScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+  void _showActionSheet(BuildContext context, WidgetRef ref, VaccineDisplayItem item) {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+             ListTile(
+               leading: const Icon(Icons.check_circle_outline, color: Colors.green),
+               title: const Text('Log as Administered'),
+               onTap: () {
+                 Navigator.pop(ctx);
+                 _showLogDialog(context, ref, item);
+               },
+             ),
+             ListTile(
+               leading: const Icon(Icons.calendar_today, color: AppColors.vaccine),
+               title: const Text('Schedule Reminder'),
+               onTap: () {
+                 Navigator.pop(ctx);
+                 _showScheduleDialog(context, ref, item);
+               },
+             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showScheduleDialog(BuildContext context, WidgetRef ref, VaccineDisplayItem item) {
+    DateTime selectedDate = item.dueDate;
+    TimeOfDay selectedTime = const TimeOfDay(hour: 10, minute: 0);
+    bool enableReminder = true;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            return Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + MediaQuery.of(ctx).padding.bottom + 24,
+                top: 24,
+                left: 24,
+                right: 24,
+              ),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E1C20) : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Schedule ${item.name}',
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.calendar_today, color: AppColors.vaccine),
+                          title: const Text('Date'),
+                          subtitle: Text(DateFormat('MMM d, yyyy').format(selectedDate)),
+                          onTap: () async {
+                            final d = await showDatePicker(
+                              context: ctx,
+                              initialDate: selectedDate,
+                              firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                              lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                            );
+                            if (d != null) setState(() => selectedDate = d);
+                          },
+                        ),
+                      ),
+                      Expanded(
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.access_time, color: AppColors.vaccine),
+                          title: const Text('Time'),
+                          subtitle: Text(selectedTime.format(context)),
+                          onTap: () async {
+                            final t = await showTimePicker(
+                              context: ctx,
+                              initialTime: selectedTime,
+                            );
+                            if (t != null) setState(() => selectedTime = t);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Divider(),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Enable Reminder'),
+                    subtitle: const Text('Notify me before due date'),
+                    value: enableReminder,
+                    activeColor: AppColors.vaccine,
+                    onChanged: (val) => setState(() => enableReminder = val),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.vaccine,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    onPressed: () async {
+                      if (item.customPendingRecord != null) {
+                        ref.read(recordsProvider.notifier).deleteRecord(item.customPendingRecord!.id);
+                        ReminderService.cancelReminder(item.customPendingRecord!.id.hashCode.abs() % 100000);
+                      }
+                      
+                      final id = const Uuid().v4();
+                      final dueDateTime = DateTime(
+                        selectedDate.year,
+                        selectedDate.month,
+                        selectedDate.day,
+                        selectedTime.hour,
+                        selectedTime.minute,
+                      );
+                      
+                      final record = RecordModel(
+                        id: id,
+                        type: 'vaccine',
+                        timestamp: dueDateTime,
+                        metadata: {
+                          'vaccineName': item.name,
+                          'isCustom': false,
+                          'status': 'pending',
+                          'dueDate': dueDateTime.toIso8601String(),
+                          'reminderEnabled': enableReminder,
+                        },
+                      );
+                      await ref.read(recordsProvider.notifier).addRecord(record);
+                      
+                      if (enableReminder) {
+                         final now = DateTime.now();
+                         final t24h = dueDateTime.subtract(const Duration(hours: 24));
+                         final t2h = dueDateTime.subtract(const Duration(hours: 2));
+                         final baseId = id.hashCode.abs() % 100000;
+                         
+                         if (t24h.isAfter(now)) {
+                           await ReminderService.scheduleReminder(id: baseId, title: 'Upcoming Vaccine Tomorrow', body: '${item.name} is due tomorrow at ${selectedTime.format(context)}.', delay: t24h.difference(now));
+                         }
+                         if (t2h.isAfter(now)) {
+                           await ReminderService.scheduleReminder(id: baseId + 1, title: 'Upcoming Vaccine', body: '${item.name} is due in 2 hours.', delay: t2h.difference(now));
+                         }
+                         if (dueDateTime.isAfter(now)) {
+                           await ReminderService.scheduleReminder(id: baseId + 2, title: 'Vaccine Due Now', body: '${item.name} is due now.', delay: dueDateTime.difference(now));
+                         }
+                      }
+                      
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    },
+                    child: const Text('Schedule', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

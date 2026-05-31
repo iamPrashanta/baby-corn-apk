@@ -3,8 +3,6 @@
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:timezone/data/latest_all.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
 import '../../features/settings/domain/models/reminder_settings_model.dart';
 import '../../features/medication/domain/models/medication_model.dart';
 import '../../core/local_storage/hive_manager.dart';
@@ -166,8 +164,9 @@ class ReminderService {
       int hour = int.tryParse(timeParts[0]) ?? 8;
       final minute = int.tryParse(timeParts[1]) ?? 0;
 
-      if (parts[1].toUpperCase() == 'PM' && hour != 12) hour += 12;
-      else if (parts[1].toUpperCase() == 'AM' && hour == 12) hour = 0;
+      if (parts[1].toUpperCase() == 'PM' && hour != 12) {
+        hour += 12;
+      } else if (parts[1].toUpperCase() == 'AM' && hour == 12) hour = 0;
 
       DateTime scheduledDate = DateTime(now.year, now.month, now.day, hour, minute);
 

@@ -34,22 +34,27 @@ class FoodTrackerScreen extends ConsumerWidget {
               ),
             )
           : ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 120),
               itemCount: records.length,
               itemBuilder: (context, index) {
                 return _buildRecordCard(context, ref, records[index]);
               },
             ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (context) => const AddFoodDialog(),
-          );
-        },
-        backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.add_rounded),
-        label: const Text("Log New Food"),
+      floatingActionButton: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 16.0),
+          child: FloatingActionButton.extended(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => const AddFoodDialog(),
+              );
+            },
+            backgroundColor: AppColors.primary,
+            icon: const Icon(Icons.add_rounded),
+            label: const Text("Log New Food"),
+          ),
+        ),
       ),
     );
   }

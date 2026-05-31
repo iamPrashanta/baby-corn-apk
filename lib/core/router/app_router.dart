@@ -31,6 +31,7 @@ import '../../features/medication/presentation/screens/medication_history_screen
 import '../../features/settings/presentation/screens/family_sharing_screen.dart';
 import '../../features/guide/presentation/screens/first_foods_screen.dart';
 import '../../features/guide/presentation/screens/food_tracker_screen.dart';
+import '../../features/development/presentation/screens/image_viewer_screen.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -160,6 +161,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/guide/food_tracker',
         builder: (context, state) => const FoodTrackerScreen(),
+      ),
+      GoRoute(
+        path: '/image_viewer',
+        builder: (context, state) {
+          final args = state.extra as Map<String, dynamic>;
+          return ImageViewerScreen(
+            imagePath: args['imagePath'] as String,
+            tag: args['tag'] as String,
+          );
+        },
       ),
     ],
   );

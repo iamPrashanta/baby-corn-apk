@@ -5,8 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../providers/records_provider.dart';
 import '../../domain/models/record_model.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_radius.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../widgets/timeline_tile.dart';
 

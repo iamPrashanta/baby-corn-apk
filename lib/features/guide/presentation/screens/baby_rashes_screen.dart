@@ -87,7 +87,7 @@ class BabyRashesScreen extends StatelessWidget {
                     color: isDark ? Colors.white : AppColors.textPrimary,
                     letterSpacing: -0.5,
                   ),
-                ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1),
+                ),
                 const SizedBox(height: 8),
                 Text(
                   'Throughout your baby’s first year, their skin plays host to a variety of conditions. By and large, they are harmless, temporary, and resolve without any treatment.',
@@ -96,7 +96,7 @@ class BabyRashesScreen extends StatelessWidget {
                     color: isDark ? Colors.white70 : AppColors.textSecondary,
                     height: 1.5,
                   ),
-                ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
+                ),
               ],
             ),
           ),
@@ -223,7 +223,7 @@ class BabyRashesScreen extends StatelessWidget {
             ),
           ),
         ),
-        const SliverToBoxAdapter(child: SizedBox(height: 100)),
+        SliverToBoxAdapter(child: SizedBox(height: MediaQuery.of(context).padding.bottom + 80)),
         ],
       ),
     );

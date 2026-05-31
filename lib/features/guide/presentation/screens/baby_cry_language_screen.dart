@@ -66,23 +66,23 @@ class BabyCryLanguageScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Understand Your Baby',
+                  'Dunstan Baby Language',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
                     color: isDark ? Colors.white : AppColors.textPrimary,
                     letterSpacing: -0.5,
                   ),
-                ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1),
+                ),
                 const SizedBox(height: 8),
                 Text(
-                  'Based on the Dunstan Baby Language, all newborns produce 5 universal vocal reflexes before crying. Listen for these subtle sounds to quickly identify what your baby needs.',
+                  'Based on the theory that all babies produce 5 specific sounds right before crying, based on their physical reflexes. Listen closely to identify their needs!',
                   style: TextStyle(
                     fontSize: 14,
                     color: isDark ? Colors.white70 : AppColors.textSecondary,
                     height: 1.5,
                   ),
-                ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
+                ),
               ],
             ),
           ),
@@ -193,8 +193,8 @@ class BabyCryLanguageScreen extends StatelessWidget {
             ),
           ),
         ),
-        const SliverToBoxAdapter(
-            child: SizedBox(height: 100)), // Bottom nav padding
+        SliverToBoxAdapter(
+            child: SizedBox(height: MediaQuery.of(context).padding.bottom + 80)), // Bottom nav padding
         ],
       ),
     );

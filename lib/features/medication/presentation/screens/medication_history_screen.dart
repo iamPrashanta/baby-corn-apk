@@ -75,7 +75,7 @@ class _MedicationHistoryScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 120),
+                SizedBox(height: MediaQuery.of(context).padding.top + kToolbarHeight + 16),
 
                 // Filter Chips
                 SingleChildScrollView(
@@ -145,7 +145,7 @@ class _MedicationHistoryScreenState
                     },
                   ),
 
-                const SizedBox(height: 40),
+                SizedBox(height: MediaQuery.of(context).padding.bottom + 40),
               ],
             ),
           ),

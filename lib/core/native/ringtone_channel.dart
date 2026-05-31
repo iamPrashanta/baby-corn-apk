@@ -1,9 +1,7 @@
-// lib/core/utils/ringtone_picker.dart
-
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 
-class RingtonePicker {
+class RingtoneChannel {
   static const MethodChannel _channel = MethodChannel('com.babycorn.app/ringtone_picker');
 
   static Future<String?> pickRingtone({

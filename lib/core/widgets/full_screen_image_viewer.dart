@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:gal/gal.dart';
 
 class FullScreenImageViewer extends StatelessWidget {
   final File file;
@@ -26,11 +27,34 @@ class FullScreenImageViewer extends StatelessWidget {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.download_rounded),
+            onPressed: () async {
+              try {
+                final hasAccess = await Gal.requestAccess(toAlbum: true);
+                if (hasAccess) {
+                  await Gal.putImage(file.path);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Image saved to gallery')),
+                    );
+                  }
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to save image: $e')),
+                  );
+                }
+              }
+            },
+            tooltip: 'Save to Gallery',
+          ),
+          IconButton(
             icon: const Icon(Icons.share_rounded),
             onPressed: () {
               Share.shareXFiles([XFile(file.path)], text: title);
             },
-            tooltip: 'Share or Save',
+            tooltip: 'Share',
           ),
         ],
       ),

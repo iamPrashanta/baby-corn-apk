@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 import '../providers/reminder_settings_provider.dart';
 import '../../domain/models/reminder_settings_model.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/utils/ringtone_picker.dart';
+import '../../../../core/native/ringtone_channel.dart';
 import '../../../../features/reminders/domain/models/alarm_profile_model.dart';
 
 class ReminderDetailScreen extends ConsumerStatefulWidget {
@@ -287,7 +287,7 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
               subtitle: Text(_profile.ringtoneUri == 'default' ? 'Default System Ringtone' : 'Custom Ringtone Selected'),
               trailing: const Icon(Icons.music_note),
               onTap: () async {
-                final uri = await RingtonePicker.pickRingtone(
+                final uri = await RingtoneChannel.pickRingtone(
                   currentUri: _profile.ringtoneUri,
                   isAlarm: _profile.alarmType == 'full_alarm',
                 );

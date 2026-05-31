@@ -54,7 +54,7 @@ class SanskarJourneyScreen extends ConsumerWidget {
                     color: isDark ? Colors.white : AppColors.textPrimary,
                     letterSpacing: -0.5,
                   ),
-                ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1),
+                ),
                 const SizedBox(height: 8),
                 Text(
                   l10n.spiritualJourneyDesc,
@@ -63,7 +63,7 @@ class SanskarJourneyScreen extends ConsumerWidget {
                     color: isDark ? Colors.white70 : AppColors.textSecondary,
                     height: 1.5,
                   ),
-                ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
+                ),
               ],
             ),
           ),
@@ -83,8 +83,8 @@ class SanskarJourneyScreen extends ConsumerWidget {
             ),
           ),
         ),
-        const SliverToBoxAdapter(
-            child: SizedBox(height: 120)), // Bottom nav padding
+        SliverToBoxAdapter(
+            child: SizedBox(height: MediaQuery.of(context).padding.bottom + 80)), // Bottom nav padding
         ],
       ),
     );

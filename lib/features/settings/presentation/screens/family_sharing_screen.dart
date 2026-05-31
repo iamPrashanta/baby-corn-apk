@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/liquid_background.dart';
@@ -32,7 +31,7 @@ class FamilySharingScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 120),
+                SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
                 
                 Text(
                   'Your Family',
@@ -144,7 +143,7 @@ class FamilySharingScreen extends ConsumerWidget {
                   },
                 ),
                 
-                const SizedBox(height: 100), // Space for FAB
+                SizedBox(height: MediaQuery.of(context).padding.bottom + 80), // Space for FAB
               ],
             ),
           ),

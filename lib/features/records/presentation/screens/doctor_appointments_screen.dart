@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/constants/app_colors.dart';
 import '../../domain/models/record_model.dart';
 import '../providers/records_provider.dart';
-import 'package:go_router/go_router.dart';
 import '../widgets/add_appointment_modal.dart';
 import '../../../../core/services/reminder_service.dart';
 

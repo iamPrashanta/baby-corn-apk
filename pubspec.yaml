@@ -68,6 +68,10 @@ dependencies:
   vibration: ^3.1.8
   alarm: ^5.4.1
   flutter_ringtone_player: ^4.0.0+4
+  googleapis: ^16.0.0
+  googleapis_auth: ^2.3.1
+  gal: ^2.3.2
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:

@@ -21,16 +21,14 @@ class AlarmService {
     _ringSubscription = Alarm.ringStream.stream.listen((alarmSettings) {
       debugPrint('[ALARM TRIGGERED] Alarm with id ${alarmSettings.id} is ringing!');
       
-      final bodyContent = alarmSettings.notificationBody ?? 'default::::general';
-      final parts = bodyContent.split('::::');
-      final uri = parts[0];
-      final payload = parts.length > 1 ? parts[1] : 'general';
+      final uri = alarmSettings.payload ?? 'default';
+      final payload = alarmSettings.notificationSettings.body;
 
       if (uri.startsWith('content://')) {
         // Stop default alarm loop and play custom ringtone
         Alarm.stop(alarmSettings.id);
-        FlutterRingtonePlayer.play(
-          fromUri: uri,
+        FlutterRingtonePlayer().play(
+          fromFile: uri, // Passes the content URI
           looping: true, // we handle stopping this manually on the AlarmScreen
           volume: 1.0,
           asAlarm: true,
@@ -64,12 +62,18 @@ class AlarmService {
       assetAudioPath: 'assets/audio/alarm.wav',
       loopAudio: true,
       vibrate: profile.vibrationEnabled,
-      fadeDuration: 3.0,
-      notificationTitle: title,
-      notificationBody: '${profile.ringtoneUri}::::${payload ?? "general"}', // Pass URI and payload here
-
-      enableNotificationOnKill: true,
+      notificationSettings: NotificationSettings(
+        title: title,
+        body: payload ?? "general",
+      ),
+      volumeSettings: VolumeSettings.fade(
+        volume: 1.0,
+        fadeDuration: const Duration(milliseconds: 3000),
+        volumeEnforced: true,
+      ),
       androidFullScreenIntent: true,
+      warningNotificationOnKill: true,
+      payload: profile.ringtoneUri, // Pass URI here for retrieval on ring
     );
 
     await Alarm.set(alarmSettings: alarmSettings);
@@ -80,7 +84,7 @@ class AlarmService {
     final snoozeTime = DateTime.now().add(Duration(minutes: profile.snoozeMinutes));
     
     // Stop the custom ringtone if playing
-    FlutterRingtonePlayer.stop();
+    FlutterRingtonePlayer().stop();
     await Alarm.stop(originalId);
     
     await scheduleAlarm(
@@ -93,13 +97,13 @@ class AlarmService {
   }
 
   static Future<void> stopAlarm(int id) async {
-    FlutterRingtonePlayer.stop();
+    FlutterRingtonePlayer().stop();
     await Alarm.stop(id);
     debugPrint('[ALARM DISMISSED] Alarm $id stopped.');
   }
 
   static Future<void> stopAll() async {
-    FlutterRingtonePlayer.stop();
+    FlutterRingtonePlayer().stop();
     await Alarm.stopAll();
     debugPrint('[ALARM DISMISSED] All alarms stopped.');
   }

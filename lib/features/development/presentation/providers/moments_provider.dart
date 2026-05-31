@@ -65,7 +65,7 @@ class MomentsNotifier extends StateNotifier<AsyncValue<List<MomentModel>>> {
       // 2. Create MomentModel
       final moment = MomentModel(
         id: const Uuid().v4(),
-        babyId: _activeBabyId!,
+        babyId: _activeBabyId,
         timestamp: DateTime.now(),
         title: title,
         description: description,

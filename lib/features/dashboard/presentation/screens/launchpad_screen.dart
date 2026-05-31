@@ -1,7 +1,6 @@
 // lib/features/dashboard/presentation/screens/launchpad_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -752,8 +751,9 @@ class LaunchpadScreen extends ConsumerWidget {
       error: (e, _) =>
           SliverToBoxAdapter(child: Center(child: Text('Error: $e'))),
       data: (records) {
-        if (records.isEmpty)
+        if (records.isEmpty) {
           return const SliverToBoxAdapter(child: EmptyTimelineState());
+        }
 
         final grouped = <String, List<RecordModel>>{};
         for (final r in records) {

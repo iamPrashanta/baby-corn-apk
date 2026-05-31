@@ -73,8 +73,9 @@ class _TimerFullSheetState extends ConsumerState<TimerFullSheet>
   String _getDisplayName(String type) {
     final t = type.toLowerCase();
     if (t.contains('left') && t.contains('feed')) return 'Left Breast Feeding';
-    if (t.contains('right') && t.contains('feed'))
+    if (t.contains('right') && t.contains('feed')) {
       return 'Right Breast Feeding';
+    }
     if (t.contains('feed')) return 'Feeding';
     if (t.contains('sleep')) return 'Sleep';
     if (t.contains('tummy')) return 'Tummy Time';
