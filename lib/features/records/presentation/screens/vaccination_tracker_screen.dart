@@ -64,122 +64,174 @@ class VaccinationTrackerScreen extends ConsumerWidget {
               }
               final isFullyCompleted = completedCount == items.length;
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Category Header
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              category,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Due: ${DateFormat('MMM d, yyyy').format(dueDate)}',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: isFullyCompleted
-                                    ? Colors.green
-                                    : (isOverdue ? Colors.red : Colors.grey),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: isFullyCompleted
-                                ? Colors.green.withOpacity(0.2)
-                                : AppColors.vaccine.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '$completedCount / ${items.length}',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: isFullyCompleted ? Colors.green : AppColors.vaccine,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  // Vaccine items
-                  ...items.map((vaccine) {
-                    final isDone = loggedVaccines.any((r) => r.metadata['vaccineName'] == vaccine.name);
-                    final loggedRecord = isDone
-                        ? loggedVaccines.firstWhere((r) => r.metadata['vaccineName'] == vaccine.name)
-                        : null;
-
-                    return ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-                      leading: Icon(
-                        isDone ? Icons.check_circle : Icons.radio_button_unchecked,
-                        color: isDone ? Colors.green : Colors.grey.shade400,
-                        size: 28,
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E1C20) : Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isDark ? Colors.black26 : const Color(0x0A000000),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    )
+                  ],
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Category Header
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      decoration: BoxDecoration(
+                        color: isFullyCompleted
+                            ? Colors.green.withOpacity(0.1)
+                            : isDark ? AppColors.vaccine.withOpacity(0.15) : AppColors.vaccine.withOpacity(0.05),
                       ),
-                      title: Text(
-                        vaccine.name,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          decoration: isDone ? TextDecoration.lineThrough : null,
-                          color: isDone ? Colors.grey : null,
-                        ),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          if (vaccine.description.isNotEmpty)
-                            Text(
-                              vaccine.description,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: isDone ? Colors.grey : (isDark ? Colors.white70 : Colors.grey.shade700),
-                              ),
-                            ),
-                          if (isDone && loggedRecord != null)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: Text(
-                                '✅ Given on ${DateFormat('MMM d, yyyy').format(loggedRecord.timestamp)}',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green,
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                category,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark ? Colors.white : const Color(0xFF4A4458),
                                 ),
                               ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Due: ${DateFormat('MMM d, yyyy').format(dueDate)}',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: isFullyCompleted
+                                      ? Colors.green
+                                      : (isOverdue ? Colors.red : (isDark ? Colors.white54 : Colors.grey.shade600)),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: isFullyCompleted
+                                  ? Colors.green.withOpacity(0.2)
+                                  : AppColors.vaccine.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(16),
                             ),
+                            child: Text(
+                              '$completedCount / ${items.length}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: isFullyCompleted ? Colors.green : AppColors.vaccine,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
-                      onTap: () {
-                        if (isDone) {
-                          // Allow viewing or deleting? For now just show a simple snackbar or dialog
-                          _showEditOrDeleteDialog(context, ref, loggedRecord!, vaccine.name);
-                        } else {
-                          _showLogDialog(context, ref, vaccine.name, dueDate);
-                        }
-                      },
-                    );
-                  }).toList(),
-                ],
+                    ),
+                    
+                    // Vaccine items
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Column(
+                        children: items.map((vaccine) {
+                          final isDone = loggedVaccines.any((r) => r.metadata['vaccineName'] == vaccine.name);
+                          final loggedRecord = isDone
+                              ? loggedVaccines.firstWhere((r) => r.metadata['vaccineName'] == vaccine.name)
+                              : null;
+
+                          return InkWell(
+                            onTap: () {
+                              if (isDone) {
+                                _showEditOrDeleteDialog(context, ref, loggedRecord!, vaccine.name);
+                              } else {
+                                _showLogDialog(context, ref, vaccine.name, dueDate);
+                              }
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    margin: const EdgeInsets.only(top: 2),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: isDone ? Colors.green.withOpacity(0.2) : (isDark ? Colors.white10 : Colors.grey.shade100),
+                                      border: Border.all(
+                                        color: isDone ? Colors.green : (isDark ? Colors.white24 : Colors.grey.shade300),
+                                        width: 2,
+                                      ),
+                                    ),
+                                    padding: const EdgeInsets.all(4),
+                                    child: Icon(
+                                      isDone ? Icons.check : Icons.circle,
+                                      size: 16,
+                                      color: isDone ? Colors.green : Colors.transparent,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          vaccine.name,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w700,
+                                            color: isDone ? Colors.grey : (isDark ? Colors.white : const Color(0xFF4A4458)),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        if (vaccine.description.isNotEmpty)
+                                          Text(
+                                            vaccine.description,
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: isDone ? Colors.grey.shade400 : (isDark ? Colors.white54 : Colors.grey.shade600),
+                                              height: 1.3,
+                                            ),
+                                          ),
+                                        if (isDone && loggedRecord != null)
+                                          Padding(
+                                            padding: const EdgeInsets.only(top: 6),
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: Colors.green.withOpacity(0.1),
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: Text(
+                                                '✅ Given ${DateFormat('MMM d, yyyy').format(loggedRecord.timestamp)}',
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.green,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
+                ),
               );
             },
           );

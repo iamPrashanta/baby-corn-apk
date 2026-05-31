@@ -1,5 +1,6 @@
 // main.dart
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -60,9 +61,24 @@ void main() async {
     await HiveManager.init();
 
     // DEBUG LOGS
-    debugPrint("DEBUG LOGS: profile box count: ${HiveManager.getProfileBox().length}");
-    debugPrint("DEBUG LOGS: records count: ${HiveManager.getRecordsBox().length}");
-    debugPrint("DEBUG LOGS: settings count: ${HiveManager.getSettingsBox().length}");
+    final profileBox = HiveManager.getProfileBox();
+    final recordsBox = HiveManager.getRecordsBox();
+    
+    // Parse babies_list to get count safely
+    final babiesJson = profileBox.get('babies_list');
+    int babiesCount = 0;
+    if (babiesJson != null) {
+      try {
+        babiesCount = (jsonDecode(babiesJson) as List).length;
+      } catch (_) {}
+    }
+
+    debugPrint("====== STARTUP DATA VERIFICATION ======");
+    debugPrint("babies_list count: $babiesCount");
+    debugPrint("active_baby_id: ${profileBox.get('active_baby_id')}");
+    debugPrint("onboarding_complete: ${profileBox.get('onboarding_complete')}");
+    debugPrint("records count: ${recordsBox.length}");
+    debugPrint("=======================================");
 
     debugPrint("STEP 4: Initializing ReminderService");
     await ReminderService.init();

@@ -7,6 +7,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/local_storage/secure_storage_manager.dart';
 import '../../data/repositories/baby_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../../../../core/config/app_config.dart';
 
@@ -28,6 +29,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     await Future.delayed(const Duration(seconds: 2));
 
     try {
+      final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+          FlutterLocalNotificationsPlugin();
+      final NotificationAppLaunchDetails? notificationAppLaunchDetails =
+          await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
+      
+      final didNotificationLaunchApp = notificationAppLaunchDetails?.didNotificationLaunchApp ?? false;
+      final payload = notificationAppLaunchDetails?.notificationResponse?.payload;
+
+      if (!mounted) return;
+
+      if (didNotificationLaunchApp && payload != null && payload.startsWith('alarm|')) {
+        context.go('/alarm', extra: payload);
+        return;
+      }
       final prefs = await SharedPreferences.getInstance();
       final hasSelectedLanguage =
           prefs.getBool('has_selected_language') ?? false;
@@ -35,8 +50,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       final hasPin = await SecureStorageManager.hasPin();
       final isOnboarded =
           ref.read(babyRepositoryProvider).isOnboardingComplete();
-
-      if (!mounted) return;
 
       if (!hasSelectedLanguage) {
         context.go('/language');

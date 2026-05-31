@@ -1,6 +1,7 @@
 // lib/features/auth/data/repositories/baby_repository.dart
 
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/local_storage/hive_manager.dart';
@@ -14,11 +15,11 @@ class BabyRepository {
   BabyRepository() {
     // Safe migration — box might not be open yet on first provider instantiation
     try {
-      _migrateOldData();
+      _migrateOldData(); // Run async without awaiting in constructor
     } catch (_) {}
   }
 
-  void _migrateOldData() {
+  Future<void> _migrateOldData() async {
     final settingsBox = HiveManager.getSettingsBox();
     final profileBox = HiveManager.getProfileBox();
 
@@ -42,27 +43,35 @@ class BabyRepository {
         birthWeight: settingsBox.get('baby_birth_weight') ?? 3.2,
       );
 
-      saveBabies([baby]);
-      setActiveBabyId(baby.id);
+      await saveBabies([baby]);
+      await setActiveBabyId(baby.id);
 
       // Clear old v1 keys
-      settingsBox.delete('baby_name');
-      settingsBox.delete('baby_birthdate');
+      await settingsBox.delete('baby_name');
+      await settingsBox.delete('baby_birthdate');
     }
 
-    // 2. Migrate from settingsBox to profileBox
+    // 2. Migrate from settingsBox to profileBox safely
     if (settingsBox.containsKey('babies_list')) {
-      profileBox.put('babies_list', settingsBox.get('babies_list'));
-      settingsBox.delete('babies_list');
+      if (!profileBox.containsKey('babies_list')) {
+        await profileBox.put('babies_list', settingsBox.get('babies_list'));
+      }
+      await settingsBox.delete('babies_list');
     }
+    
     if (settingsBox.containsKey('active_baby_id')) {
-      profileBox.put('active_baby_id', settingsBox.get('active_baby_id'));
-      settingsBox.delete('active_baby_id');
+      if (!profileBox.containsKey('active_baby_id')) {
+        await profileBox.put('active_baby_id', settingsBox.get('active_baby_id'));
+      }
+      await settingsBox.delete('active_baby_id');
     }
+    
     if (settingsBox.containsKey('onboarding_complete')) {
-      profileBox.put(
-          'onboarding_complete', settingsBox.get('onboarding_complete'));
-      settingsBox.delete('onboarding_complete');
+      if (!profileBox.containsKey('onboarding_complete')) {
+        await profileBox.put(
+            'onboarding_complete', settingsBox.get('onboarding_complete'));
+      }
+      await settingsBox.delete('onboarding_complete');
     }
   }
 
@@ -74,7 +83,8 @@ class BabyRepository {
     try {
       final List<dynamic> decoded = jsonDecode(babiesJson);
       return decoded.map((e) => BabyModel.fromJson(e)).toList();
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint("ERROR PARSING BABIES: $e\n$st");
       return [];
     }
   }
@@ -123,7 +133,17 @@ class BabyRepository {
 
   String? getActiveBabyId() {
     final box = HiveManager.getProfileBox();
-    return box.get('active_baby_id') as String?;
+    var id = box.get('active_baby_id') as String?;
+    
+    // Active Baby Self-Heal
+    if (id == null) {
+      final babies = getBabies();
+      if (babies.isNotEmpty) {
+        id = babies.first.id;
+        box.put('active_baby_id', id); // Self-heal active baby synchronously
+      }
+    }
+    return id;
   }
 
   Future<void> setActiveBabyId(String id) async {
@@ -132,19 +152,8 @@ class BabyRepository {
   }
 
   bool isOnboardingComplete() {
-    final box = HiveManager.getProfileBox();
     final babies = getBabies();
-
-    if (babies.isNotEmpty) {
-      // self-heal
-      box.put('onboarding_complete', true);
-      return true;
-    }
-
-    return box.get(
-      'onboarding_complete',
-      defaultValue: false,
-    ) as bool;
+    return babies.isNotEmpty;
   }
 
   // Legacy wrappers for backward compatibility

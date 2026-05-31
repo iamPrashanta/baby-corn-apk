@@ -1,6 +1,7 @@
 // lib/core/services/reminder_service.dart
 
 import 'dart:io' show Platform;
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -16,13 +17,23 @@ import '../../core/local_storage/hive_manager.dart';
 void notificationTapBackground(NotificationResponse details) async {
   if (details.payload == null || details.actionId == null) return;
 
-  // payload format: "medicationId|scheduledTimeMillis"
+  // payload format: "medicationId|scheduledTimeMillis" (legacy) or "alarm|medication|id|uniqueId|time"
   final parts = details.payload!.split('|');
-  if (parts.length != 2) return;
-
-  final medId = parts[0];
-  final sTimeMillis = int.tryParse(parts[1]);
-  if (sTimeMillis == null) return;
+  
+  String medId = '';
+  int sTimeMillis = 0;
+  
+  if (parts.length == 2) {
+    medId = parts[0];
+    sTimeMillis = int.tryParse(parts[1]) ?? 0;
+  } else if (parts.length == 5 && parts[0] == 'alarm' && parts[1] == 'medication') {
+    medId = parts[2];
+    sTimeMillis = int.tryParse(parts[4]) ?? 0;
+  } else {
+    return;
+  }
+  
+  if (sTimeMillis == 0) return;
 
   final sTime = DateTime.fromMillisecondsSinceEpoch(sTimeMillis);
   final now = DateTime.now();
@@ -269,7 +280,8 @@ class ReminderService {
       playSound: true,
       enableVibration: true,
       category: AndroidNotificationCategory.alarm,
-      timeoutAfter: 30 * 60 * 1000, // 30 minutes
+      fullScreenIntent: category.alarmStyle == 'full_screen',
+      additionalFlags: category.alarmStyle == 'full_screen' ? Int32List.fromList(<int>[4]) : null,
     );
     final platformDetails = NotificationDetails(android: androidDetails);
 
@@ -302,6 +314,7 @@ class ReminderService {
             scheduledDate: scheduledDate,
             notificationDetails: platformDetails,
             androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+            payload: 'alarm|$type|${latestRecord.first.id}|$baseId',
           );
           debugPrint("ReminderService: Reminder Scheduled (SMART) category '$title' next trigger at $scheduledDate");
         } else {
@@ -315,6 +328,7 @@ class ReminderService {
             scheduledDate: scheduledDate,
             notificationDetails: platformDetails,
             androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+            payload: 'alarm|$type|fallback|$baseId',
           );
           debugPrint("ReminderService: Reminder Scheduled (SMART fallback - no records). '$title' at $scheduledDate");
         }
@@ -333,6 +347,7 @@ class ReminderService {
           scheduledDate: scheduledDate,
           notificationDetails: platformDetails,
           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          payload: 'alarm|$type|repeat|${baseId + i}',
         );
       }
       debugPrint("ReminderService: Reminder Scheduled (REPEAT) category '$title' next trigger at $nextScheduled");
@@ -366,6 +381,7 @@ class ReminderService {
         notificationDetails: platformDetails,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.time, // Repeats daily
+        payload: 'alarm|$type|exact|$baseId',
       );
       debugPrint("ReminderService: Reminder Scheduled (EXACT) category '$title' next trigger at $scheduledDate");
     }
@@ -405,7 +421,7 @@ class ReminderService {
   static Future<void> scheduleMedication(MedicationModel med) async {
     if (!med.isActive) return;
 
-    final androidDetails = const AndroidNotificationDetails(
+    final androidDetails = AndroidNotificationDetails(
       'baby_corn_medication',
       'Medication Reminders',
       importance: Importance.max,
@@ -414,7 +430,8 @@ class ReminderService {
       playSound: true,
       enableVibration: true,
       category: AndroidNotificationCategory.alarm,
-      timeoutAfter: 30 * 60 * 1000,
+      fullScreenIntent: true,
+      additionalFlags: Int32List.fromList(<int>[4]),
       actions: <AndroidNotificationAction>[
         AndroidNotificationAction('taken', 'Taken', showsUserInterface: true),
         AndroidNotificationAction('snooze_5', 'Snooze 5 min', showsUserInterface: true),
@@ -457,7 +474,7 @@ class ReminderService {
       }
 
       final uniqueId = 10000 + (med.id.hashCode.abs() % 10000) + i;
-      final payload = '${med.id}|${scheduledDate.millisecondsSinceEpoch}';
+      final payload = 'alarm|medication|${med.id}|$uniqueId|${scheduledDate.millisecondsSinceEpoch}';
 
       await _notificationsPlugin.zonedSchedule(
         id: uniqueId,

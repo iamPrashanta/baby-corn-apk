@@ -52,45 +52,8 @@ class TimelineTile extends ConsumerWidget {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: Dismissible(
-              key: Key(record.id),
-              direction: DismissDirection.endToStart,
-              confirmDismiss: (direction) async {
-                bool? confirm = await showDialog<bool>(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      title: const Text('Delete Activity'),
-                      content: const Text('Are you sure you want to delete this activity? This cannot be undone.'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          child: const Text('Cancel'),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                          onPressed: () => Navigator.pop(context, true),
-                          child: const Text('Delete', style: TextStyle(color: Colors.white)),
-                        ),
-                      ],
-                    );
-                  },
-                );
-                return confirm;
-              },
-              onDismissed: (_) {
-                ref.read(recordsProvider.notifier).deleteRecord(record.id);
-              },
-              background: Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.only(right: 20),
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  borderRadius: AppRadius.cardBorder,
-                ),
-                alignment: Alignment.centerRight,
-                child: const Icon(Icons.delete, color: Colors.white),
-              ),
+            child: GestureDetector(
+              onLongPress: () => _showDeleteConfirm(context, ref, record),
               child: Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(16),
@@ -152,11 +115,6 @@ class TimelineTile extends ConsumerWidget {
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        GestureDetector(
-                          onTap: () => _showDeleteConfirm(context, ref, record),
-                          child: Icon(Icons.delete_outline, color: Colors.red.withOpacity(0.7), size: 20),
                         ),
                       ],
                     ),

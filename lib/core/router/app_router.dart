@@ -23,7 +23,7 @@ import '../../features/settings/presentation/screens/edit_baby_screen.dart';
 import '../../features/settings/presentation/screens/reminders_setting_screen.dart';
 import '../../features/settings/presentation/screens/reminder_detail_screen.dart';
 import '../../features/auth/presentation/providers/baby_provider.dart';
-import '../../features/settings/presentation/screens/reminder_diagnostics_screen.dart';
+import '../../features/settings/presentation/screens/alarm_screen.dart';
 import '../../features/medication/presentation/screens/medication_dashboard_screen.dart';
 import '../../features/medication/presentation/screens/medication_history_screen.dart';
 import '../../features/settings/presentation/screens/family_sharing_screen.dart';
@@ -136,8 +136,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const FamilySharingScreen(),
       ),
       GoRoute(
-        path: '/reminder_diagnostics',
-        builder: (context, state) => const ReminderDiagnosticsScreen(),
+        path: '/alarm',
+        builder: (context, state) {
+          final payload = state.extra as String? ?? '';
+          return AlarmScreen(payload: payload);
+        },
       ),
     ],
   );

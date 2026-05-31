@@ -164,24 +164,6 @@ class RemindersSettingScreen extends ConsumerWidget {
                 ],
               ),
             ),
-
-            // Diagnostic Screen
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: () {
-                context.push('/reminder_diagnostics');
-              },
-              icon: const Icon(Icons.health_and_safety_outlined),
-              label: const Text('Reminder Diagnostics'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary.withOpacity(0.1),
-                foregroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-              ),
-            ),
-            const SizedBox(height: 24),
           ],
         ],
       ),

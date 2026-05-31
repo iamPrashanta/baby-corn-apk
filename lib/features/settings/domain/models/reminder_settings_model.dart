@@ -6,6 +6,7 @@ class ReminderCategorySettings {
   final String mode; // 'exact', 'repeat', 'smart'
   final int repeatHours;
   final String exactTime; // format "HH:mm"
+  final String alarmStyle; // 'full_screen' or 'notification'
   final DateTime? nextScheduledTime;
   final DateTime? lastTriggeredTime;
 
@@ -15,6 +16,7 @@ class ReminderCategorySettings {
     this.mode = 'repeat',
     this.repeatHours = 3,
     this.exactTime = "08:00",
+    this.alarmStyle = 'full_screen',
     this.nextScheduledTime,
     this.lastTriggeredTime,
   });
@@ -30,6 +32,7 @@ class ReminderCategorySettings {
       mode: parsedMode,
       repeatHours: json['repeatHours'] as int? ?? 3,
       exactTime: json['exactTime'] as String? ?? "08:00",
+      alarmStyle: json['alarmStyle'] as String? ?? 'full_screen',
       nextScheduledTime: json['nextScheduledTime'] != null
           ? DateTime.parse(json['nextScheduledTime'] as String)
           : null,
@@ -46,6 +49,7 @@ class ReminderCategorySettings {
       'mode': mode,
       'repeatHours': repeatHours,
       'exactTime': exactTime,
+      'alarmStyle': alarmStyle,
       if (nextScheduledTime != null) 'nextScheduledTime': nextScheduledTime!.toIso8601String(),
       if (lastTriggeredTime != null) 'lastTriggeredTime': lastTriggeredTime!.toIso8601String(),
     };
@@ -57,6 +61,7 @@ class ReminderCategorySettings {
     String? mode,
     int? repeatHours,
     String? exactTime,
+    String? alarmStyle,
     DateTime? nextScheduledTime,
     DateTime? lastTriggeredTime,
     bool clearNextScheduledTime = false,
@@ -67,6 +72,7 @@ class ReminderCategorySettings {
       mode: mode ?? this.mode,
       repeatHours: repeatHours ?? this.repeatHours,
       exactTime: exactTime ?? this.exactTime,
+      alarmStyle: alarmStyle ?? this.alarmStyle,
       nextScheduledTime: clearNextScheduledTime ? null : (nextScheduledTime ?? this.nextScheduledTime),
       lastTriggeredTime: lastTriggeredTime ?? this.lastTriggeredTime,
     );

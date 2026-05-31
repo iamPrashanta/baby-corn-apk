@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../records/presentation/providers/records_provider.dart';
 import '../../../records/domain/models/record_model.dart';
+import '../../../records/domain/models/vaccine_schedule.dart';
 import '../../../auth/domain/models/baby_model.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -44,6 +45,7 @@ class LaunchpadScreen extends ConsumerWidget {
                 const SizedBox(height: 16),
                 _buildMissedReminders(context, reminderSettings, isDark),
                 _buildSummaryCard(context, recordsAsync, isDark),
+                _buildUpcomingVaccineCard(context, recordsAsync, activeBaby, isDark),
                 const SizedBox(height: 32),
                 _buildTimelineHeader(context, ref, filterDate, isDark),
               ]),
@@ -308,6 +310,121 @@ class LaunchpadScreen extends ConsumerWidget {
         .animate()
         .fadeIn(duration: 600.ms, delay: 400.ms)
         .slideY(begin: 0.05, end: 0);
+  }
+
+  Widget _buildUpcomingVaccineCard(BuildContext context, AsyncValue<List<RecordModel>> recordsAsync, BabyModel? activeBaby, bool isDark) {
+    if (activeBaby == null) return const SizedBox.shrink();
+    
+    return recordsAsync.when(
+      data: (records) {
+        final loggedVaccines = records.where((r) => r.type == 'vaccine').toList();
+        
+        VaccineScheduleItem? nextVaccine;
+        DateTime? nextDueDate;
+        
+        for (final item in standardVaccineSchedule) {
+          final isDone = loggedVaccines.any((r) => r.metadata['vaccineName'] == item.name);
+          if (!isDone) {
+            nextVaccine = item;
+            nextDueDate = activeBaby.birthDate.add(Duration(days: item.recommendedDaysFromBirth));
+            break;
+          }
+        }
+        
+        if (nextVaccine == null) return const SizedBox.shrink(); // All done!
+        
+        final isOverdue = DateTime.now().isAfter(nextDueDate!) && nextVaccine.recommendedDaysFromBirth > 0;
+        
+        return GestureDetector(
+          onTap: () => context.push('/vaccines'),
+          child: Container(
+            margin: const EdgeInsets.only(top: 16),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isDark 
+                    ? [AppColors.vaccine.withOpacity(0.3), AppColors.vaccine.withOpacity(0.1)]
+                    : [AppColors.vaccine.withOpacity(0.15), Colors.white],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.vaccine.withOpacity(0.3)),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.vaccine.withOpacity(isDark ? 0.1 : 0.05),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
+                )
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.vaccine.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Text('💉', style: TextStyle(fontSize: 24)),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Text(
+                            'Upcoming Vaccine',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.vaccine,
+                            ),
+                          ),
+                          if (isOverdue) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(color: Colors.red.withOpacity(0.2), borderRadius: BorderRadius.circular(4)),
+                              child: const Text('Overdue', style: TextStyle(color: Colors.red, fontSize: 10, fontWeight: FontWeight.bold)),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        nextVaccine.name,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : const Color(0xFF4A4458),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Due: ${DateFormat('MMM d, yyyy').format(nextDueDate)}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isDark ? Colors.white60 : Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.chevron_right, color: AppColors.vaccine),
+              ],
+            ),
+          )
+            .animate()
+            .fadeIn(duration: 600.ms, delay: 500.ms)
+            .slideY(begin: 0.05, end: 0),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
   }
 
   Widget _buildSummaryItem(

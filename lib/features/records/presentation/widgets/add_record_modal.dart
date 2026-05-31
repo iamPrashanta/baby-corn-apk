@@ -113,7 +113,7 @@ class AddRecordModal extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
 
-          // Active items — second row
+          // Active items — second row (Output & Hygiene)
           Row(
             children: [
               Expanded(
@@ -150,7 +150,30 @@ class AddRecordModal extends ConsumerWidget {
                     .scaleXY(begin: 0.9, end: 1.0, duration: 250.ms, delay: 300.ms, curve: Curves.easeOutBack),
               ),
               const SizedBox(width: 12),
-              // Tummy Time
+              Expanded(
+                child: _CategoryTile(
+                  emoji: '🛁',
+                  label: 'Bath',
+                  color: Colors.lightBlue,
+                  isActive: true,
+                  isHighlighted: initialType == 'bath',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/entry/bath');
+                  },
+                )
+                    .animate()
+                    .fadeIn(duration: 200.ms, delay: 350.ms)
+                    .scaleXY(begin: 0.9, end: 1.0, duration: 250.ms, delay: 350.ms, curve: Curves.easeOutBack),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // Active items — third row (Development & Mood)
+          Row(
+            children: [
               Expanded(
                 child: _CategoryTile(
                   emoji: '🤸',
@@ -168,30 +191,6 @@ class AddRecordModal extends ConsumerWidget {
                     }
                     notifier.startSession('Tummy Time');
                     Navigator.pop(context);
-                  },
-                )
-                    .animate()
-                    .fadeIn(duration: 200.ms, delay: 350.ms)
-                    .scaleXY(begin: 0.9, end: 1.0, duration: 250.ms, delay: 350.ms, curve: Curves.easeOutBack),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // Active items — third row
-          Row(
-            children: [
-              Expanded(
-                child: _CategoryTile(
-                  emoji: '🛁',
-                  label: 'Bath',
-                  color: Colors.lightBlue,
-                  isActive: true,
-                  isHighlighted: initialType == 'bath',
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.push('/entry/bath');
                   },
                 )
                     .animate()
@@ -235,35 +234,81 @@ class AddRecordModal extends ConsumerWidget {
             ],
           ),
 
-          const SizedBox(height: 20),
-          Text(
-            'Coming Soon',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white24 : Colors.grey.shade400,
-              letterSpacing: 0.5,
-            ),
-          )
-              .animate()
-              .fadeIn(duration: 200.ms, delay: 500.ms),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
 
-          // Coming Soon row
+          // Active items — fourth row (Health)
           Row(
             children: [
-              Expanded(child: _CategoryTile(emoji: '💊', label: 'Medicine', color: Colors.orange, isActive: true, onTap: () {
-                Navigator.pop(context);
-                context.push('/medications');
-              })),
+              Expanded(
+                child: _CategoryTile(
+                  emoji: '💊',
+                  label: 'Medicine',
+                  color: Colors.orange,
+                  isActive: true,
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/medications');
+                  },
+                )
+                    .animate()
+                    .fadeIn(duration: 200.ms, delay: 550.ms)
+                    .scaleXY(begin: 0.9, end: 1.0, duration: 250.ms, delay: 550.ms, curve: Curves.easeOutBack),
+              ),
               const SizedBox(width: 12),
-              Expanded(child: const SizedBox()),
+              const Expanded(child: SizedBox()),
               const SizedBox(width: 12),
-              Expanded(child: const SizedBox()),
+              const Expanded(child: SizedBox()),
             ],
-          )
-              .animate()
-              .fadeIn(duration: 200.ms, delay: 550.ms),
+          ),
+
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Text(
+                'Pro Features ',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.amber.shade300 : Colors.amber.shade700,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              Text(
+                '— Coming Soon',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white30 : Colors.grey.shade500,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ).animate().fadeIn(duration: 200.ms, delay: 600.ms),
+          const SizedBox(height: 12),
+
+          // Coming Soon Pro Features - Row 1
+          Row(
+            children: [
+              Expanded(child: _CategoryTile(emoji: '🎙️', label: 'Voice Log', color: Colors.indigo, isActive: false, onTap: () {})),
+              const SizedBox(width: 12),
+              Expanded(child: _CategoryTile(emoji: '🤖', label: 'AI Assist', color: Colors.purple, isActive: false, onTap: () {})),
+              const SizedBox(width: 12),
+              Expanded(child: _CategoryTile(emoji: '📊', label: 'Insights', color: Colors.teal, isActive: false, onTap: () {})),
+            ],
+          ).animate().fadeIn(duration: 200.ms, delay: 650.ms),
+          
+          const SizedBox(height: 12),
+          
+          // Coming Soon Pro Features - Row 2
+          Row(
+            children: [
+              Expanded(child: _CategoryTile(emoji: '🏥', label: 'Export', color: Colors.redAccent, isActive: false, onTap: () {})),
+              const SizedBox(width: 12),
+              Expanded(child: _CategoryTile(emoji: '🌙', label: 'Lullabies', color: Colors.blueGrey, isActive: false, onTap: () {})),
+              const SizedBox(width: 12),
+              Expanded(child: _CategoryTile(emoji: '📈', label: 'Growth', color: Colors.green, isActive: false, onTap: () {})),
+            ],
+          ).animate().fadeIn(duration: 200.ms, delay: 700.ms),
         ],
       ),
     );
