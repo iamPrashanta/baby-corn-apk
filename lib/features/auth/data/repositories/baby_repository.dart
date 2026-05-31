@@ -12,14 +12,11 @@ final babyRepositoryProvider = Provider<BabyRepository>((ref) {
 });
 
 class BabyRepository {
-  BabyRepository() {
-    // Safe migration — box might not be open yet on first provider instantiation
-    try {
-      _migrateOldData(); // Run async without awaiting in constructor
-    } catch (_) {}
-  }
+  BabyRepository(); // Empty constructor
 
-  Future<void> _migrateOldData() async {
+  static Future<void> runStartupMigration() async {
+    debugPrint("🚀 [Migration] Started");
+    final repo = BabyRepository();
     final settingsBox = HiveManager.getSettingsBox();
     final profileBox = HiveManager.getProfileBox();
 
@@ -43,8 +40,8 @@ class BabyRepository {
         birthWeight: settingsBox.get('baby_birth_weight') ?? 3.2,
       );
 
-      await saveBabies([baby]);
-      await setActiveBabyId(baby.id);
+      await repo.saveBabies([baby]);
+      await repo.setActiveBabyId(baby.id);
 
       // Clear old v1 keys
       await settingsBox.delete('baby_name');
@@ -65,6 +62,8 @@ class BabyRepository {
       }
       await settingsBox.delete('active_baby_id');
     }
+    
+    debugPrint("✅ [Migration] Completed");
   }
 
   List<BabyModel> getBabies() {

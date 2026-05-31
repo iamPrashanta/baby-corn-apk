@@ -48,7 +48,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           prefs.getBool('has_selected_language') ?? false;
 
       final hasPin = await SecureStorageManager.hasPin();
-      final hasBabies = ref.read(babyRepositoryProvider).getBabies().isNotEmpty;
+      final babies = ref.read(babyRepositoryProvider).getBabies();
+      final hasBabies = babies.isNotEmpty;
+      debugPrint("🔍 [Splash] hasSelectedLanguage=$hasSelectedLanguage, hasBabies=$hasBabies (count=${babies.length})");
 
       if (!hasSelectedLanguage) {
         context.go('/language');
@@ -83,9 +85,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         }
       }
     } catch (e) {
-      // If anything fails during startup routing, go to auth as a safe fallback
+      // Safe fallback: go to onboarding if anything fails during startup routing
       debugPrint('SplashScreen routing error: $e');
-      if (mounted) context.go('/auth');
+      if (mounted) context.go('/onboarding');
     }
   }
 

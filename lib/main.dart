@@ -1,4 +1,5 @@
 // main.dart
+// ignore_for_file: avoid_print
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
+import 'features/auth/data/repositories/baby_repository.dart';
 import 'core/local_storage/hive_manager.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'features/settings/presentation/providers/theme_provider.dart';
@@ -59,6 +61,10 @@ void main() async {
 
     debugPrint("STEP 3: Initializing Hive");
     await HiveManager.init();
+
+    debugPrint("STEP 3.5: Running startup migration");
+    await BabyRepository.runStartupMigration();
+    debugPrint("STEP 3.5: Migration complete");
 
     // DEBUG LOGS
     final profileBox = HiveManager.getProfileBox();
