@@ -70,10 +70,11 @@ class LanguageSelectionScreen extends ConsumerWidget {
                           if (AppConfig.enableFirebaseAuth) {
                             context.go('/auth');
                           } else {
-                            final isOnboarded = ref
+                            final hasBabies = ref
                                 .read(babyRepositoryProvider)
-                                .isOnboardingComplete();
-                            if (isOnboarded) {
+                                .getBabies()
+                                .isNotEmpty;
+                            if (hasBabies) {
                               context.go('/home');
                             } else {
                               context.go('/onboarding');

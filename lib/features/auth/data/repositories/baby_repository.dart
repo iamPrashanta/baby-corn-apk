@@ -65,14 +65,6 @@ class BabyRepository {
       }
       await settingsBox.delete('active_baby_id');
     }
-    
-    if (settingsBox.containsKey('onboarding_complete')) {
-      if (!profileBox.containsKey('onboarding_complete')) {
-        await profileBox.put(
-            'onboarding_complete', settingsBox.get('onboarding_complete'));
-      }
-      await settingsBox.delete('onboarding_complete');
-    }
   }
 
   List<BabyModel> getBabies() {
@@ -101,7 +93,6 @@ class BabyRepository {
     await saveBabies(babies);
     if (babies.length == 1) {
       await setActiveBabyId(baby.id);
-      await HiveManager.getProfileBox().put('onboarding_complete', true);
     }
   }
 
@@ -126,7 +117,6 @@ class BabyRepository {
       } else {
         final box = HiveManager.getProfileBox();
         await box.delete('active_baby_id');
-        await box.delete('onboarding_complete'); // reset if no babies left
       }
     }
   }
@@ -149,11 +139,6 @@ class BabyRepository {
   Future<void> setActiveBabyId(String id) async {
     final box = HiveManager.getProfileBox();
     await box.put('active_baby_id', id);
-  }
-
-  bool isOnboardingComplete() {
-    final babies = getBabies();
-    return babies.isNotEmpty;
   }
 
   // Legacy wrappers for backward compatibility

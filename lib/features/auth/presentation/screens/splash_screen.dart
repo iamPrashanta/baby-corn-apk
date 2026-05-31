@@ -48,8 +48,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           prefs.getBool('has_selected_language') ?? false;
 
       final hasPin = await SecureStorageManager.hasPin();
-      final isOnboarded =
-          ref.read(babyRepositoryProvider).isOnboardingComplete();
+      final hasBabies = ref.read(babyRepositoryProvider).getBabies().isNotEmpty;
 
       if (!hasSelectedLanguage) {
         context.go('/language');
@@ -66,7 +65,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             context.go('/pin_verify');
           } else {
             await SecureStorageManager.updateLastActiveTime();
-            if (isOnboarded) {
+            if (hasBabies) {
               context.go('/home');
             } else {
               context.go('/onboarding');
@@ -75,7 +74,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         }
       } else {
         // Local-First Offline Logic - NO PIN required
-        if (!isOnboarded) {
+        if (!hasBabies) {
           context.go('/onboarding');
         } else {
           // Update last active time for consistency, though session doesn't expire without PIN

@@ -8,7 +8,7 @@ import '../../../auth/data/repositories/baby_repository.dart';
 import '../../../auth/domain/models/baby_model.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/local_storage/secure_storage_manager.dart';
-import '../../../../core/local_storage/hive_manager.dart';
+
 import '../../../../core/widgets/bouncing_button.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
@@ -26,7 +26,7 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _pageController = PageController();
   int _currentPage = 0;
-  int get _totalPages => widget.isAddingBaby ? 7 : 9;
+  int get _totalPages => widget.isAddingBaby ? 6 : 8;
 
   // Form State
   final _nameController = TextEditingController();
@@ -86,9 +86,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
     await ref.read(babyRepositoryProvider).addBaby(baby);
     await ref.read(activeBabyProvider.notifier).setActiveBaby(baby.id);
-
-    // Mark onboarding as complete so the app never shows it again
-    await HiveManager.getProfileBox().put('onboarding_complete', true);
 
     if (mounted) {
       if (widget.isAddingBaby) {
@@ -170,7 +167,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       setState(() => _currentPage = index);
                     },
                     children: [
-                      _buildWelcomeStep(),
                       _buildNameStep(),
                       _buildBirthDateStep(),
                       _buildGenderStep(),
@@ -195,10 +191,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Widget _buildProgressIndicator() {
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: List.generate(_totalPages - 1, (index) {
-        // Skip dot for welcome screen (index 0)
-        final actualIndex = index + 1;
-        final isActive = _currentPage == actualIndex;
+      children: List.generate(_totalPages, (index) {
+        final isActive = _currentPage == index;
         return AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           margin: const EdgeInsets.symmetric(horizontal: 4.0),
@@ -218,41 +212,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // ---------------------------------------------------------
   // STEP BUILDERS
   // ---------------------------------------------------------
-
-  Widget _buildWelcomeStep() {
-    return _buildStepContainer(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Spacer(),
-          const CircleAvatar(
-            radius: 60,
-            backgroundColor: Color(0xFFFFF0E6),
-            child: Text('👶🌽', style: TextStyle(fontSize: 60)),
-          ),
-          const SizedBox(height: 40),
-          Text(
-            'Welcome to Baby Corn',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Track your baby’s little moments\nwith less stress.',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.grey.shade600,
-                  height: 1.5,
-                ),
-            textAlign: TextAlign.center,
-          ),
-          const Spacer(),
-          _buildPrimaryButton('Get Started', _nextPage),
-        ],
-      ),
-    );
-  }
 
   Widget _buildNameStep() {
     return _buildStepContainer(

@@ -3,8 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
-import '../../../../core/widgets/liquid_background.dart';
-import '../../../../core/widgets/safe_scrollable_wrapper.dart';
+import '../../../../core/widgets/app_bottom_sheet.dart';
 import '../providers/medication_provider.dart';
 import '../../domain/models/medication_model.dart';
 import '../../../../core/services/reminder_service.dart';
@@ -144,25 +143,22 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: const Text('Add Medication'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: LiquidBackground(
-        child: SafeScrollableWrapper(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 120),
+    return AppBottomSheet(
+      useGlass: true,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Text(
+                'Add Medication',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 32),
 
-                  // Name
+            // Name
                   TextFormField(
                     controller: _nameController,
                     decoration: const InputDecoration(
@@ -288,13 +284,10 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen> {
                           style: TextStyle(fontSize: 16)),
                     ),
                   ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
-          ),
-        ),
-      ),
     );
   }
 }

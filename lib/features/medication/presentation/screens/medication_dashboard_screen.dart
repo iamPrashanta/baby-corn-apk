@@ -34,11 +34,11 @@ class MedicationDashboardScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AddMedicationScreen(),
-            ),
+          showModalBottomSheet(
+            context: context,
+            backgroundColor: Colors.transparent,
+            isScrollControlled: true,
+            builder: (context) => const AddMedicationScreen(),
           );
         },
         icon: const Icon(Icons.add),
@@ -504,13 +504,12 @@ class MedicationDashboardScreen extends ConsumerWidget {
     // Navigate to AddMedicationScreen, ideally passing the med data via state/args
     // Since we don't have a structured duplicate route setup, we will just push it manually
     // For now we'll push empty Add screen. In a full implementation we'd pass the `med` object.
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const AddMedicationScreen(),
-        settings: RouteSettings(
-            arguments: med), // AddMedicationScreen can extract this
-      ),
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      routeSettings: RouteSettings(arguments: med),
+      builder: (context) => const AddMedicationScreen(),
     );
   }
 
