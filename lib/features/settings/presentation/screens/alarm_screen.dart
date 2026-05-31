@@ -5,7 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'dart:ui';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/services/reminder_service.dart';
+import '../../../../core/services/alarm_service.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../../core/widgets/bouncing_button.dart';
 
 class AlarmScreen extends ConsumerStatefulWidget {
@@ -84,18 +85,19 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
   void _stopAlarmSound() {
     if (!_isCanceled) {
       _isCanceled = true;
-      ReminderService.cancelReminder(_notificationId);
+      AlarmService.stopAlarm(_notificationId);
+      NotificationService.cancel(_notificationId);
     }
   }
 
   void _handleMissedAlarm() {
     _stopAlarmSound();
     // Schedule a fallback quiet notification so they don't forget it entirely
-    ReminderService.scheduleReminder(
+    NotificationService.scheduleNotification(
       id: _notificationId + 9999, // offset to avoid conflict
       title: "Missed: $_title",
       body: "You missed a reminder. Please check the app.",
-      delay: const Duration(seconds: 1), // fire immediately
+      dateTime: DateTime.now().add(const Duration(seconds: 1)), // fire immediately
     );
     if (mounted) {
       context.go('/home'); // Fall back to home
@@ -119,11 +121,11 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
 
   void _onSnooze(int minutes) {
     _stopAlarmSound();
-    ReminderService.scheduleReminder(
+    NotificationService.scheduleNotification(
       id: _notificationId + 1000, // random unique ID for snooze
       title: "Snoozed: $_title",
       body: "Reminding you again in $minutes minutes",
-      delay: Duration(minutes: minutes),
+      dateTime: DateTime.now().add(Duration(minutes: minutes)),
     );
     context.go('/home');
   }

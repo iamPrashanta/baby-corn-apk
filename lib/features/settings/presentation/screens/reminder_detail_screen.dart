@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 import '../providers/reminder_settings_provider.dart';
 import '../../domain/models/reminder_settings_model.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/ringtone_picker.dart';
+import '../../../../features/reminders/domain/models/alarm_profile_model.dart';
 
 class ReminderDetailScreen extends ConsumerStatefulWidget {
   final String category; // 'feeding', 'sleep', or 'diaper'
@@ -23,6 +25,7 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
   late int _repeatHours;
   late TimeOfDay _exactTime;
   DateTime? _nextScheduledTime;
+  late AlarmProfile _profile;
 
   @override
   void initState() {
@@ -33,6 +36,7 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
     _mode = catSettings.mode;
     _repeatHours = catSettings.repeatHours;
     _nextScheduledTime = catSettings.nextScheduledTime;
+    _profile = catSettings.profile;
 
     final parts = catSettings.exactTime.split(':');
     _exactTime = TimeOfDay(
@@ -59,6 +63,7 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
       mode: _mode,
       repeatHours: _repeatHours,
       exactTime: formattedTime,
+      profile: _profile,
     );
 
     if (widget.category == 'feeding') notifier.updateFeeding(updated);
@@ -257,6 +262,52 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
                 ),
               ),
             ],
+
+            const SizedBox(height: 32),
+            const Divider(),
+            const SizedBox(height: 16),
+            const Text(
+              'Alarm Settings',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            SwitchListTile(
+              title: const Text('Use Full-Screen Alarm'),
+              subtitle: const Text('Wakes device and sounds alarm tone'),
+              value: _profile.alarmType == 'full_alarm',
+              activeColor: AppColors.primary,
+              onChanged: (val) {
+                setState(() {
+                  _profile = _profile.copyWith(alarmType: val ? 'full_alarm' : 'notification');
+                });
+              },
+            ),
+            ListTile(
+              title: const Text('Select Ringtone'),
+              subtitle: Text(_profile.ringtoneUri == 'default' ? 'Default System Ringtone' : 'Custom Ringtone Selected'),
+              trailing: const Icon(Icons.music_note),
+              onTap: () async {
+                final uri = await RingtonePicker.pickRingtone(
+                  currentUri: _profile.ringtoneUri,
+                  isAlarm: _profile.alarmType == 'full_alarm',
+                );
+                if (uri != null) {
+                  setState(() {
+                    _profile = _profile.copyWith(ringtoneUri: uri);
+                  });
+                }
+              },
+            ),
+            SwitchListTile(
+              title: const Text('Vibrate'),
+              value: _profile.vibrationEnabled,
+              activeColor: AppColors.primary,
+              onChanged: (val) {
+                setState(() {
+                  _profile = _profile.copyWith(vibrationEnabled: val);
+                });
+              },
+            ),
           ],
         ),
       ),

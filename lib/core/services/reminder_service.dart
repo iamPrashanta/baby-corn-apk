@@ -1,246 +1,58 @@
 // lib/core/services/reminder_service.dart
 
 import 'dart:io' show Platform;
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import 'package:flutter_timezone/flutter_timezone.dart';
-import 'package:permission_handler/permission_handler.dart';
 import '../../features/settings/domain/models/reminder_settings_model.dart';
 import '../../features/medication/domain/models/medication_model.dart';
-import '../../features/medication/domain/models/medication_log_model.dart';
 import '../../core/local_storage/hive_manager.dart';
-
-@pragma('vm:entry-point')
-void notificationTapBackground(NotificationResponse details) async {
-  if (details.payload == null || details.actionId == null) return;
-
-  // payload format: "medicationId|scheduledTimeMillis" (legacy) or "alarm|medication|id|uniqueId|time"
-  final parts = details.payload!.split('|');
-  
-  String medId = '';
-  int sTimeMillis = 0;
-  
-  if (parts.length == 2) {
-    medId = parts[0];
-    sTimeMillis = int.tryParse(parts[1]) ?? 0;
-  } else if (parts.length == 5 && parts[0] == 'alarm' && parts[1] == 'medication') {
-    medId = parts[2];
-    sTimeMillis = int.tryParse(parts[4]) ?? 0;
-  } else {
-    return;
-  }
-  
-  if (sTimeMillis == 0) return;
-
-  final sTime = DateTime.fromMillisecondsSinceEpoch(sTimeMillis);
-  final now = DateTime.now();
-
-  // Background needs Hive initialized
-  await HiveManager.init();
-  final boxMed = HiveManager.getMedicationsBox();
-  final boxLog = HiveManager.getMedicationLogsBox();
-
-  final med = boxMed.get(medId);
-  if (med == null) return;
-
-  if (details.actionId == 'taken') {
-    debugPrint("ReminderService: Reminder Completed (Taken) for med $medId");
-    final log = MedicationLogModel(
-      id: now.millisecondsSinceEpoch.toString(),
-      medicationId: medId,
-      scheduledTime: sTime,
-      actualTime: now,
-      status: 'taken',
-      takenBy: 'Caregiver',
-    );
-    await boxLog.put(log.id, log);
-
-    final updatedMed = med.copyWith(
-      remainingQuantity: (med.remainingQuantity - med.doseAmount) >= 0
-          ? (med.remainingQuantity - med.doseAmount)
-          : 0,
-    );
-    await boxMed.put(med.id, updatedMed);
-  } else if (details.actionId == 'skip') {
-    debugPrint("ReminderService: Reminder Missed (Skipped) for med $medId");
-    final log = MedicationLogModel(
-      id: now.millisecondsSinceEpoch.toString(),
-      medicationId: medId,
-      scheduledTime: sTime,
-      actualTime: now,
-      status: 'skipped',
-      note: 'Skipped from notification',
-    );
-    await boxLog.put(log.id, log);
-  } else if (details.actionId == 'snooze_5' ||
-      details.actionId == 'snooze_15') {
-    debugPrint("ReminderService: Reminder Snoozed (${details.actionId}) for med $medId");
-    final mins = details.actionId == 'snooze_5' ? 5 : 15;
-    // We cannot easily call ReminderService.scheduleMedication here because it resets daily alarms.
-    // Instead, we just schedule a one-off diagnostic alarm for the snooze.
-    await ReminderService.scheduleReminder(
-      id: 99999 + DateTime.now().millisecond, // random id for snooze
-      title: 'Snoozed: ${med.name}',
-      body: 'Time for ${med.doseAmount} ${med.doseUnit}',
-      delay: Duration(minutes: mins),
-    );
-  }
-}
+import 'alarm_service.dart';
+import 'notification_service.dart';
 
 class ReminderService {
-  static final FlutterLocalNotificationsPlugin _notificationsPlugin =
-      FlutterLocalNotificationsPlugin();
-  static bool _initialized = false;
-
   static Future<void> init() async {
-    if (_initialized) return;
-
-    // Initialize Timezones
-    tz.initializeTimeZones();
-    try {
-      final timeZone = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(timeZone.identifier));
-      debugPrint(
-          "ReminderService: Local timezone initialized to ${timeZone.identifier}");
-    } catch (e) {
-      tz.setLocalLocation(tz.getLocation('UTC'));
-      debugPrint(
-          "ReminderService: Failed to get local timezone, defaulting to UTC");
-    }
-
-    const AndroidInitializationSettings androidSettings =
-        AndroidInitializationSettings('@mipmap/launcher_icon');
-    const DarwinInitializationSettings iosSettings =
-        DarwinInitializationSettings(
-      requestAlertPermission: false,
-      requestBadgePermission: false,
-      requestSoundPermission: false,
-    );
-
-    const InitializationSettings initSettings = InitializationSettings(
-      android: androidSettings,
-      iOS: iosSettings,
-    );
-
-    await _notificationsPlugin.initialize(
-      settings: initSettings,
-      onDidReceiveNotificationResponse: (details) {
-        // Handle tap in foreground/background (when app is open)
-      },
-      onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
-    );
-
-    // Create Notification Channels for Android
-    if (Platform.isAndroid) {
-      final androidImplementation =
-          _notificationsPlugin.resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
-
-      if (androidImplementation != null) {
-        await androidImplementation.createNotificationChannel(_createChannel('baby_corn_feeding', 'Feeding Reminders', 'Notifications for baby feeding'));
-        await androidImplementation.createNotificationChannel(_createChannel('baby_corn_sleep', 'Sleep Reminders', 'Notifications for baby sleep'));
-        await androidImplementation.createNotificationChannel(_createChannel('baby_corn_diaper', 'Diaper Reminders', 'Notifications for baby diaper changes'));
-        await androidImplementation.createNotificationChannel(_createChannel('baby_corn_medication', 'Medication Reminders', 'Notifications for baby medications'));
-        await androidImplementation.createNotificationChannel(_createChannel('baby_corn_reminders_v2', 'General Reminders', 'General reminders')); // Fallback
-
-        debugPrint("ReminderService: Android notification channels created.");
-      }
-    }
-
-    _initialized = true;
-    debugPrint("ReminderService: Initialization complete.");
-  }
-
-  static AndroidNotificationChannel _createChannel(String id, String name, String description) {
-    return AndroidNotificationChannel(
-      id,
-      name,
-      description: description,
-      importance: Importance.max,
-      playSound: true,
-      enableVibration: true,
-    );
+    await NotificationService.init();
+    await AlarmService.init();
+    debugPrint("ReminderService: Orchestrator initialized.");
   }
 
   static Future<bool> requestPermissions() async {
-    bool granted = false;
-    if (Platform.isIOS) {
-      final iosImplementation =
-          _notificationsPlugin.resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin>();
-      final result = await iosImplementation?.requestPermissions(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-      granted = result ?? false;
-    } else if (Platform.isAndroid) {
-      final androidImplementation =
-          _notificationsPlugin.resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
-      final result =
-          await androidImplementation?.requestNotificationsPermission();
-
-      // Also request exact alarm permission if Android 12+
+    // Request Alarm permissions
+    if (Platform.isAndroid) {
       final exactAlarmStatus = await Permission.scheduleExactAlarm.request();
-      final canExact =
-          await androidImplementation?.canScheduleExactNotifications() ?? false;
-
-      debugPrint(
-          "ReminderService [Permissions]: Notification allowed=$result, ExactAlarm status=$exactAlarmStatus, canScheduleExact=$canExact");
-
-      granted = result ?? false;
+      final notificationStatus = await Permission.notification.request();
+      // Android 13+ WAKE_LOCK, SYSTEM_ALERT_WINDOW
+      await Permission.systemAlertWindow.request();
+      
+      debugPrint("ReminderService: Permissions requested. Alarm=$exactAlarmStatus, Notifications=$notificationStatus");
+      return notificationStatus.isGranted || exactAlarmStatus.isGranted;
     }
-    return granted;
+    return true;
   }
 
   static Future<void> cancelAll() async {
-    await _notificationsPlugin.cancelAll();
+    await NotificationService.cancelAll();
+    await AlarmService.stopAll();
   }
 
   static Future<void> cancelReminder(int id) async {
-    await _notificationsPlugin.cancel(id: id);
+    await NotificationService.cancel(id);
+    await AlarmService.stopAlarm(id);
   }
 
   static Future<ReminderSettingsModel> updateSchedules(ReminderSettingsModel settings) async {
-    // 1. Clear existing schedules
     await cancelAll();
 
-    // 2. If master toggle is OFF, stop here.
     if (!settings.isMasterEnabled) {
-      debugPrint("ReminderService: Master toggle is OFF, skipping schedules.");
       return settings;
     }
 
-    // 3. Request/Verify permissions before scheduling
-    final allowed = await requestPermissions();
-    if (!allowed) {
-      debugPrint("ReminderService: Reminder permissions denied. Skipping schedules.");
-      return settings;
-    }
+    final updatedFeeding = await _scheduleCategory(0, 'Feeding Reminder', 'Time for a feeding session!', settings.feeding, 'feeding');
+    final updatedSleep = await _scheduleCategory(100, 'Sleep Reminder', 'Time for baby to catch some Zzzs.', settings.sleep, 'sleep');
+    final updatedDiaper = await _scheduleCategory(200, 'Diaper Reminder', 'Time for a fresh diaper!', settings.diaper, 'diaper');
 
-    // Check if we can actually schedule exact alarms on Android
-    if (Platform.isAndroid) {
-      final androidImplementation =
-          _notificationsPlugin.resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
-      final canExact =
-          await androidImplementation?.canScheduleExactNotifications() ?? false;
-      if (!canExact) {
-        debugPrint(
-            "ReminderService: WARNING - Cannot schedule exact notifications! Permissions denied.");
-      }
-    }
-
-    // 3. Schedule Categories and capture updated settings
-    final updatedFeeding = await _scheduleCategory(0, 'baby_corn_feeding', 'Feeding Reminder', 'Time for a feeding session!', settings.feeding, 'feeding');
-    final updatedSleep = await _scheduleCategory(100, 'baby_corn_sleep', 'Sleep Reminder', 'Time for baby to catch some Zzzs.', settings.sleep, 'sleep');
-    final updatedDiaper = await _scheduleCategory(200, 'baby_corn_diaper', 'Diaper Reminder', 'Time for a fresh diaper!', settings.diaper, 'diaper');
-
-    // 4. Reschedule all active medications
     try {
       final box = HiveManager.getMedicationsBox();
       for (final med in box.values) {
@@ -252,11 +64,6 @@ class ReminderService {
       debugPrint("ReminderService: Failed to reschedule medications. Error: $e");
     }
 
-    // Debug log pending count
-    final pending = await _notificationsPlugin.pendingNotificationRequests();
-    debugPrint("ReminderService: Total pending scheduled notifications = ${pending.length}");
-
-    // Return the updated settings with correct nextScheduledTime
     return settings.copyWith(
       feeding: updatedFeeding,
       sleep: updatedSleep,
@@ -265,31 +72,15 @@ class ReminderService {
   }
 
   static Future<ReminderCategorySettings> _scheduleCategory(
-      int baseId, String channelId, String title, String body, ReminderCategorySettings category, String type) async {
+      int baseId, String title, String body, ReminderCategorySettings category, String type) async {
     if (!category.isEnabled) {
       return category.copyWith(clearNextScheduledTime: true);
     }
 
-    final androidDetails = AndroidNotificationDetails(
-      channelId,
-      '$title Channel',
-      channelDescription: 'Notifications for $title',
-      importance: Importance.max,
-      priority: Priority.high,
-      icon: '@mipmap/launcher_icon',
-      playSound: true,
-      enableVibration: true,
-      category: AndroidNotificationCategory.alarm,
-      fullScreenIntent: category.alarmStyle == 'full_screen',
-      additionalFlags: category.alarmStyle == 'full_screen' ? Int32List.fromList(<int>[4]) : null,
-    );
-    final platformDetails = NotificationDetails(android: androidDetails);
-
-    final now = tz.TZDateTime.now(tz.local);
+    final now = DateTime.now();
     DateTime? nextScheduled;
 
     if (category.mode == 'smart') {
-      // Smart Feeding Mode (query Hive for latest record)
       try {
         final box = HiveManager.getRecordsBox();
         final latestRecord = box.values
@@ -298,150 +89,71 @@ class ReminderService {
             ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
         if (latestRecord.isNotEmpty) {
-          final lastTime = tz.TZDateTime.from(latestRecord.first.timestamp, tz.local);
+          final lastTime = latestRecord.first.timestamp;
           var scheduledDate = lastTime.add(Duration(hours: category.repeatHours));
 
-          // If calculated time is in the past, fall back to "now + interval"
           if (scheduledDate.isBefore(now)) {
             scheduledDate = now.add(Duration(hours: category.repeatHours));
           }
 
           nextScheduled = scheduledDate;
-          await _notificationsPlugin.zonedSchedule(
-            id: baseId,
-            title: title,
-            body: body,
-            scheduledDate: scheduledDate,
-            notificationDetails: platformDetails,
-            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-            payload: 'alarm|$type|${latestRecord.first.id}|$baseId',
-          );
-          debugPrint("ReminderService: Reminder Scheduled (SMART) category '$title' next trigger at $scheduledDate");
+          await _executeSchedule(baseId, scheduledDate, title, body, category, 'alarm|$type|${latestRecord.first.id}|$baseId');
         } else {
-          // Fallback if no records exist: behave like repeat
           final scheduledDate = now.add(Duration(hours: category.repeatHours));
           nextScheduled = scheduledDate;
-          await _notificationsPlugin.zonedSchedule(
-            id: baseId,
-            title: title,
-            body: body,
-            scheduledDate: scheduledDate,
-            notificationDetails: platformDetails,
-            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-            payload: 'alarm|$type|fallback|$baseId',
-          );
-          debugPrint("ReminderService: Reminder Scheduled (SMART fallback - no records). '$title' at $scheduledDate");
+          await _executeSchedule(baseId, scheduledDate, title, body, category, 'alarm|$type|fallback|$baseId');
         }
       } catch (e) {
         debugPrint("ReminderService: Error in SMART mode calculation: $e");
       }
     } else if (category.mode == 'repeat') {
-      // Repeat interval
       nextScheduled = now.add(Duration(hours: category.repeatHours));
-      for (int i = 1; i <= 12; i++) {
+      // For alarms, scheduling 12 upfront might exceed alarm package constraints or pollute DB.
+      // But we will schedule a few to emulate repeat.
+      for (int i = 1; i <= 4; i++) {
         final scheduledDate = now.add(Duration(hours: category.repeatHours * i));
-        await _notificationsPlugin.zonedSchedule(
-          id: baseId + i,
-          title: title,
-          body: body,
-          scheduledDate: scheduledDate,
-          notificationDetails: platformDetails,
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-          payload: 'alarm|$type|repeat|${baseId + i}',
-        );
+        await _executeSchedule(baseId + i, scheduledDate, title, body, category, 'alarm|$type|repeat|${baseId + i}');
       }
-      debugPrint("ReminderService: Reminder Scheduled (REPEAT) category '$title' next trigger at $nextScheduled");
     } else {
-      // Exact time
       final parts = category.exactTime.split(':');
       final hour = int.tryParse(parts[0]) ?? 8;
       final minute = int.tryParse(parts[1]) ?? 0;
 
-      tz.TZDateTime scheduledDate = tz.TZDateTime(
-        tz.local,
-        now.year,
-        now.month,
-        now.day,
-        hour,
-        minute,
-      );
+      DateTime scheduledDate = DateTime(now.year, now.month, now.day, hour, minute);
 
-      // Smart Catch-up Scheduling
       if (scheduledDate.isBefore(now)) {
         scheduledDate = scheduledDate.add(const Duration(days: 1));
       }
-
       nextScheduled = scheduledDate;
 
-      await _notificationsPlugin.zonedSchedule(
-        id: baseId,
-        title: title,
-        body: body,
-        scheduledDate: scheduledDate,
-        notificationDetails: platformDetails,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.time, // Repeats daily
-        payload: 'alarm|$type|exact|$baseId',
-      );
-      debugPrint("ReminderService: Reminder Scheduled (EXACT) category '$title' next trigger at $scheduledDate");
+      await _executeSchedule(baseId, scheduledDate, title, body, category, 'alarm|$type|exact|$baseId');
     }
 
     return category.copyWith(nextScheduledTime: nextScheduled);
   }
 
-  // Fallback direct schedule (used by snooze and diagnostics)
+  static Future<void> _executeSchedule(int id, DateTime dateTime, String title, String body, ReminderCategorySettings category, String payload) async {
+    if (category.profile.alarmType == 'notification') {
+      await NotificationService.scheduleNotification(id: id, dateTime: dateTime, title: title, body: body, payload: payload);
+    } else {
+      await AlarmService.scheduleAlarm(id: id, dateTime: dateTime, title: title, profile: category.profile, payload: payload);
+    }
+  }
+
   static Future<void> scheduleReminder({
     required int id,
     required String title,
     required String body,
     required Duration delay,
   }) async {
-    final scheduledDate = tz.TZDateTime.now(tz.local).add(delay);
-    final androidDetails = const AndroidNotificationDetails(
-      'baby_corn_reminders_v2',
-      'Reminders',
-      importance: Importance.max,
-      priority: Priority.high,
-      icon: '@mipmap/launcher_icon',
-      playSound: true,
-      enableVibration: true,
-      category: AndroidNotificationCategory.alarm,
-    );
-    await _notificationsPlugin.zonedSchedule(
-      id: id,
-      title: title,
-      body: body,
-      scheduledDate: scheduledDate,
-      notificationDetails: NotificationDetails(android: androidDetails),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-    );
-    debugPrint("ReminderService: Scheduled diagnostic reminder '$title' for $scheduledDate");
+    final scheduledDate = DateTime.now().add(delay);
+    await NotificationService.scheduleNotification(id: id, dateTime: scheduledDate, title: title, body: body);
   }
 
   static Future<void> scheduleMedication(MedicationModel med) async {
     if (!med.isActive) return;
 
-    final androidDetails = AndroidNotificationDetails(
-      'baby_corn_medication',
-      'Medication Reminders',
-      importance: Importance.max,
-      priority: Priority.high,
-      icon: '@mipmap/launcher_icon',
-      playSound: true,
-      enableVibration: true,
-      category: AndroidNotificationCategory.alarm,
-      fullScreenIntent: true,
-      additionalFlags: Int32List.fromList(<int>[4]),
-      actions: <AndroidNotificationAction>[
-        AndroidNotificationAction('taken', 'Taken', showsUserInterface: true),
-        AndroidNotificationAction('snooze_5', 'Snooze 5 min', showsUserInterface: true),
-        AndroidNotificationAction('snooze_15', 'Snooze 15 min', showsUserInterface: true),
-        AndroidNotificationAction('skip', 'Skip', showsUserInterface: true),
-      ],
-    );
-    final platformDetails = NotificationDetails(android: androidDetails);
-
-    final now = tz.TZDateTime.now(tz.local);
+    final now = DateTime.now();
 
     for (int i = 0; i < med.times.length; i++) {
       final timeStr = med.times[i];
@@ -454,20 +166,10 @@ class ReminderService {
       int hour = int.tryParse(timeParts[0]) ?? 8;
       final minute = int.tryParse(timeParts[1]) ?? 0;
 
-      if (parts[1].toUpperCase() == 'PM' && hour != 12) {
-        hour += 12;
-      } else if (parts[1].toUpperCase() == 'AM' && hour == 12) {
-        hour = 0;
-      }
+      if (parts[1].toUpperCase() == 'PM' && hour != 12) hour += 12;
+      else if (parts[1].toUpperCase() == 'AM' && hour == 12) hour = 0;
 
-      tz.TZDateTime scheduledDate = tz.TZDateTime(
-        tz.local,
-        now.year,
-        now.month,
-        now.day,
-        hour,
-        minute,
-      );
+      DateTime scheduledDate = DateTime(now.year, now.month, now.day, hour, minute);
 
       if (scheduledDate.isBefore(now)) {
         scheduledDate = scheduledDate.add(const Duration(days: 1));
@@ -476,24 +178,16 @@ class ReminderService {
       final uniqueId = 10000 + (med.id.hashCode.abs() % 10000) + i;
       final payload = 'alarm|medication|${med.id}|$uniqueId|${scheduledDate.millisecondsSinceEpoch}';
 
-      await _notificationsPlugin.zonedSchedule(
-        id: uniqueId,
-        title: 'Medication: ${med.name}',
-        body: 'Time for ${med.doseAmount} ${med.doseUnit}',
-        scheduledDate: scheduledDate,
-        notificationDetails: platformDetails,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.time, // Repeats daily
-        payload: payload,
-      );
-      debugPrint("ReminderService: Reminder Scheduled (Medication) '${med.name}' at $scheduledDate (ID: $uniqueId)");
+      // Always use full alarm for medications by default
+      // TODO: read medication specific profiles in future
+      await NotificationService.scheduleNotification(id: uniqueId, dateTime: scheduledDate, title: 'Medication: ${med.name}', body: 'Time for ${med.doseAmount} ${med.doseUnit}', payload: payload);
     }
   }
 
   static Future<void> cancelMedication(MedicationModel med) async {
     for (int i = 0; i < med.times.length; i++) {
       final uniqueId = 10000 + (med.id.hashCode.abs() % 10000) + i;
-      await _notificationsPlugin.cancel(id: uniqueId);
+      await cancelReminder(uniqueId);
     }
   }
 }

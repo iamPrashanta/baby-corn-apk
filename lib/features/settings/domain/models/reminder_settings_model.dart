@@ -1,5 +1,5 @@
 // lib/features/settings/domain/models/reminder_settings_model.dart
-
+import '../../../../features/reminders/domain/models/alarm_profile_model.dart';
 class ReminderCategorySettings {
   final bool isEnabled;
   final bool isRepeat; // Deprecated: true = interval, false = exact time
@@ -9,6 +9,7 @@ class ReminderCategorySettings {
   final String alarmStyle; // 'full_screen' or 'notification'
   final DateTime? nextScheduledTime;
   final DateTime? lastTriggeredTime;
+  final AlarmProfile profile;
 
   const ReminderCategorySettings({
     this.isEnabled = false,
@@ -16,9 +17,10 @@ class ReminderCategorySettings {
     this.mode = 'repeat',
     this.repeatHours = 3,
     this.exactTime = "08:00",
-    this.alarmStyle = 'full_screen',
+    this.alarmStyle = 'full_screen', // Legacy, to be removed or ignored
     this.nextScheduledTime,
     this.lastTriggeredTime,
+    this.profile = const AlarmProfile(id: 'default'),
   });
 
   factory ReminderCategorySettings.fromJson(Map<String, dynamic> json) {
@@ -39,6 +41,9 @@ class ReminderCategorySettings {
       lastTriggeredTime: json['lastTriggeredTime'] != null
           ? DateTime.parse(json['lastTriggeredTime'] as String)
           : null,
+      profile: json['profile'] != null 
+          ? AlarmProfile.fromJson(Map<String, dynamic>.from(json['profile'] as Map))
+          : AlarmProfile(id: 'cat_${DateTime.now().millisecondsSinceEpoch}', alarmType: parsedMode == 'smart' ? 'notification' : 'full_alarm'),
     );
   }
 
@@ -52,6 +57,7 @@ class ReminderCategorySettings {
       'alarmStyle': alarmStyle,
       if (nextScheduledTime != null) 'nextScheduledTime': nextScheduledTime!.toIso8601String(),
       if (lastTriggeredTime != null) 'lastTriggeredTime': lastTriggeredTime!.toIso8601String(),
+      'profile': profile.toJson(),
     };
   }
 
@@ -64,6 +70,7 @@ class ReminderCategorySettings {
     String? alarmStyle,
     DateTime? nextScheduledTime,
     DateTime? lastTriggeredTime,
+    AlarmProfile? profile,
     bool clearNextScheduledTime = false,
   }) {
     return ReminderCategorySettings(
@@ -75,6 +82,7 @@ class ReminderCategorySettings {
       alarmStyle: alarmStyle ?? this.alarmStyle,
       nextScheduledTime: clearNextScheduledTime ? null : (nextScheduledTime ?? this.nextScheduledTime),
       lastTriggeredTime: lastTriggeredTime ?? this.lastTriggeredTime,
+      profile: profile ?? this.profile,
     );
   }
 }

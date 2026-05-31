@@ -23,6 +23,7 @@ import 'l10n/app_localizations.dart';
 // Firebase imports — conditionally used based on AppConfig flags
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:alarm/alarm.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,6 +62,9 @@ void main() async {
 
     debugPrint("STEP 3: Initializing Hive");
     await HiveManager.init();
+    
+    debugPrint("STEP 3.1: Initializing Alarm Service");
+    await Alarm.init();
 
     debugPrint("STEP 3.5: Running startup migration");
     await BabyRepository.runStartupMigration();

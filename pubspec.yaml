@@ -66,6 +66,8 @@ dependencies:
   home_widget: ^0.9.2
   path: ^1.9.1
   vibration: ^3.1.8
+  alarm: ^5.4.1
+  flutter_ringtone_player: ^4.0.0+4
 
 dev_dependencies:
   flutter_test:
@@ -83,6 +85,7 @@ flutter:
     - assets/icons/
     - assets/animations/
     - assets/foods/
+    - assets/audio/
 
 flutter_launcher_icons:
   android: "launcher_icon"
