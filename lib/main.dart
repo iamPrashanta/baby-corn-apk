@@ -55,14 +55,18 @@ void main() async {
       await Firebase.initializeApp();
       debugPrint("STEP 2.5: Firebase initialized, checking AppCheck");
       await FirebaseAppCheck.instance.activate(
-        androidProvider: kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
-        appleProvider: kDebugMode ? AppleProvider.debug : AppleProvider.deviceCheck,
+        androidProvider: kDebugMode
+            ? AndroidProvider.debug
+            : AndroidProvider.playIntegrity,
+        appleProvider: kDebugMode
+            ? AppleProvider.debug
+            : AppleProvider.deviceCheck,
       );
     }
 
     debugPrint("STEP 3: Initializing Hive");
     await HiveManager.init();
-    
+
     debugPrint("STEP 3.1: Initializing Alarm Service");
     await Alarm.init();
 
@@ -73,7 +77,7 @@ void main() async {
     // DEBUG LOGS
     final profileBox = HiveManager.getProfileBox();
     final recordsBox = HiveManager.getRecordsBox();
-    
+
     // Parse babies_list to get count safely
     final babiesJson = profileBox.get('babies_list');
     int babiesCount = 0;
@@ -83,14 +87,14 @@ void main() async {
       } catch (_) {}
     }
 
-    debugPrint("====== STARTUP DATA VERIFICATION ======");
-    debugPrint("PROFILE BOX KEYS: ${profileBox.keys.toList()}");
-    debugPrint("BABIES COUNT: ${BabyRepository().getBabies().length}");
-    debugPrint("babies_list count: $babiesCount");
-    debugPrint("active_baby_id: ${profileBox.get('active_baby_id')}");
-    debugPrint("onboarding_complete: ${profileBox.get('onboarding_complete')}");
-    debugPrint("records count: ${recordsBox.length}");
-    debugPrint("=======================================");
+    // debugPrint("====== STARTUP DATA VERIFICATION ======");
+    // debugPrint("PROFILE BOX KEYS: ${profileBox.keys.toList()}");
+    // debugPrint("BABIES COUNT: ${BabyRepository().getBabies().length}");
+    // debugPrint("babies_list count: $babiesCount");
+    // debugPrint("active_baby_id: ${profileBox.get('active_baby_id')}");
+    // debugPrint("onboarding_complete: ${profileBox.get('onboarding_complete')}");
+    // debugPrint("records count: ${recordsBox.length}");
+    // debugPrint("=======================================");
 
     debugPrint("STEP 4: Initializing ReminderService");
     await ReminderService.init();
@@ -99,11 +103,7 @@ void main() async {
     await WidgetService.initialize();
 
     debugPrint("STEP 5: Running App");
-    runApp(
-      const ProviderScope(
-        child: BabyCornApp(),
-      ),
-    );
+    runApp(const ProviderScope(child: BabyCornApp()));
   } catch (e, st) {
     debugPrint("STARTUP ERROR: $e");
     debugPrint(st.toString());
@@ -127,8 +127,6 @@ void main() async {
     );
   }
 }
-
-
 
 class BabyCornApp extends ConsumerWidget {
   const BabyCornApp({super.key});
