@@ -3,6 +3,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../design/tokens/colors.dart';
 
 /// Centralized just-in-time permission service for Baby Corn.
 ///
@@ -228,7 +229,7 @@ class PermissionService {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(icon, color: Colors.orange),
+            Icon(icon, color: AppColors.primary),
             const SizedBox(width: 12),
             const Expanded(
                 child:

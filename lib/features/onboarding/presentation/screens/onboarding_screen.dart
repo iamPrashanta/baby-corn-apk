@@ -11,7 +11,9 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/widgets/bouncing_button.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../core/services/reminder_service.dart';
 import 'dart:math' as math;
+import '../../../../core/design/tokens/colors.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   final bool isAddingBaby;
@@ -104,13 +106,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             top: -50,
             left: -50,
             child: _AnimatedBlob(
-                color: const Color(0xFFFFD8D3).withOpacity(0.3), size: 300),
+                color: AppColors.primary.withOpacity(0.15), size: 300),
           ),
           Positioned(
             bottom: -100,
             right: -50,
             child: _AnimatedBlob(
-                color: const Color(0xFFE2D5F8).withOpacity(0.3), size: 350),
+                color: AppColors.success.withOpacity(0.15), size: 350),
           ),
           SafeArea(
             child: Column(
@@ -155,16 +157,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       setState(() => _currentPage = index);
                     },
                     children: [
+                      if (!widget.isAddingBaby) ...[
+                        _buildReminderIntroStep(),
+                        _buildPrivacyStep(),
+                      ],
                       _buildNameStep(),
                       _buildBirthDateStep(),
                       _buildGenderStep(),
                       _buildWeightStep(),
                       _buildHeightStep(),
                       _buildFeedingStep(),
-                      if (!widget.isAddingBaby) ...[
-                        _buildReminderIntroStep(),
-                        _buildPrivacyStep(),
-                      ],
                     ],
                   ),
                 ),
@@ -270,7 +272,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   return Theme(
                     data: Theme.of(context).copyWith(
                       colorScheme: Theme.of(context).colorScheme.copyWith(
-                            primary: const Color(0xFFFFB2A6), // Warm coral
+                            primary: AppColors.primary,
                           ),
                     ),
                     child: child!,
@@ -298,7 +300,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               child: Row(
                 children: [
                   const Icon(Icons.cake_outlined,
-                      size: 32, color: Color(0xFFFFB2A6)),
+                      size: 32, color: AppColors.primary),
                   const SizedBox(width: 16),
                   Text(
                     _birthDate == null
@@ -352,7 +354,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           _buildSelectionCard(
             title: 'Girl',
             icon: Icons.face_3,
-            color: const Color(0xFFFFD8D3), // Pastel Pink
+            color: AppColors.primary,
             isSelected: _gender == 'Girl',
             onTap: () {
               setState(() => _gender = 'Girl');
@@ -363,7 +365,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           _buildSelectionCard(
             title: 'Boy',
             icon: Icons.face_6,
-            color: const Color(0xFFD4E6F1), // Pastel Blue
+            color: AppColors.primary,
             isSelected: _gender == 'Boy',
             onTap: () {
               setState(() => _gender = 'Boy');
@@ -374,7 +376,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           _buildSelectionCard(
             title: 'Prefer not to say',
             icon: Icons.favorite_border,
-            color: const Color(0xFFFFF5D1), // Soft Yellow
+            color: AppColors.primary,
             isSelected: _gender == 'Prefer not to say',
             onTap: () {
               setState(() => _gender = 'Prefer not to say');
@@ -580,7 +582,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           _buildSelectionCard(
             title: 'Breastmilk',
             icon: Icons.water_drop_outlined,
-            color: const Color(0xFFFFE5B4), // Peach
+            color: AppColors.primary,
             isSelected: _feedingType == 'Breastmilk',
             onTap: () {
               setState(() => _feedingType = 'Breastmilk');
@@ -591,7 +593,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           _buildSelectionCard(
             title: 'Formula',
             icon: Icons.local_drink_outlined,
-            color: const Color(0xFFD4E6F1), // Light Blue
+            color: AppColors.primary,
             isSelected: _feedingType == 'Formula',
             onTap: () {
               setState(() => _feedingType = 'Formula');
@@ -602,7 +604,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           _buildSelectionCard(
             title: 'Mixed',
             icon: Icons.set_meal_outlined,
-            color: const Color(0xFFE2D5F8), // Soft Purple
+            color: AppColors.primary,
             isSelected: _feedingType == 'Mixed',
             onTap: () {
               setState(() => _feedingType = 'Mixed');
@@ -625,11 +627,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Container(
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFB2A6).withOpacity(0.2),
+              color: AppColors.primary.withOpacity(0.15),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.notifications_none_rounded,
-                size: 80, color: Color(0xFFFFB2A6)),
+                size: 80, color: AppColors.primary),
           ),
           const SizedBox(height: 40),
           Text(
@@ -641,7 +643,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             textAlign: TextAlign.center,
           ),
           const Spacer(),
-          _buildPrimaryButton('Sounds Good', _nextPage),
+          _buildPrimaryButton('Sounds Good', () async {
+            await ReminderService.requestPermissions();
+            _nextPage();
+          }),
         ],
       ),
     );
@@ -656,11 +661,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Container(
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: const Color(0xFFE2D5F8).withOpacity(0.3),
+              color: AppColors.success.withOpacity(0.15),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.lock_outline_rounded,
-                size: 80, color: Color(0xFF9C7CD8)),
+                size: 80, color: AppColors.success),
           ),
           const SizedBox(height: 40),
           Text(

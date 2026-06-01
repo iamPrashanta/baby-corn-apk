@@ -29,6 +29,7 @@ import '../../features/settings/presentation/screens/alarm_screen.dart';
 import '../../features/medication/presentation/screens/medication_dashboard_screen.dart';
 import '../../features/medication/presentation/screens/medication_history_screen.dart';
 import '../../features/settings/presentation/screens/family_sharing_screen.dart';
+import '../../features/settings/presentation/screens/diagnostics_screen.dart';
 import '../../features/guide/presentation/screens/first_foods_screen.dart';
 import '../../features/guide/presentation/screens/food_tracker_screen.dart';
 import '../../features/development/presentation/screens/image_viewer_screen.dart';
@@ -146,6 +147,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/family_sharing',
         builder: (context, state) => const FamilySharingScreen(),
+      ),
+      GoRoute(
+        path: '/diagnostics',
+        builder: (context, state) => const DiagnosticsScreen(),
       ),
       GoRoute(
         path: '/alarm',

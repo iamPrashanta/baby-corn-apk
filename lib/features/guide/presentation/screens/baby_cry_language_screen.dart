@@ -49,7 +49,7 @@ class BabyCryLanguageScreen extends StatelessWidget {
         'sound': 'Hehhh',
         'meaning': 'Physical Discomfort',
         'icon': Icons.thermostat_rounded,
-        'color': Colors.amber.shade700,
+        'color': AppColors.primary,
         'description':
             'Triggered by a stress reflex. This indicates the baby is uncomfortable—often because they are too hot, too cold, or have a wet/soiled diaper. Check their temperature and diaper.',
       },

@@ -167,7 +167,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
 
           final sections = [
             if (grouped[VaccineStatus.overdue]!.isNotEmpty) _buildSection(context, 'Overdue', grouped[VaccineStatus.overdue]!, Colors.red, isDark, ref),
-            if (grouped[VaccineStatus.dueToday]!.isNotEmpty) _buildSection(context, 'Due Today', grouped[VaccineStatus.dueToday]!, Colors.orange, isDark, ref),
+            if (grouped[VaccineStatus.dueToday]!.isNotEmpty) _buildSection(context, 'Due Today', grouped[VaccineStatus.dueToday]!, AppColors.primary, isDark, ref),
             if (grouped[VaccineStatus.upcoming]!.isNotEmpty) _buildUpcomingSection(context, 'Upcoming', grouped[VaccineStatus.upcoming]!, AppColors.vaccine, isDark, ref),
             if (grouped[VaccineStatus.completed]!.isNotEmpty) _buildSection(context, 'Completed', grouped[VaccineStatus.completed]!, Colors.green, isDark, ref),
           ];
@@ -195,7 +195,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: isDark ? Colors.black26 : const Color(0x0A000000),
+            color: isDark ? Colors.black26 : Colors.transparent,
             blurRadius: 20,
             offset: const Offset(0, 8),
           )
@@ -273,7 +273,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: isDark ? Colors.black26 : const Color(0x0A000000),
+            color: isDark ? Colors.black26 : Colors.transparent,
             blurRadius: 20,
             offset: const Offset(0, 8),
           )
@@ -392,7 +392,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: isDone ? Colors.grey : (isOverdue ? Colors.red : (isDark ? Colors.white : const Color(0xFF4A4458))),
+                            color: isDone ? Colors.grey : (isOverdue ? Colors.red : (isDark ? Colors.white : AppColors.surfaceHighlight)),
                           ),
                         ),
                       ),

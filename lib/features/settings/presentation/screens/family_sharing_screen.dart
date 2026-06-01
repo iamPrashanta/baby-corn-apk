@@ -8,19 +8,27 @@ import '../../../../core/design/layouts/custom_app_bar.dart';
 import '../../../../core/widgets/liquid_background.dart';
 import '../../../../core/widgets/safe_scrollable_wrapper.dart';
 import '../providers/family_provider.dart';
+import '../../../../core/design/tokens/colors.dart';
 
-class FamilySharingScreen extends ConsumerWidget {
+class FamilySharingScreen extends ConsumerStatefulWidget {
   const FamilySharingScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FamilySharingScreen> createState() => _FamilySharingScreenState();
+}
+
+class _FamilySharingScreenState extends ConsumerState<FamilySharingScreen> {
+  bool _isPicking = false;
+
+  @override
+  Widget build(BuildContext context) {
     final familyAsync = ref.watch(familyProvider);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: const CustomAppBar(title: 'Family Sharing'),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _handleInvite(context, ref),
+        onPressed: _isPicking ? null : () => _handleInvite(context, ref),
         icon: const Icon(Icons.person_add),
         label: const Text('Invite Member'),
       ),
@@ -109,7 +117,7 @@ class FamilySharingScreen extends ConsumerWidget {
                                         Text(
                                           'Status: ${member.status}',
                                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                                color: member.status == 'Pending' ? Colors.orange : Colors.green,
+                                                color: member.status == 'Pending' ? AppColors.primary : Colors.green,
                                                 fontWeight: FontWeight.w600,
                                               ),
                                         ),
@@ -154,86 +162,95 @@ class FamilySharingScreen extends ConsumerWidget {
   }
 
   Future<void> _handleInvite(BuildContext context, WidgetRef ref) async {
-    // 1. Request Contacts Permission
-    final status = await Permission.contacts.request();
-    if (!status.isGranted) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Contacts permission is required to invite family members.')),
-        );
-      }
-      return;
-    }
+    if (_isPicking) return;
+    setState(() => _isPicking = true);
 
-    // 2. Open Native Contact Picker
-    final contact = await FlutterContacts.native.showPicker(properties: {ContactProperty.phone});
-    if (contact == null) return; // User canceled
-
-    // 3. Try to get a phone number
-    if (contact.phones.isEmpty) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Selected contact has no phone number.')),
-        );
-      }
-      return;
-    }
-
-    final phoneNumber = contact.phones.first.number;
-    final contactName = contact.displayName;
-
-    // 4. Save member immediately
     try {
-      await ref.read(familyProvider.notifier).inviteMember(
-        name: contactName ?? 'Unknown',
-        phoneNumber: phoneNumber,
-      );
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
-        );
+      // 1. Request Contacts Permission
+      final status = await Permission.contacts.request();
+      if (!status.isGranted) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Contacts permission is required to invite family members.')),
+          );
+        }
+        return;
       }
-      return;
-    }
 
-    // 5. Show Disclaimer Dialog for SMS
-    if (context.mounted) {
-      final confirm = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text('Invite $contactName?'),
-          content: const Text(
-            'The contact has been added to your family group.\n\n'
-            'Would you like to send them an SMS invitation now?\n\n'
-            'Disclaimer: Standard SMS charges may apply from your network provider.',
+      // 2. Open Native Contact Picker
+      final contact = await FlutterContacts.native.showPicker(properties: {ContactProperty.phone});
+      if (contact == null) return; // User canceled
+
+      // 3. Try to get a phone number
+      if (contact.phones.isEmpty) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Selected contact has no phone number.')),
+          );
+        }
+        return;
+      }
+
+      final phoneNumber = contact.phones.first.number;
+      final contactName = contact.displayName;
+
+      // 4. Save member immediately
+      try {
+        await ref.read(familyProvider.notifier).inviteMember(
+          name: contactName ?? 'Unknown',
+          phoneNumber: phoneNumber,
+        );
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+          );
+        }
+        return;
+      }
+
+      // 5. Show Disclaimer Dialog for SMS
+      if (context.mounted) {
+        final confirm = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text('Invite $contactName?'),
+            content: const Text(
+              'The contact has been added to your family group.\n\n'
+              'Would you like to send them an SMS invitation now?\n\n'
+              'Disclaimer: Standard SMS charges may apply from your network provider.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Not Now'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text('Send SMS'),
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('Not Now'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(ctx).pop(true),
-              child: const Text('Send SMS'),
-            ),
-          ],
-        ),
-      );
+        );
 
-      // 6. Launch SMS App
-      if (confirm == true) {
-        final uri = Uri.parse(
-            "sms:$phoneNumber?body=Hey! Join me on Baby Corn to manage our baby's profile together. Download it here: https://play.google.com/store/apps/details?id=com.babycorn.app");
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri);
-        } else {
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Could not open messaging app.')),
-            );
+        // 6. Launch SMS App
+        if (confirm == true) {
+          final uri = Uri.parse(
+              "sms:$phoneNumber?body=Hey! Join me on Baby Corn to manage our baby's profile together. Download it here: https://play.google.com/store/apps/details?id=com.babycorn.app");
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri);
+          } else {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Could not open messaging app.')),
+              );
+            }
           }
         }
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isPicking = false);
       }
     }
   }

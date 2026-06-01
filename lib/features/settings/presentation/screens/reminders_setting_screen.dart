@@ -26,14 +26,15 @@ class RemindersSettingScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(16.0),
         children: [
           // Master Toggle
-          Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
+          Card(
+            clipBehavior: Clip.antiAlias,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.primary.withOpacity(isDark ? 0.15 : 0.08),
-              ),
+              side: BorderSide(
+                  color: AppColors.primary.withOpacity(isDark ? 0.15 : 0.08)),
             ),
+            color: Theme.of(context).cardColor,
             child: SwitchListTile(
               title: const Text(
                 'Enable Reminders',
@@ -62,14 +63,16 @@ class RemindersSettingScreen extends ConsumerWidget {
                     margin: const EdgeInsets.only(top: 16),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
+                      color: AppColors.error.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.red.withOpacity(0.5)),
+                      border: Border.all(
+                        color: AppColors.error.withOpacity(0.5),
+                      ),
                     ),
                     child: Row(
                       children: [
                         const Icon(Icons.warning_amber_rounded,
-                            color: Colors.red),
+                            color: AppColors.error),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -77,13 +80,13 @@ class RemindersSettingScreen extends ConsumerWidget {
                             children: [
                               const Text('Exact Alarms Denied',
                                   style: TextStyle(
-                                      color: Colors.red,
+                                      color: AppColors.error,
                                       fontWeight: FontWeight.bold)),
                               const SizedBox(height: 4),
                               const Text(
                                   'Reminders may be delayed or missed. Please enable "Alarms & reminders" in settings.',
                                   style: TextStyle(
-                                      color: Colors.red, fontSize: 12)),
+                                      color: AppColors.error, fontSize: 12)),
                               TextButton(
                                 onPressed: () {
                                   openAppSettings();
@@ -95,7 +98,7 @@ class RemindersSettingScreen extends ConsumerWidget {
                                 ),
                                 child: const Text('Open Settings',
                                     style: TextStyle(
-                                        color: Colors.red,
+                                        color: AppColors.error,
                                         fontWeight: FontWeight.bold)),
                               ),
                             ],
@@ -125,14 +128,15 @@ class RemindersSettingScreen extends ConsumerWidget {
                 ),
               ),
             ),
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
+            Card(
+              clipBehavior: Clip.antiAlias,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.primary.withOpacity(isDark ? 0.15 : 0.08),
-                ),
+                side: BorderSide(
+                    color: AppColors.primary.withOpacity(isDark ? 0.15 : 0.08)),
               ),
+              color: Theme.of(context).cardColor,
               child: Column(
                 children: [
                   _buildCategoryTile(
@@ -180,7 +184,8 @@ class RemindersSettingScreen extends ConsumerWidget {
   }) {
     String subtitleText = '';
     if (catSettings.mode == 'smart') {
-      subtitleText = 'Smart Mode: Wait ${catSettings.repeatHours} hr after action';
+      subtitleText =
+          'Smart Mode: Wait ${catSettings.repeatHours} hr after action';
     } else if (catSettings.mode == 'repeat') {
       subtitleText = 'Repeat every ${catSettings.repeatHours} hr';
     } else {

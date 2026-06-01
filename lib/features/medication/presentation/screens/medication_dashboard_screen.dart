@@ -10,6 +10,7 @@ import '../widgets/medication_card.dart';
 import 'add_medication_screen.dart';
 import '../../domain/models/medication_model.dart';
 import '../../../../core/local_storage/hive_manager.dart';
+import '../../../../core/design/tokens/colors.dart';
 
 class MedicationDashboardScreen extends ConsumerWidget {
   const MedicationDashboardScreen({super.key});
@@ -92,7 +93,7 @@ class MedicationDashboardScreen extends ConsumerWidget {
                           orElse: () => '-',
                         ),
                         icon: Icons.warning_amber_rounded,
-                        color: Colors.orangeAccent,
+                        color: AppColors.primary,
                       ),
                     ),
                   ],
@@ -260,7 +261,7 @@ class MedicationDashboardScreen extends ConsumerWidget {
           'Running Low',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: Colors.orangeAccent,
+                color: AppColors.primary,
               ),
         ),
         const SizedBox(height: 12),
@@ -275,9 +276,9 @@ class MedicationDashboardScreen extends ConsumerWidget {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.orangeAccent.withOpacity(0.1),
+              color: AppColors.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.orangeAccent.withOpacity(0.3)),
+              border: Border.all(color: AppColors.primary.withOpacity(0.3)),
             ),
             child: Row(
               children: [
@@ -310,8 +311,8 @@ class MedicationDashboardScreen extends ConsumerWidget {
                   icon: const Icon(Icons.shopping_cart, size: 16),
                   label: const Text('Buy Soon'),
                   style: FilledButton.styleFrom(
-                    backgroundColor: Colors.orangeAccent.withOpacity(0.2),
-                    foregroundColor: Colors.orangeAccent,
+                    backgroundColor: AppColors.primary.withOpacity(0.2),
+                    foregroundColor: AppColors.primary,
                   ),
                 )
               ],
@@ -420,7 +421,7 @@ class MedicationDashboardScreen extends ConsumerWidget {
     Color periodColor = Colors.indigo;
     if (period == 'Morning') {
       periodIcon = Icons.wb_sunny;
-      periodColor = Colors.amber;
+      periodColor = AppColors.primary;
     } else if (period == 'Afternoon') {
       periodIcon = Icons.wb_cloudy;
       periodColor = Colors.lightBlue;
@@ -462,7 +463,7 @@ class MedicationDashboardScreen extends ConsumerWidget {
               statusColor = Colors.redAccent;
               statusIcon = Icons.cancel;
             } else if (status == 'Skipped') {
-              statusColor = Colors.orange;
+              statusColor = AppColors.primary;
               statusIcon = Icons.next_plan;
             }
 

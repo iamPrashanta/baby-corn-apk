@@ -120,6 +120,18 @@ class BabyRepository {
         await box.delete('active_baby_id');
       }
     }
+
+    // Phase 2.5: If NO babies are left, wipe all orphaned records!
+    if (babies.isEmpty) {
+      await HiveManager.getRecordsBox().clear(); // Feeding, Sleep, Vaccines, Appointments
+      await HiveManager.getActiveSessionBox().clear();
+      await HiveManager.getMomentsBox().clear();
+      await HiveManager.getMedicationsBox().clear();
+      await HiveManager.getMedicationLogsBox().clear();
+      await HiveManager.getFoodTrackerBox().clear();
+      // Leave sanskars and family members as they might be app-level, but records are gone.
+      debugPrint('🗑️ [BabyRepository] All babies deleted. Wiped all associated records.');
+    }
   }
 
   String? getActiveBabyId() {

@@ -95,7 +95,7 @@ class LaunchpadScreen extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
-                    color: isDark ? Colors.white54 : const Color(0xFF9A8C98),
+                    color: isDark ? Colors.white54 : AppColors.textSecondary,
                     letterSpacing: 0.3,
                   ),
                 ).animate().fadeIn(duration: 600.ms),
@@ -122,7 +122,7 @@ class LaunchpadScreen extends ConsumerWidget {
                           Icons.keyboard_arrow_down_rounded,
                           size: 28,
                           color:
-                              isDark ? Colors.white54 : const Color(0xFF9A8C98),
+                              isDark ? Colors.white54 : AppColors.textSecondary,
                         ),
                       ],
                     ],
@@ -138,7 +138,7 @@ class LaunchpadScreen extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: isDark ? Colors.white38 : const Color(0xFFB4A9B2),
+                      color: isDark ? Colors.white38 : AppColors.textSecondary,
                     ),
                   ).animate().fadeIn(duration: 600.ms, delay: 200.ms),
                 ]
@@ -197,19 +197,19 @@ class LaunchpadScreen extends ConsumerWidget {
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.orange.withOpacity(0.15),
+            color: AppColors.primary.withOpacity(0.15),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.orange.withOpacity(0.5)),
+            border: Border.all(color: AppColors.primary.withOpacity(0.5)),
           ),
           child: Row(
             children: [
-              const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+              const Icon(Icons.warning_amber_rounded, color: AppColors.primary, size: 28),
               const SizedBox(width: 16),
               Expanded(
                 child: Text(
                   '⚠ Missed $title Reminder',
                   style: TextStyle(
-                    color: isDark ? Colors.orange[300] : Colors.orange[800], 
+                    color: isDark ? AppColors.primary : AppColors.primary, 
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
@@ -281,7 +281,7 @@ class LaunchpadScreen extends ConsumerWidget {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white70 : const Color(0xFF4A4458),
+                  color: isDark ? Colors.white70 : AppColors.surfaceHighlight,
                 ),
               ),
               Icon(Icons.auto_awesome_rounded,
@@ -403,7 +403,7 @@ class LaunchpadScreen extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : const Color(0xFF4A4458),
+                          color: isDark ? Colors.white : AppColors.surfaceHighlight,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -456,16 +456,16 @@ class LaunchpadScreen extends ConsumerWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isDark 
-                    ? [const Color(0xFF6A4C93).withOpacity(0.3), const Color(0xFF6A4C93).withOpacity(0.1)]
-                    : [const Color(0xFF6A4C93).withOpacity(0.15), Colors.white],
+                    ? [AppColors.primary.withOpacity(0.3), AppColors.primary.withOpacity(0.1)]
+                    : [AppColors.primary.withOpacity(0.15), Colors.white],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: const Color(0xFF6A4C93).withOpacity(0.3)),
+              border: Border.all(color: AppColors.primary.withOpacity(0.3)),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF6A4C93).withOpacity(isDark ? 0.1 : 0.05),
+                  color: AppColors.primary.withOpacity(isDark ? 0.1 : 0.05),
                   blurRadius: 16,
                   offset: const Offset(0, 8),
                 )
@@ -476,7 +476,7 @@ class LaunchpadScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF6A4C93).withOpacity(0.2),
+                    color: AppColors.primary.withOpacity(0.2),
                     shape: BoxShape.circle,
                   ),
                   child: const Text('🩺', style: TextStyle(fontSize: 24)),
@@ -493,14 +493,14 @@ class LaunchpadScreen extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF6A4C93),
+                              color: AppColors.primary,
                             ),
                           ),
                           const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(color: const Color(0xFF6A4C93).withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
-                            child: Text(remainingText, style: const TextStyle(color: Color(0xFF6A4C93), fontSize: 10, fontWeight: FontWeight.bold)),
+                            decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                            child: Text(remainingText, style: const TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),
@@ -510,7 +510,7 @@ class LaunchpadScreen extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : const Color(0xFF4A4458),
+                          color: isDark ? Colors.white : AppColors.surfaceHighlight,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -524,7 +524,7 @@ class LaunchpadScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const Icon(Icons.chevron_right, color: Color(0xFF6A4C93)),
+                const Icon(Icons.chevron_right, color: AppColors.primary),
               ],
             ),
           )
@@ -580,12 +580,12 @@ class LaunchpadScreen extends ConsumerWidget {
         margin: const EdgeInsets.only(top: 16),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF2E221E) : const Color(0xFFFFF6ED),
+          color: isDark ? Theme.of(context).cardColor : Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Colors.orange.withOpacity(0.3)),
+          border: Border.all(color: AppColors.primary.withOpacity(0.3)),
           boxShadow: [
             BoxShadow(
-              color: Colors.orange.withOpacity(isDark ? 0.1 : 0.05),
+              color: AppColors.primary.withOpacity(isDark ? 0.1 : 0.05),
               blurRadius: 16,
               offset: const Offset(0, 8),
             )
@@ -598,7 +598,7 @@ class LaunchpadScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.2),
+                    color: AppColors.primary.withOpacity(0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Text(emoji, style: const TextStyle(fontSize: 24)),
@@ -613,7 +613,7 @@ class LaunchpadScreen extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : const Color(0xFF4A4458),
+                          color: isDark ? Colors.white : AppColors.surfaceHighlight,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -628,7 +628,7 @@ class LaunchpadScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const Icon(Icons.chevron_right, color: Colors.orange),
+                const Icon(Icons.chevron_right, color: AppColors.primary),
               ],
             ),
             const SizedBox(height: 16),
@@ -640,8 +640,8 @@ class LaunchpadScreen extends ConsumerWidget {
                     child: LinearProgressIndicator(
                       value: progress,
                       minHeight: 8,
-                      backgroundColor: Colors.orange.withOpacity(0.2),
-                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.orange),
+                      backgroundColor: AppColors.primary.withOpacity(0.2),
+                      valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
                     ),
                   ),
                 ),
@@ -651,7 +651,7 @@ class LaunchpadScreen extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: Colors.orange.shade700,
+                    color: AppColors.primary,
                   ),
                 ),
               ],
@@ -681,7 +681,7 @@ class LaunchpadScreen extends ConsumerWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: isDark ? Colors.white38 : const Color(0xFFB4A9B2),
+            color: isDark ? Colors.white38 : AppColors.textSecondary,
           ),
         ),
       ],
@@ -698,7 +698,7 @@ class LaunchpadScreen extends ConsumerWidget {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w800,
-            color: isDark ? Colors.white : const Color(0xFF4A4458),
+            color: isDark ? Colors.white : AppColors.surfaceHighlight,
             letterSpacing: -0.3,
           ),
         ),
@@ -900,7 +900,7 @@ class _ProfileSwitcherSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cardBg = isDark ? const Color(0xFF252229) : Colors.white;
+    final cardBg = isDark ? Theme.of(context).cardColor : Colors.white;
 
     return AppBottomSheet(
       child: Column(
@@ -911,7 +911,7 @@ class _ProfileSwitcherSheet extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
-              color: isDark ? Colors.white : const Color(0xFF2D3142),
+              color: isDark ? Colors.white : AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 20),
@@ -965,7 +965,7 @@ class _ProfileSwitcherSheet extends StatelessWidget {
                               fontWeight: FontWeight.w700,
                               color: isDark
                                   ? Colors.white
-                                  : const Color(0xFF2D3142),
+                                  : AppColors.textPrimary,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -975,7 +975,7 @@ class _ProfileSwitcherSheet extends StatelessWidget {
                               fontSize: 13,
                               color: isDark
                                   ? Colors.white54
-                                  : const Color(0xFF9A8C98),
+                                  : AppColors.textSecondary,
                             ),
                           ),
                         ],

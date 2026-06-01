@@ -317,6 +317,22 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
           const SizedBox(height: 16),
           _buildSettingsSection(
             context,
+            'System',
+            [
+              ListTile(
+                leading: const Icon(Icons.bug_report, color: AppColors.primary),
+                title: const Text('App Diagnostics'),
+                subtitle: const Text('Test OEM alarm background restrictions'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () {
+                  context.push('/diagnostics');
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildSettingsSection(
+            context,
             'About',
             [
               ListTile(
@@ -432,7 +448,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                   decoration: BoxDecoration(
                     color: isGoogleUser
                         ? AppColors.primary.withOpacity(0.12)
-                        : Colors.orange.withOpacity(0.12),
+                        : AppColors.primary.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -443,7 +459,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                             ? Icons.verified_rounded
                             : Icons.wifi_off_rounded,
                         size: 12,
-                        color: isGoogleUser ? AppColors.primary : Colors.orange,
+                        color: isGoogleUser ? AppColors.primary : AppColors.primary,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -452,7 +468,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color:
-                              isGoogleUser ? AppColors.primary : Colors.orange,
+                              isGoogleUser ? AppColors.primary : AppColors.primary,
                         ),
                       ),
                     ],

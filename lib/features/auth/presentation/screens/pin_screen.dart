@@ -2,19 +2,21 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/services/biometric_service.dart';
+import '../../data/repositories/baby_repository.dart';
 
-class PinScreen extends StatefulWidget {
+class PinScreen extends ConsumerStatefulWidget {
   // This screen is now only used to trigger biometric authentication.
   // The `isSetup` flag is kept for compatibility but has no effect.
   final bool isSetup;
   const PinScreen({super.key, this.isSetup = false});
 
   @override
-  State<PinScreen> createState() => _PinScreenState();
+  ConsumerState<PinScreen> createState() => _PinScreenState();
 }
 
-class _PinScreenState extends State<PinScreen> {
+class _PinScreenState extends ConsumerState<PinScreen> {
   bool _isLoading = true;
   String _error = '';
 
@@ -32,8 +34,12 @@ class _PinScreenState extends State<PinScreen> {
         reason: 'Unlock Baby Corn with your fingerprint or face',
       );
       if (result.success) {
-        // Successful authentication – go to home.
-        if (mounted) context.go('/home');
+        // Successful authentication
+        if (mounted) {
+          final repo = ref.read(babyRepositoryProvider);
+          final hasBabies = repo.getBabies().isNotEmpty;
+          context.go(hasBabies ? '/home' : '/onboarding');
+        }
         return;
       } else if (result.error != null &&
           result.error != 'Authentication cancelled') {

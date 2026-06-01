@@ -224,7 +224,7 @@ class _TimerFullSheetState extends ConsumerState<TimerFullSheet>
                       decoration: BoxDecoration(
                         color: activeSession.isRunning
                             ? accentColor.withOpacity(0.12)
-                            : Colors.orange.withOpacity(0.12),
+                            : AppColors.primary.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -234,7 +234,7 @@ class _TimerFullSheetState extends ConsumerState<TimerFullSheet>
                           fontWeight: FontWeight.w600,
                           color: activeSession.isRunning
                               ? accentColor
-                              : Colors.orange,
+                              : AppColors.primary,
                         ),
                       ),
                     ),

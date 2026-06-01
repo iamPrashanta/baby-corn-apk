@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/design/components/dialogs/app_bottom_sheet.dart';
 import '../providers/medication_provider.dart';
@@ -138,7 +139,9 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen> {
     ref.read(medicationsProvider.notifier).addMedication(medication);
     ReminderService.scheduleMedication(medication);
 
-    Navigator.pop(context);
+    if (mounted) {
+      context.pop();
+    }
   }
 
   @override
@@ -284,7 +287,7 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen> {
                           style: TextStyle(fontSize: 16)),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: MediaQuery.of(context).padding.bottom + 100),
                 ],
               ),
             ),

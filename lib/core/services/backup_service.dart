@@ -66,8 +66,12 @@ class BackupService {
     };
 
     final backupData = {
-      'version': 2,
-      'timestamp': DateTime.now().toIso8601String(),
+      'backupVersion': 1,
+      'schemaVersion': 1,
+      'appVersion': '1.0.0',
+      'createdAt': DateTime.now().toIso8601String(),
+      'timestamp': DateTime.now().toIso8601String(), // kept for backward compatibility if any
+      'version': 2, // legacy field
       'profile': profileData,
       'records': recordsList,
     };

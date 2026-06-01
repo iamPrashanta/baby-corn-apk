@@ -79,7 +79,7 @@ class FoodTrackerScreen extends ConsumerWidget {
       statusIcon = Icons.warning_rounded;
       statusText = "Reaction ⚠️";
     } else {
-      statusColor = Colors.orange;
+      statusColor = AppColors.primary;
       statusIcon = Icons.visibility_rounded;
       
       final now = DateTime.now();

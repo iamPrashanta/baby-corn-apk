@@ -6,6 +6,7 @@ import '../../domain/models/record_model.dart';
 import '../providers/records_provider.dart';
 import '../widgets/add_appointment_modal.dart';
 import '../../../../core/services/reminder_service.dart';
+import '../../../../core/design/tokens/colors.dart';
 
 class DoctorAppointmentsScreen extends ConsumerWidget {
   const DoctorAppointmentsScreen({super.key});
@@ -30,7 +31,7 @@ class DoctorAppointmentsScreen extends ConsumerWidget {
         },
         icon: const Icon(Icons.add),
         label: const Text('Schedule'),
-        backgroundColor: const Color(0xFF6A4C93), // Using a distinct color for appointments
+        backgroundColor: AppColors.primary, // Using a distinct color for appointments
         foregroundColor: Colors.white,
       ),
       body: recordsAsync.when(
@@ -100,7 +101,7 @@ class DoctorAppointmentsScreen extends ConsumerWidget {
         style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          color: isDark ? Colors.white : const Color(0xFF4A4458),
+          color: isDark ? Colors.white : AppColors.surfaceHighlight,
         ),
       ),
     );
@@ -121,7 +122,7 @@ class DoctorAppointmentsScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: isDark ? Colors.black26 : const Color(0x0A000000),
+            color: isDark ? Colors.black26 : Colors.transparent,
             blurRadius: 10,
             offset: const Offset(0, 4),
           )
@@ -134,7 +135,7 @@ class DoctorAppointmentsScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             decoration: BoxDecoration(
-              color: isUpcoming ? const Color(0xFF6A4C93).withOpacity(0.1) : Colors.grey.withOpacity(0.1),
+              color: isUpcoming ? AppColors.primary.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -144,14 +145,14 @@ class DoctorAppointmentsScreen extends ConsumerWidget {
                     Icon(
                       Icons.calendar_today,
                       size: 16,
-                      color: isUpcoming ? const Color(0xFF6A4C93) : Colors.grey,
+                      color: isUpcoming ? AppColors.primary : Colors.grey,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       DateFormat('MMM d, yyyy').format(record.timestamp),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: isUpcoming ? const Color(0xFF6A4C93) : Colors.grey,
+                        color: isUpcoming ? AppColors.primary : Colors.grey,
                       ),
                     ),
                   ],
@@ -161,14 +162,14 @@ class DoctorAppointmentsScreen extends ConsumerWidget {
                     Icon(
                       Icons.access_time,
                       size: 16,
-                      color: isUpcoming ? const Color(0xFF6A4C93) : Colors.grey,
+                      color: isUpcoming ? AppColors.primary : Colors.grey,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       DateFormat('h:mm a').format(record.timestamp),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: isUpcoming ? const Color(0xFF6A4C93) : Colors.grey,
+                        color: isUpcoming ? AppColors.primary : Colors.grey,
                       ),
                     ),
                   ],
@@ -189,7 +190,7 @@ class DoctorAppointmentsScreen extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : const Color(0xFF4A4458),
+                          color: isDark ? Colors.white : AppColors.surfaceHighlight,
                         ),
                       ),
                     ),
@@ -278,7 +279,7 @@ class DoctorAppointmentsScreen extends ConsumerWidget {
                     icon: const Icon(Icons.refresh, size: 18),
                     label: const Text('Create Follow-up'),
                     style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFF6A4C93),
+                      foregroundColor: AppColors.primary,
                     ),
                   ),
                 ),

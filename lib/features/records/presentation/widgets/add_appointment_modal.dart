@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../domain/models/record_model.dart';
@@ -214,8 +215,7 @@ class _AddAppointmentModalState extends ConsumerState<AddAppointmentModal> {
                    );
                  }
               }
-              
-              if (mounted) Navigator.pop(context);
+              if (mounted) context.pop();
             },
             child: const Text('Schedule Appointment', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           ),

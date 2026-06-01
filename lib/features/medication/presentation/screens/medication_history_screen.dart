@@ -7,6 +7,7 @@ import '../../../../core/local_storage/hive_manager.dart';
 import '../../domain/models/medication_model.dart';
 import '../../domain/models/medication_log_model.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
+import '../../../../core/design/tokens/colors.dart';
 
 class MedicationHistoryScreen extends ConsumerStatefulWidget {
   const MedicationHistoryScreen({super.key});
@@ -146,7 +147,7 @@ class _MedicationHistoryScreenState
                     },
                   ),
 
-                SizedBox(height: MediaQuery.of(context).padding.bottom + 40),
+                SizedBox(height: MediaQuery.of(context).padding.bottom + 100),
               ],
             ),
           ),
@@ -171,7 +172,7 @@ class _HistoryCard extends StatelessWidget {
       statusColor = Colors.green;
       statusIcon = Icons.check_circle;
     } else if (log.status == 'skipped') {
-      statusColor = Colors.orange;
+      statusColor = AppColors.primary;
       statusIcon = Icons.next_plan;
     } else if (log.status == 'missed') {
       statusColor = Colors.redAccent;

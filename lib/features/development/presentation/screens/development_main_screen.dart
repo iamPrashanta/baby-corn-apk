@@ -204,7 +204,7 @@ class _JourneyTimelineState extends ConsumerState<_JourneyTimeline> {
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : const Color(0xFF2D3142),
+                    color: isDark ? Colors.white : AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -391,7 +391,7 @@ class _TimelineNodeItem extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : const Color(0xFF2D3142),
+                      color: isDark ? Colors.white : AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -399,7 +399,7 @@ class _TimelineNodeItem extends StatelessWidget {
                     node['subtitle'],
                     style: TextStyle(
                       fontSize: 14,
-                      color: isDark ? Colors.white54 : const Color(0xFF9A8C98),
+                      color: isDark ? Colors.white54 : AppColors.textSecondary,
                     ),
                   ),
                 ],
@@ -480,7 +480,7 @@ class _TimelineNodeItem extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : const Color(0xFF2D3142),
+                          color: isDark ? Colors.white : AppColors.textPrimary,
                         ),
                       ),
                     ),
@@ -500,7 +500,7 @@ class _TimelineNodeItem extends StatelessWidget {
                     moment.description,
                     style: TextStyle(
                       fontSize: 14,
-                      color: isDark ? Colors.white70 : const Color(0xFF4A4458),
+                      color: isDark ? Colors.white70 : AppColors.surfaceHighlight,
                       height: 1.4,
                     ),
                   ),

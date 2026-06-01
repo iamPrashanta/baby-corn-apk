@@ -243,7 +243,7 @@ class AddRecordModal extends ConsumerWidget {
                 child: _CategoryTile(
                   emoji: '💊',
                   label: 'Medicine',
-                  color: Colors.orange,
+                  color: AppColors.primary,
                   isActive: true,
                   onTap: () {
                     Navigator.pop(context);
@@ -283,7 +283,7 @@ class AddRecordModal extends ConsumerWidget {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.amber.shade300 : Colors.amber.shade700,
+                  color: isDark ? AppColors.primary : AppColors.primary,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -305,7 +305,7 @@ class AddRecordModal extends ConsumerWidget {
             children: [
               Expanded(child: _CategoryTile(emoji: '🎙️', label: 'Voice Log', color: Colors.indigo, isActive: false, onTap: () {})),
               const SizedBox(width: 12),
-              Expanded(child: _CategoryTile(emoji: '🤖', label: 'AI Assist', color: Colors.purple, isActive: false, onTap: () {})),
+              Expanded(child: _CategoryTile(emoji: '🤖', label: 'AI Assist', color: AppColors.primary, isActive: false, onTap: () {})),
               const SizedBox(width: 12),
               Expanded(child: _CategoryTile(emoji: '📊', label: 'Insights', color: Colors.teal, isActive: false, onTap: () {})),
             ],

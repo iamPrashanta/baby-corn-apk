@@ -96,8 +96,18 @@ class ManageBabiesScreen extends ConsumerWidget {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Text('Delete Baby Profile'),
-        content: Text(
-            'Are you sure you want to delete ${baby.name}\'s profile? This cannot be undone.'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Are you sure you want to delete ${baby.name}\'s profile?'),
+            const SizedBox(height: 12),
+            const Text(
+              '⚠ This will permanently delete all records associated with this baby.',
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -276,7 +286,7 @@ class _BabyCard extends StatelessWidget {
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color:
-                              isDark ? Colors.white54 : const Color(0xFF9A8C98),
+                              isDark ? Colors.white54 : AppColors.textSecondary,
                         ),
                       ),
                     ],
@@ -427,7 +437,7 @@ class _EmptyState extends StatelessWidget {
             'Tap "Add Baby" to get started.',
             style: TextStyle(
               fontSize: 15,
-              color: isDark ? Colors.white54 : const Color(0xFF9A8C98),
+              color: isDark ? Colors.white54 : AppColors.textSecondary,
             ),
           ),
         ],

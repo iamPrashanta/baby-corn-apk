@@ -77,7 +77,7 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
       } else if (_type == 'medication') {
         _title = "Medication";
         _emoji = "💊";
-        _color = Colors.orange;
+        _color = AppColors.primary;
       }
     }
   }

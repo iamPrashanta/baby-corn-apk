@@ -112,7 +112,7 @@ class SanskarJourneyScreen extends ConsumerWidget {
       timeColor = Colors.green;
     } else if (diff < 0) {
       timeText = l10n.pastDueStatus;
-      timeColor = Colors.orange;
+      timeColor = AppColors.primary;
     } else if (diff == 0) {
       timeText = l10n.todayStatus;
       timeColor = AppColors.primary;

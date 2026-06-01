@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../domain/models/medication_model.dart';
 import '../../../../core/theme/glass_system/glass_styles.dart';
+import '../../../../core/design/tokens/colors.dart';
 
 class MedicationCard extends StatelessWidget {
   final MedicationModel medication;
@@ -148,7 +149,7 @@ class MedicationCard extends StatelessWidget {
                                     .titleMedium
                                     ?.copyWith(
                                       color: isLowStock
-                                          ? Colors.orangeAccent
+                                          ? AppColors.primary
                                           : null,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -156,7 +157,7 @@ class MedicationCard extends StatelessWidget {
                               if (isLowStock) ...[
                                 const SizedBox(width: 4),
                                 const Icon(Icons.warning_amber_rounded,
-                                    color: Colors.orangeAccent, size: 16),
+                                    color: AppColors.primary, size: 16),
                               ]
                             ],
                           ),
