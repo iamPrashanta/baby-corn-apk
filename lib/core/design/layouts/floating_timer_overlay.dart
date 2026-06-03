@@ -186,7 +186,7 @@ class _FloatingTimerOverlayState extends ConsumerState<FloatingTimerOverlay>
                             fontWeight: FontWeight.w600,
                             color: isDark
                                 ? Colors.white70
-                                : AppColors.textSecondary,
+                                : AppColors.lightTextSecondary,
                             letterSpacing: 0.5,
                           ),
                           maxLines: 1,
@@ -198,7 +198,7 @@ class _FloatingTimerOverlayState extends ConsumerState<FloatingTimerOverlay>
                             fontSize: 20,
                             fontWeight: FontWeight.w800,
                             color:
-                                isDark ? Colors.white : AppColors.textPrimary,
+                                isDark ? Colors.white : AppColors.lightTextPrimary,
                             fontFeatures: const [FontFeature.tabularFigures()],
                           ),
                         ),
@@ -214,7 +214,7 @@ class _FloatingTimerOverlayState extends ConsumerState<FloatingTimerOverlay>
                           isPaused
                               ? Icons.play_arrow_rounded
                               : Icons.pause_rounded,
-                          color: isDark ? Colors.white : AppColors.textPrimary,
+                          color: isDark ? Colors.white : AppColors.lightTextPrimary,
                         ),
                         onPressed: () {
                           HapticService.selectionClick();

@@ -29,12 +29,12 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
   bool _isSaving = false;
 
   static const List<Map<String, dynamic>> _genderOptions = [
-    {'label': 'Girl', 'icon': Icons.face_3, 'color': Color(0xFFFFD8D3)},
-    {'label': 'Boy', 'icon': Icons.face_6, 'color': Color(0xFFD4E6F1)},
+    {'label': 'Girl', 'icon': Icons.face_3, 'color': AppColors.primary},
+    {'label': 'Boy', 'icon': Icons.face_6, 'color': AppColors.primary},
     {
       'label': 'Prefer not to say',
       'icon': Icons.favorite_border,
-      'color': Color(0xFFFFF5D1)
+      'color': AppColors.primary
     },
   ];
 
@@ -42,17 +42,17 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
     {
       'label': 'Breastmilk',
       'icon': Icons.water_drop_outlined,
-      'color': Color(0xFFFFE5B4)
+      'color': AppColors.secondary
     },
     {
       'label': 'Formula',
       'icon': Icons.local_drink_outlined,
-      'color': Color(0xFFD4E6F1)
+      'color': AppColors.secondary
     },
     {
       'label': 'Mixed',
       'icon': Icons.set_meal_outlined,
-      'color': Color(0xFFE2D5F8)
+      'color': AppColors.secondary
     },
   ];
 
@@ -360,7 +360,7 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
         ),
         child: Row(
           children: [
-            const Icon(Icons.cake_outlined, color: Color(0xFFFFB2A6), size: 28),
+            const Icon(Icons.cake_outlined, color: AppColors.secondary, size: 28),
             const SizedBox(width: 16),
             Text(
               '${_birthDate.day}/${_birthDate.month}/${_birthDate.year}',

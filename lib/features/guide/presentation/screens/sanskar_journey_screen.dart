@@ -51,7 +51,7 @@ class SanskarJourneyScreen extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white : AppColors.textPrimary,
+                    color: isDark ? Colors.white : AppColors.lightTextPrimary,
                     letterSpacing: -0.5,
                   ),
                 ),
@@ -60,7 +60,7 @@ class SanskarJourneyScreen extends ConsumerWidget {
                   l10n.spiritualJourneyDesc,
                   style: TextStyle(
                     fontSize: 14,
-                    color: isDark ? Colors.white70 : AppColors.textSecondary,
+                    color: isDark ? Colors.white70 : AppColors.lightTextSecondary,
                     height: 1.5,
                   ),
                 ),
@@ -185,7 +185,7 @@ class SanskarJourneyScreen extends ConsumerWidget {
                                 fontWeight: FontWeight.w900,
                                 color: isDark
                                     ? Colors.white
-                                    : AppColors.textPrimary,
+                                    : AppColors.lightTextPrimary,
                               ),
                             ),
                           ),
@@ -196,7 +196,7 @@ class SanskarJourneyScreen extends ConsumerWidget {
                               fontWeight: FontWeight.w600,
                               color: isDark
                                   ? Colors.white70
-                                  : AppColors.textSecondary,
+                                  : AppColors.lightTextSecondary,
                             ),
                           ),
                         ],
@@ -232,7 +232,7 @@ class SanskarJourneyScreen extends ConsumerWidget {
               sanskar.description,
               style: TextStyle(
                 fontSize: 14,
-                color: isDark ? Colors.white70 : AppColors.textSecondary,
+                color: isDark ? Colors.white70 : AppColors.lightTextSecondary,
                 height: 1.5,
               ),
             ),

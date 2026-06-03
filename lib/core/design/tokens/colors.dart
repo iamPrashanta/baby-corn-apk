@@ -34,6 +34,8 @@ class AppColors {
   // Text Colors
   static const Color textPrimary = white;
   static const Color textSecondary = Color(0xB3FFFFFF); // 70% white
+  static const Color lightTextPrimary = Colors.black87;
+  static const Color lightTextSecondary = Colors.black54;
   
   // --- LEGACY MAPPINGS (To prevent compile errors during Phase 3 migration) ---
   static const Color primaryContainer = primaryBlue;

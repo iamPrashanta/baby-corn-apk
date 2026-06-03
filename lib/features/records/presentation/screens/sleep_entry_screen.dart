@@ -162,7 +162,7 @@ class _SleepEntryScreenState extends ConsumerState<SleepEntryScreen> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white70 : AppColors.textPrimary,
+                    color: isDark ? Colors.white70 : AppColors.lightTextPrimary,
                   ),
                 ),
               ],
@@ -273,7 +273,7 @@ class _TimePickerTile extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : AppColors.textPrimary,
+                      color: isDark ? Colors.white : AppColors.lightTextPrimary,
                     ),
                   ),
                 ],

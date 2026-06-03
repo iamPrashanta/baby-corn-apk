@@ -5,6 +5,7 @@ import 'baby_cry_language_screen.dart';
 import 'baby_rashes_screen.dart';
 import '../../../../core/design/layouts/custom_app_bar.dart';
 import '../../../../core/theme/glass_system/glass_colors.dart';
+import '../../../../core/design/tokens/colors.dart';
 
 import '../../../../l10n/app_localizations.dart';
 
@@ -28,7 +29,7 @@ class GuideMainScreen extends StatelessWidget {
             context: context,
             title: l10n.cryLanguage,
             icon: Icons.record_voice_over_rounded,
-            color: const Color(0xFF81C784),
+            color: AppColors.secondary,
             onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const BabyCryLanguageScreen()));
             },
@@ -37,14 +38,14 @@ class GuideMainScreen extends StatelessWidget {
             context: context,
             title: "First Foods (6+ Months)",
             icon: Icons.restaurant_menu_rounded,
-            color: const Color(0xFFFFB74D),
+            color: AppColors.primary,
             onTap: () => context.push('/guide/first_foods'),
           ),
           _buildGuideCard(
             context: context,
             title: l10n.babyRashes,
             icon: Icons.healing_rounded,
-            color: const Color(0xFFE57373),
+            color: AppColors.error,
             onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const BabyRashesScreen()));
             },
@@ -53,7 +54,7 @@ class GuideMainScreen extends StatelessWidget {
             context: context,
             title: l10n.spiritualJourney,
             icon: Icons.self_improvement_rounded,
-            color: const Color(0xFFBA68C8),
+            color: AppColors.primary,
             onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const SanskarJourneyScreen()));
             },

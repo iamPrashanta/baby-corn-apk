@@ -95,7 +95,7 @@ class LaunchpadScreen extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
-                    color: isDark ? Colors.white54 : AppColors.textSecondary,
+                    color: isDark ? Colors.white54 : AppColors.lightTextSecondary,
                     letterSpacing: 0.3,
                   ),
                 ).animate().fadeIn(duration: 600.ms),
@@ -122,7 +122,7 @@ class LaunchpadScreen extends ConsumerWidget {
                           Icons.keyboard_arrow_down_rounded,
                           size: 28,
                           color:
-                              isDark ? Colors.white54 : AppColors.textSecondary,
+                              isDark ? Colors.white54 : AppColors.lightTextSecondary,
                         ),
                       ],
                     ],
@@ -138,7 +138,7 @@ class LaunchpadScreen extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: isDark ? Colors.white38 : AppColors.textSecondary,
+                      color: isDark ? Colors.white38 : AppColors.lightTextSecondary,
                     ),
                   ).animate().fadeIn(duration: 600.ms, delay: 200.ms),
                 ]
@@ -681,7 +681,7 @@ class LaunchpadScreen extends ConsumerWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: isDark ? Colors.white38 : AppColors.textSecondary,
+            color: isDark ? Colors.white38 : AppColors.lightTextSecondary,
           ),
         ),
       ],
@@ -911,7 +911,7 @@ class _ProfileSwitcherSheet extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
-              color: isDark ? Colors.white : AppColors.textPrimary,
+              color: isDark ? Colors.white : AppColors.lightTextPrimary,
             ),
           ),
           const SizedBox(height: 20),
@@ -965,7 +965,7 @@ class _ProfileSwitcherSheet extends StatelessWidget {
                               fontWeight: FontWeight.w700,
                               color: isDark
                                   ? Colors.white
-                                  : AppColors.textPrimary,
+                                  : AppColors.lightTextPrimary,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -975,7 +975,7 @@ class _ProfileSwitcherSheet extends StatelessWidget {
                               fontSize: 13,
                               color: isDark
                                   ? Colors.white54
-                                  : AppColors.textSecondary,
+                                  : AppColors.lightTextSecondary,
                             ),
                           ),
                         ],

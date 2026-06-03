@@ -59,7 +59,7 @@ class SaveSuccessOverlay extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: isDark ? Colors.white70 : AppColors.textPrimary,
+                color: isDark ? Colors.white70 : AppColors.lightTextPrimary,
               ),
             )
                 .animate()

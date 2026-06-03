@@ -11,6 +11,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../core/config/app_config.dart';
+import '../../../../core/design/tokens/colors.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -54,15 +55,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       // --- Check language selection ---
       final prefs = await SharedPreferences.getInstance();
       // Language selection removed
-      // final hasSelectedLanguage =
-      //     prefs.getBool('has_selected_language') ?? false;
-      // debugPrint('🔍 [Splash] has_selected_language=$hasSelectedLanguage');
+      final hasSelectedLanguage =
+          prefs.getBool('has_selected_language') ?? false;
+      debugPrint('🔍 [Splash] has_selected_language=$hasSelectedLanguage');
 
-      // if (!hasSelectedLanguage) {
-      //   debugPrint('🔍 [Splash] → /language (language not selected yet)');
-      //   if (mounted) context.go('/language');
-      //   return;
-      // }
+      if (!hasSelectedLanguage) {
+        debugPrint('🔍 [Splash] → /language (language not selected yet)');
+        if (mounted) context.go('/language');
+        return;
+      }
 
       // --- Read baby list (migration already complete by this point) ---
       final babies = ref.read(babyRepositoryProvider).getBabies();
@@ -155,7 +156,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                 curve: Curves.easeOutBack,
                 duration: 800.ms),
             const SizedBox(height: 32),
-            const CircularProgressIndicator(color: Color(0xFFFFB2A6)),
+            const CircularProgressIndicator(color: AppColors.primary),
           ],
         ),
       ),

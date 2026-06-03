@@ -4,8 +4,8 @@ import 'colors.dart';
 
 class AppTypography {
   static TextTheme getTextTheme({required bool isDark}) {
-    final color = isDark ? AppColors.darkTextPrimary : AppColors.textPrimary;
-    final colorSecondary = isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
+    final color = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final colorSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
     return GoogleFonts.nunitoTextTheme().copyWith(
       displayLarge: GoogleFonts.nunito(

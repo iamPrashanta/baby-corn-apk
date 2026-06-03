@@ -70,7 +70,7 @@ class BabyCryLanguageScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white : AppColors.textPrimary,
+                    color: isDark ? Colors.white : AppColors.lightTextPrimary,
                     letterSpacing: -0.5,
                   ),
                 ),
@@ -79,7 +79,7 @@ class BabyCryLanguageScreen extends StatelessWidget {
                   'Based on the theory that all babies produce 5 specific sounds right before crying, based on their physical reflexes. Listen closely to identify their needs!',
                   style: TextStyle(
                     fontSize: 14,
-                    color: isDark ? Colors.white70 : AppColors.textSecondary,
+                    color: isDark ? Colors.white70 : AppColors.lightTextSecondary,
                     height: 1.5,
                   ),
                 ),
@@ -146,7 +146,7 @@ class BabyCryLanguageScreen extends StatelessWidget {
                                       fontWeight: FontWeight.w900,
                                       color: isDark
                                           ? Colors.white
-                                          : AppColors.textPrimary,
+                                          : AppColors.lightTextPrimary,
                                       fontStyle: FontStyle.italic,
                                     ),
                                   ),
@@ -180,7 +180,7 @@ class BabyCryLanguageScreen extends StatelessWidget {
                             fontSize: 14,
                             color: isDark
                                 ? Colors.white70
-                                : AppColors.textSecondary,
+                                : AppColors.lightTextSecondary,
                             height: 1.5,
                           ),
                         ),

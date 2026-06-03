@@ -52,7 +52,7 @@ class _SanskarDetailSheetState extends ConsumerState<SanskarDetailSheet> {
             colorScheme: ColorScheme.light(
               primary: AppColors.primary,
               onPrimary: Colors.white,
-              onSurface: AppColors.textPrimary,
+              onSurface: AppColors.lightTextPrimary,
             ),
           ),
           child: child!,

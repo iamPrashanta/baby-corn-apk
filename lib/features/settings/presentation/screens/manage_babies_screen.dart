@@ -78,7 +78,7 @@ class ManageBabiesScreen extends ConsumerWidget {
                 ref.read(activeSessionProvider.notifier).cancelSession();
                 Navigator.pop(ctx, true);
               },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
               child: const Text('Stop Timer',
                   style: TextStyle(color: Colors.white)),
             ),
@@ -104,7 +104,7 @@ class ManageBabiesScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             const Text(
               '⚠ This will permanently delete all records associated with this baby.',
-              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+              style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -114,7 +114,7 @@ class ManageBabiesScreen extends ConsumerWidget {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             onPressed: () async {
               await ref.read(activeBabyProvider.notifier).deleteBaby(baby.id);
               if (ctx.mounted) Navigator.pop(ctx);
@@ -161,22 +161,22 @@ class _BabyCard extends StatelessWidget {
   Color _genderColor() {
     switch (baby.gender) {
       case 'Girl':
-        return const Color(0xFFFFD8D3);
+        return AppColors.primary.withOpacity(0.15);
       case 'Boy':
-        return const Color(0xFFD4E6F1);
+        return AppColors.primary.withOpacity(0.25);
       default:
-        return const Color(0xFFFFF5D1);
+        return AppColors.primary.withOpacity(0.1);
     }
   }
 
   Color _feedingColor() {
     switch (baby.feedingType) {
       case 'Breastmilk':
-        return const Color(0xFFFFE5B4);
+        return AppColors.secondary.withOpacity(0.15);
       case 'Formula':
-        return const Color(0xFFD4E6F1);
+        return AppColors.secondary.withOpacity(0.25);
       default:
-        return const Color(0xFFE2D5F8);
+        return AppColors.secondary.withOpacity(0.1);
     }
   }
 
@@ -321,9 +321,9 @@ class _BabyCard extends StatelessWidget {
                         child: Row(
                           children: [
                             Icon(Icons.delete_outline,
-                                size: 18, color: Colors.red),
+                                size: 18, color: AppColors.error),
                             SizedBox(width: 10),
-                            Text('Delete', style: TextStyle(color: Colors.red)),
+                            Text('Delete', style: TextStyle(color: AppColors.error)),
                           ],
                         ),
                       ),

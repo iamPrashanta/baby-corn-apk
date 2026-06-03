@@ -51,11 +51,16 @@ class FirstFoodsScreen extends StatelessWidget {
             _buildImportantNotes(context),
           ],
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => context.push('/guide/food_tracker'),
-          backgroundColor: AppColors.primary,
-          icon: const Icon(Icons.track_changes_rounded),
-          label: const Text("Food Tracker"),
+        floatingActionButton: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: FloatingActionButton.extended(
+              onPressed: () => context.push('/guide/food_tracker'),
+              backgroundColor: AppColors.primary,
+              icon: const Icon(Icons.track_changes_rounded),
+              label: const Text("Food Tracker"),
+            ),
+          ),
         ),
       ),
     );
@@ -63,7 +68,7 @@ class FirstFoodsScreen extends StatelessWidget {
 
   Widget _buildImportantNotes(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.only(left: 24, right: 24, top: 24, bottom: 120),
       children: [
         _buildNoteItem(context, "Start solids after 6 months.", Icons.calendar_month_rounded),
         _buildNoteItem(context, "Introduce one new food every 3 days to monitor for allergies.", Icons.warning_rounded),
@@ -79,7 +84,7 @@ class FirstFoodsScreen extends StatelessWidget {
 
   Widget _buildNoteItem(BuildContext context, String text, IconData icon, {bool isAlert = false}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final color = isAlert ? Colors.redAccent : (isDark ? Colors.white70 : AppColors.textPrimary);
+    final color = isAlert ? Colors.redAccent : (isDark ? Colors.white70 : AppColors.lightTextPrimary);
     
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),

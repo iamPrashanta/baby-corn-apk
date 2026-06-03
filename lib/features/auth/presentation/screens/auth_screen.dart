@@ -223,7 +223,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     style: Theme.of(context).textTheme.displaySmall?.copyWith(
                           fontWeight: FontWeight.w800,
                           height: 1.1,
-                          color: isDark ? Colors.white : AppColors.textPrimary,
+                          color: isDark ? Colors.white : AppColors.lightTextPrimary,
                         ),
                     textAlign: TextAlign.center,
                   )
@@ -237,7 +237,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     'Track your baby\'s journey seamlessly, synced across your family.',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color:
-                              isDark ? Colors.white70 : AppColors.textSecondary,
+                              isDark ? Colors.white70 : AppColors.lightTextSecondary,
                           height: 1.4,
                         ),
                     textAlign: TextAlign.center,
@@ -312,7 +312,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color:
-                            isDark ? Colors.white70 : AppColors.textSecondary,
+                            isDark ? Colors.white70 : AppColors.lightTextSecondary,
                       ),
                     ),
                   ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2),

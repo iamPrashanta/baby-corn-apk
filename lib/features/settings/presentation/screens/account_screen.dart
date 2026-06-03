@@ -148,6 +148,14 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                 },
               ),
               ListTile(
+                leading: const Icon(Icons.language),
+                title: const Text('Language'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () {
+                  context.push('/language');
+                },
+              ),
+              ListTile(
                 leading: const Icon(Icons.lock),
                 title: const Text('App Lock Timeout'),
                 trailing: DropdownButton<int>(
@@ -376,7 +384,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white : AppColors.textPrimary,
+                    color: isDark ? Colors.white : AppColors.lightTextPrimary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

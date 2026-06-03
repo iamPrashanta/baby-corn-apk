@@ -168,7 +168,7 @@ class _TimerFullSheetState extends ConsumerState<TimerFullSheet>
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : AppColors.textPrimary,
+                  color: isDark ? Colors.white : AppColors.lightTextPrimary,
                 ),
               ),
             ],
@@ -211,7 +211,7 @@ class _TimerFullSheetState extends ConsumerState<TimerFullSheet>
                       style: TextStyle(
                         fontSize: 36,
                         fontWeight: FontWeight.w300,
-                        color: isDark ? Colors.white : AppColors.textPrimary,
+                        color: isDark ? Colors.white : AppColors.lightTextPrimary,
                         fontFeatures: const [FontFeature.tabularFigures()],
                         letterSpacing: 2,
                       ),
@@ -321,7 +321,7 @@ class _TimerFullSheetState extends ConsumerState<TimerFullSheet>
               controller: _notesController,
               style: TextStyle(
                 fontSize: 14,
-                color: isDark ? Colors.white70 : AppColors.textPrimary,
+                color: isDark ? Colors.white70 : AppColors.lightTextPrimary,
               ),
               decoration: InputDecoration(
                 hintText: 'Add a note...',

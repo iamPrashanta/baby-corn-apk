@@ -83,7 +83,7 @@ class PureeRecipeList extends StatelessWidget {
     };
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 120),
       itemCount: data.length,
       itemBuilder: (context, index) {
         final key = data.keys.elementAt(index);
@@ -95,7 +95,7 @@ class PureeRecipeList extends StatelessWidget {
 
   Widget _buildListFromData(BuildContext context, String title, List<String> items) {
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 120),
       itemCount: items.length,
       itemBuilder: (context, index) {
         return _buildRecipeCard(context, items[index], null);

@@ -52,7 +52,7 @@ class _FoodLibraryTabState extends ConsumerState<FoodLibraryTab> {
         ),
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 120),
             itemCount: filteredFoods.length,
             itemBuilder: (context, index) {
               final item = filteredFoods[index];

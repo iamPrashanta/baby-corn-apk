@@ -19,7 +19,6 @@ class LanguageSelectionScreen extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final languages = [
-      {'code': 'sa', 'name': 'संस्कृतम्'},
       {'code': 'en', 'name': 'English'},
       {'code': 'hi', 'name': 'हिन्दी'},
       {'code': 'bn', 'name': 'বাংলা'},
@@ -37,8 +36,11 @@ class LanguageSelectionScreen extends ConsumerWidget {
             children: [
               Text(
                 l10n.selectLanguage,
-                style:
-                    const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
               ),
               const SizedBox(height: 12),
               Text(
@@ -65,8 +67,8 @@ class LanguageSelectionScreen extends ConsumerWidget {
 
                         // Mark language as selected
                         final prefs = await SharedPreferences.getInstance();
-                        // await prefs.setBool('has_selected_language', true);
-                        // debugPrint('🌐 [Language] Selected: ${lang['code']}');
+                        await prefs.setBool('has_selected_language', true);
+                        debugPrint('🌐 [Language] Selected: ${lang['code']}');
 
                         if (!context.mounted) return;
 
@@ -138,8 +140,11 @@ class LanguageSelectionScreen extends ConsumerWidget {
                         ),
                         child: Text(
                           lang['name']!,
-                          style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
                         ),
                       ),
                     );

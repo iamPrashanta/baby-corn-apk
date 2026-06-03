@@ -84,7 +84,7 @@ class BabyRashesScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white : AppColors.textPrimary,
+                    color: isDark ? Colors.white : AppColors.lightTextPrimary,
                     letterSpacing: -0.5,
                   ),
                 ),
@@ -93,7 +93,7 @@ class BabyRashesScreen extends StatelessWidget {
                   'Throughout your baby’s first year, their skin plays host to a variety of conditions. By and large, they are harmless, temporary, and resolve without any treatment.',
                   style: TextStyle(
                     fontSize: 14,
-                    color: isDark ? Colors.white70 : AppColors.textSecondary,
+                    color: isDark ? Colors.white70 : AppColors.lightTextSecondary,
                     height: 1.5,
                   ),
                 ),
@@ -156,7 +156,7 @@ class BabyRashesScreen extends StatelessWidget {
                                   fontWeight: FontWeight.bold,
                                   color: isDark
                                       ? Colors.white
-                                      : AppColors.textPrimary,
+                                      : AppColors.lightTextPrimary,
                                 ),
                               ),
                             ),
@@ -169,7 +169,7 @@ class BabyRashesScreen extends StatelessWidget {
                             fontSize: 14,
                             color: isDark
                                 ? Colors.white70
-                                : AppColors.textSecondary,
+                                : AppColors.lightTextSecondary,
                             height: 1.5,
                           ),
                         ),
@@ -235,7 +235,7 @@ class BabyRashesScreen extends StatelessWidget {
       style: TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.bold,
-        color: isDark ? Colors.white : AppColors.textPrimary,
+        color: isDark ? Colors.white : AppColors.lightTextPrimary,
       ),
     );
   }
@@ -250,7 +250,7 @@ class BabyRashesScreen extends StatelessWidget {
             '• ',
             style: TextStyle(
               fontSize: 16,
-              color: isDark ? Colors.white70 : AppColors.textSecondary,
+              color: isDark ? Colors.white70 : AppColors.lightTextSecondary,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -259,7 +259,7 @@ class BabyRashesScreen extends StatelessWidget {
               text,
               style: TextStyle(
                 fontSize: 14,
-                color: isDark ? Colors.white70 : AppColors.textSecondary,
+                color: isDark ? Colors.white70 : AppColors.lightTextSecondary,
                 height: 1.5,
               ),
             ),

@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import '../../domain/models/record_model.dart';
 import '../providers/records_provider.dart';
 import '../../../../core/services/reminder_service.dart';
+import '../../../../core/design/tokens/colors.dart';
 
 class AddAppointmentModal extends ConsumerStatefulWidget {
   final String? initialDoctor;
@@ -91,7 +92,7 @@ class _AddAppointmentModalState extends ConsumerState<AddAppointmentModal> {
               Expanded(
                 child: ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.calendar_today, color: Color(0xFF6A4C93)),
+                  leading: const Icon(Icons.calendar_today, color: AppColors.primary),
                   title: const Text('Date'),
                   subtitle: Text(DateFormat('MMM d, yyyy').format(_selectedDate)),
                   onTap: () async {
@@ -110,7 +111,7 @@ class _AddAppointmentModalState extends ConsumerState<AddAppointmentModal> {
               Expanded(
                 child: ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.access_time, color: Color(0xFF6A4C93)),
+                  leading: const Icon(Icons.access_time, color: AppColors.primary),
                   title: const Text('Time'),
                   subtitle: Text(_selectedTime.format(context)),
                   onTap: () async {
@@ -142,7 +143,7 @@ class _AddAppointmentModalState extends ConsumerState<AddAppointmentModal> {
             title: const Text('Remind Me'),
             subtitle: const Text('24 hours and 2 hours before'),
             value: _enableReminder,
-            activeColor: const Color(0xFF6A4C93),
+            activeColor: AppColors.primary,
             onChanged: (val) => setState(() => _enableReminder = val),
           ),
           const Divider(),
@@ -158,7 +159,7 @@ class _AddAppointmentModalState extends ConsumerState<AddAppointmentModal> {
           
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6A4C93),
+              backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
