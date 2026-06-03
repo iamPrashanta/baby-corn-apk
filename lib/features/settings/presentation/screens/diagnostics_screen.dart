@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'dart:convert';
 import '../../../../core/design/tokens/colors.dart';
+import '../../../../core/local_storage/hive_manager.dart';
 
 class DiagnosticsScreen extends StatefulWidget {
   const DiagnosticsScreen({super.key});
@@ -14,11 +16,30 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
   bool _hasExactAlarm = false;
   bool _hasNotifications = false;
   bool _isBatteryOptimized = false;
+  
+  int _babiesCount = 0;
+  int _recordsCount = 0;
 
   @override
   void initState() {
     super.initState();
+    _checkDatabaseHealth();
     _checkPermissions();
+  }
+
+  void _checkDatabaseHealth() {
+    try {
+      final profileBox = HiveManager.getProfileBox();
+      final recordsBox = HiveManager.getRecordsBox();
+      
+      final babiesJson = profileBox.get('babies_list');
+      if (babiesJson != null) {
+        _babiesCount = (jsonDecode(babiesJson) as List).length;
+      }
+      _recordsCount = recordsBox.length;
+    } catch (_) {
+      debugPrint("Diagnostics DB error: $_");
+    }
   }
 
   Future<void> _checkPermissions() async {
@@ -85,6 +106,20 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                   isGood: !_isBatteryOptimized,
                   description: 'Should be DISABLED (Ignored) so OEMs (Samsung, Xiaomi, Oppo) don\'t kill alarms.',
                   onAction: !_isBatteryOptimized ? null : _requestBattery,
+                ),
+                const SizedBox(height: 24),
+                const Text('Database Diagnostics', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                _DiagnosticTile(
+                  title: 'Registered Profiles',
+                  isGood: true,
+                  description: '$_babiesCount baby profile(s) found in Hive.',
+                ),
+                const Divider(),
+                _DiagnosticTile(
+                  title: 'Stored Records',
+                  isGood: true,
+                  description: '$_recordsCount record(s) logged securely offline.',
                 ),
               ],
             ),

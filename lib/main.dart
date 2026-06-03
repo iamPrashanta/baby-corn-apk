@@ -72,27 +72,6 @@ void main() async {
     await BabyRepository.runStartupMigration();
     debugPrint("STEP 3.5: Migration complete");
 
-    // DEBUG LOGS
-    final profileBox = HiveManager.getProfileBox();
-    final recordsBox = HiveManager.getRecordsBox();
-
-    // Parse babies_list to get count safely
-    final babiesJson = profileBox.get('babies_list');
-    int babiesCount = 0;
-    if (babiesJson != null) {
-      try {
-        babiesCount = (jsonDecode(babiesJson) as List).length;
-      } catch (_) {}
-    }
-
-    // debugPrint("====== STARTUP DATA VERIFICATION ======");
-    // debugPrint("PROFILE BOX KEYS: ${profileBox.keys.toList()}");
-    // debugPrint("BABIES COUNT: ${BabyRepository().getBabies().length}");
-    // debugPrint("babies_list count: $babiesCount");
-    // debugPrint("active_baby_id: ${profileBox.get('active_baby_id')}");
-    // debugPrint("onboarding_complete: ${profileBox.get('onboarding_complete')}");
-    // debugPrint("records count: ${recordsBox.length}");
-    // debugPrint("=======================================");
 
     debugPrint("STEP 4: Initializing ReminderService");
     await ReminderService.init();
