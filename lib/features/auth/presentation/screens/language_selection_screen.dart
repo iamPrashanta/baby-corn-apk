@@ -65,8 +65,8 @@ class LanguageSelectionScreen extends ConsumerWidget {
 
                         // Mark language as selected
                         final prefs = await SharedPreferences.getInstance();
-                        await prefs.setBool('has_selected_language', true);
-                        debugPrint('🌐 [Language] Selected: ${lang['code']}');
+                        // await prefs.setBool('has_selected_language', true);
+                        // debugPrint('🌐 [Language] Selected: ${lang['code']}');
 
                         if (!context.mounted) return;
 

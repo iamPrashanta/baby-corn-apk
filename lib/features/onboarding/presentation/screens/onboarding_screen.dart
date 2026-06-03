@@ -26,14 +26,16 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _pageController = PageController();
   int _currentPage = 0;
-  int get _totalPages => widget.isAddingBaby ? 6 : 8;
+  // int get _totalPages => widget.isAddingBaby ? 6 : 8;
+  int get _totalPages => widget.isAddingBaby ? 6 : 6;
 
   // Form State
   final _nameController = TextEditingController();
-  DateTime? _birthDate;
+  // DateTime? _birthDate;
+  DateTime _birthDate = DateTime.now();
   String _gender = 'Prefer not to say';
-  double _birthWeight = 3.2;
-  double _birthHeight = 50.0;
+  double? _birthWeight;
+  double? _birthHeight;
   bool _isHeightInCm = true;
   String _feedingType = 'Breastmilk';
 
@@ -80,8 +82,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       birthDate: _birthDate!,
       feedingType: _feedingType,
       gender: _gender,
-      birthWeight: _birthWeight,
-      birthHeight: _birthHeight,
+      birthWeight: _birthWeight ?? 0.0,
+      birthHeight: _birthHeight ?? 0.0,
     );
 
     await ref.read(babyRepositoryProvider).addBaby(baby);
@@ -158,7 +160,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     },
                     children: [
                       if (!widget.isAddingBaby) ...[
-                        _buildReminderIntroStep(),
+                        // _buildReminderIntroStep(),
                         _buildPrivacyStep(),
                       ],
                       _buildNameStep(),
@@ -284,7 +286,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 _nextPage(); // Auto advance for smooth UX
               }
             },
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(14),
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
               decoration: BoxDecoration(
@@ -292,7 +294,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     .colorScheme
                     .surfaceContainerHighest
                     .withOpacity(0.4),
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                     color:
                         Theme.of(context).colorScheme.outline.withOpacity(0.3)),
@@ -416,12 +418,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   .colorScheme
                   .surfaceContainerHighest
                   .withOpacity(0.3),
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(14),
             ),
             child: Column(
               children: [
                 Text(
-                  '${_birthWeight.toStringAsFixed(2)} kg',
+                  _birthWeight == null
+                      ? 'Tap slider to set weight'
+                      : '${_birthWeight!.toStringAsFixed(2)} kg',
                   style: TextStyle(
                     fontSize: 48,
                     fontWeight: FontWeight.bold,
@@ -442,7 +446,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         const RoundSliderThumbShape(enabledThumbRadius: 16),
                   ),
                   child: Slider(
-                    value: _birthWeight,
+                    value: _birthWeight ?? 3.2,
                     min: 1.0,
                     max: 10.0,
                     divisions: 90,
@@ -455,14 +459,30 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
           ),
           const Spacer(flex: 2),
-          _buildPrimaryButton('Continue', _nextPage),
+          // _buildPrimaryButton('Continue', _nextPage),
+          Column(
+            children: [
+              _buildPrimaryButton('Continue', _nextPage),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () {
+                  _birthWeight = null;
+                  _nextPage();
+                },
+                child: const Text('Skip'),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
   Widget _buildHeightStep() {
-    final displayValue = _isHeightInCm ? _birthHeight : _birthHeight * 0.393701;
+    final heightValue = _birthHeight ?? 50.0;
+
+    final displayValue = _isHeightInCm ? heightValue : heightValue * 0.393701;
+
     final displayUnit = _isHeightInCm ? 'cm' : 'in';
 
     return _buildStepContainer(
@@ -515,12 +535,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   .colorScheme
                   .surfaceContainerHighest
                   .withOpacity(0.3),
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(14),
             ),
             child: Column(
               children: [
                 Text(
-                  '${displayValue.toStringAsFixed(1)} $displayUnit',
+                  _birthHeight == null
+                      ? 'Tap slider to set height'
+                      : '${displayValue.toStringAsFixed(1)} $displayUnit',
                   style: TextStyle(
                     fontSize: 48,
                     fontWeight: FontWeight.bold,
@@ -541,7 +563,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         const RoundSliderThumbShape(enabledThumbRadius: 16),
                   ),
                   child: Slider(
-                    value: _birthHeight,
+                    value: _birthHeight ?? 50.0,
                     min: 30.0,
                     max: 100.0,
                     divisions: 70,
@@ -554,7 +576,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
           ),
           const Spacer(flex: 2),
-          _buildPrimaryButton('Continue', _nextPage),
+          // _buildPrimaryButton('Continue', _nextPage),
+          Column(
+            children: [
+              _buildPrimaryButton('Continue', _nextPage),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () {
+                  _birthHeight = null;
+                  _nextPage();
+                },
+                child: const Text('Skip'),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -618,39 +653,39 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
-  Widget _buildReminderIntroStep() {
-    return _buildStepContainer(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Spacer(),
-          Container(
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.15),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.notifications_none_rounded,
-                size: 80, color: AppColors.primary),
-          ),
-          const SizedBox(height: 40),
-          Text(
-            'We’ll gently remind you about feeding, sleep, and diaper changes.',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  height: 1.4,
-                ),
-            textAlign: TextAlign.center,
-          ),
-          const Spacer(),
-          _buildPrimaryButton('Sounds Good', () async {
-            await ReminderService.requestPermissions();
-            _nextPage();
-          }),
-        ],
-      ),
-    );
-  }
+  // Widget _buildReminderIntroStep() {
+  //   return _buildStepContainer(
+  //     child: Column(
+  //       mainAxisAlignment: MainAxisAlignment.center,
+  //       children: [
+  //         const Spacer(),
+  //         Container(
+  //           padding: const EdgeInsets.all(32),
+  //           decoration: BoxDecoration(
+  //             color: AppColors.primary.withOpacity(0.15),
+  //             shape: BoxShape.circle,
+  //           ),
+  //           child: const Icon(Icons.notifications_none_rounded,
+  //               size: 80, color: AppColors.primary),
+  //         ),
+  //         const SizedBox(height: 40),
+  //         Text(
+  //           'We’ll gently remind you about feeding, sleep, and diaper changes.',
+  //           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+  //                 fontWeight: FontWeight.bold,
+  //                 height: 1.4,
+  //               ),
+  //           textAlign: TextAlign.center,
+  //         ),
+  //         const Spacer(),
+  //         _buildPrimaryButton('Sounds Good', () async {
+  //           await ReminderService.requestPermissions();
+  //           _nextPage();
+  //         }),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _buildPrivacyStep() {
     return _buildStepContainer(
@@ -746,7 +781,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(14),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
@@ -757,7 +792,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   .colorScheme
                   .surfaceContainerHighest
                   .withOpacity(0.3),
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSelected ? color : Colors.transparent,
             width: 2,

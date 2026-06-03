@@ -7,17 +7,15 @@ import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../../../core/design/tokens/colors.dart';
-import '../widgets/sync_details_sheet.dart';
+// import '../widgets/sync_details_sheet.dart';
 import '../../../../core/local_storage/secure_storage_manager.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../../core/design/layouts/custom_app_bar.dart';
-import '../../../../core/services/backup_service.dart';
+// import '../../../../core/services/backup_service.dart';
 import '../../../../core/services/sync_service.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
 import '../../../records/presentation/providers/records_provider.dart';
-import '../../../../core/providers/locale_provider.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../providers/theme_provider.dart';
 import '../providers/premium_provider.dart';
 
 
@@ -125,7 +123,6 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
 
   @override
   Widget build(BuildContext context) {
-    final themeMode = ref.watch(themeModeProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isPremium = ref.watch(premiumProvider);
 
@@ -143,60 +140,12 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
             AppLocalizations.of(context)?.appTitle ?? 'App Settings',
             [
               ListTile(
-                leading: const Icon(Icons.language),
-                title:
-                    Text(AppLocalizations.of(context)?.language ?? 'Language'),
-                trailing: DropdownButton<Locale>(
-                  value: ref.watch(localeProvider),
-                  onChanged: (newLocale) {
-                    if (newLocale != null) {
-                      ref.read(localeProvider.notifier).setLocale(newLocale);
-                    }
-                  },
-                  items: const [
-                    DropdownMenuItem(
-                        value: Locale('en'), child: Text('English')),
-                    DropdownMenuItem(
-                        value: Locale('hi'), child: Text('हिन्दी')),
-                    DropdownMenuItem(
-                        value: Locale('sa'), child: Text('संस्कृतम्')),
-                    DropdownMenuItem(value: Locale('bn'), child: Text('বাংলা')),
-                    DropdownMenuItem(
-                        value: Locale('te'), child: Text('తెలుగు')),
-                    DropdownMenuItem(value: Locale('ta'), child: Text('தமிழ்')),
-                    DropdownMenuItem(value: Locale('kn'), child: Text('ಕನ್ನಡ')),
-                  ],
-                ),
-              ),
-              ListTile(
                 leading: const Icon(Icons.notifications_active),
                 title: const Text('Reminders'),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () {
                   context.push('/settings/reminders');
                 },
-              ),
-              ListTile(
-                leading: const Icon(Icons.dark_mode),
-                title: const Text('Theme'),
-                trailing: DropdownButton<ThemeMode>(
-                  value: themeMode,
-                  onChanged: (mode) {
-                    if (mode != null) {
-                      ref
-                          .read(themeModeProvider.notifier)
-                          .updateThemeMode(mode);
-                    }
-                  },
-                  items: const [
-                    DropdownMenuItem(
-                        value: ThemeMode.system, child: Text('System')),
-                    DropdownMenuItem(
-                        value: ThemeMode.light, child: Text('Light')),
-                    DropdownMenuItem(
-                        value: ThemeMode.dark, child: Text('Dark')),
-                  ],
-                ),
               ),
               ListTile(
                 leading: const Icon(Icons.lock),
@@ -244,92 +193,92 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          _buildSettingsSection(
-            context,
-            'Data & Backup',
-            [
-              ListTile(
-                leading: const Icon(Icons.cloud_upload_outlined),
-                title: const Text('Back up to Google Drive'),
-                onTap: () async {
-                  final success = await BackupService.backupToGoogleDrive();
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text(success
-                              ? 'Backup uploaded successfully!'
-                              : 'Cloud backup failed. Are you signed in?')),
-                    );
-                  }
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.cloud_download_outlined),
-                title: const Text('Restore from Google Drive'),
-                onTap: () async {
-                  final success = await BackupService.restoreFromGoogleDrive();
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text(success
-                              ? 'Backup restored successfully! Restarting...'
-                              : 'Cloud restore failed. No backup found?')),
-                    );
-                    if (success) context.go('/'); // Restart app to reload state
-                  }
-                },
-              ),
-              if (AppConfig.enableCloudSync)
-                ListTile(
-                  leading: const Icon(Icons.cloud_sync, color: Colors.blue),
-                  title: const Text('Sync Data'),
-                  subtitle: const Text('Manage cloud sync and backups'),
-                  onTap: () {
-                    if (!isPremium) {
-                      context.push('/subscription');
-                      return;
-                    }
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      builder: (ctx) => const SyncDetailsSheet(),
-                    );
-                  },
-                ),
-              if (!AppConfig.enableCloudBackup)
-                ListTile(
-                  leading: const Icon(Icons.group, color: Colors.blue),
-                  title: const Text('Family Sharing'),
-                  subtitle: const Text('Invite partner or family member'),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {
-                    if (!isPremium) {
-                      context.push('/subscription');
-                      return;
-                    }
-                    context.push('/family_sharing');
-                  },
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildSettingsSection(
-            context,
-            'System',
-            [
-              ListTile(
-                leading: const Icon(Icons.bug_report, color: AppColors.primary),
-                title: const Text('App Diagnostics'),
-                subtitle: const Text('Test OEM alarm background restrictions'),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  context.push('/diagnostics');
-                },
-              ),
-            ],
-          ),
+          // const SizedBox(height: 16),
+          // _buildSettingsSection(
+          //   context,
+          //   'Data & Backup',
+          //   [
+          //     ListTile(
+          //       leading: const Icon(Icons.cloud_upload_outlined),
+          //       title: const Text('Back up to Google Drive'),
+          //       onTap: () async {
+          //         final success = await BackupService.backupToGoogleDrive();
+          //         if (mounted) {
+          //           ScaffoldMessenger.of(context).showSnackBar(
+          //             SnackBar(
+          //                 content: Text(success
+          //                     ? 'Backup uploaded successfully!'
+          //                     : 'Cloud backup failed. Are you signed in?')),
+          //           );
+          //         }
+          //       },
+          //     ),
+          //     ListTile(
+          //       leading: const Icon(Icons.cloud_download_outlined),
+          //       title: const Text('Restore from Google Drive'),
+          //       onTap: () async {
+          //         final success = await BackupService.restoreFromGoogleDrive();
+          //         if (mounted) {
+          //           ScaffoldMessenger.of(context).showSnackBar(
+          //             SnackBar(
+          //                 content: Text(success
+          //                     ? 'Backup restored successfully! Restarting...'
+          //                     : 'Cloud restore failed. No backup found?')),
+          //           );
+          //           if (success) context.go('/'); // Restart app to reload state
+          //         }
+          //       },
+          //     ),
+          //     if (AppConfig.enableCloudSync)
+          //       ListTile(
+          //         leading: const Icon(Icons.cloud_sync, color: Colors.blue),
+          //         title: const Text('Sync Data'),
+          //         subtitle: const Text('Manage cloud sync and backups'),
+          //         onTap: () {
+          //           if (!isPremium) {
+          //             context.push('/subscription');
+          //             return;
+          //           }
+          //           showModalBottomSheet(
+          //             context: context,
+          //             isScrollControlled: true,
+          //             backgroundColor: Colors.transparent,
+          //             builder: (ctx) => const SyncDetailsSheet(),
+          //           );
+          //         },
+          //       ),
+          //     if (!AppConfig.enableCloudBackup)
+          //       ListTile(
+          //         leading: const Icon(Icons.group, color: Colors.blue),
+          //         title: const Text('Family Sharing'),
+          //         subtitle: const Text('Invite partner or family member'),
+          //         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          //         onTap: () {
+          //           if (!isPremium) {
+          //             context.push('/subscription');
+          //             return;
+          //           }
+          //           context.push('/family_sharing');
+          //         },
+          //       ),
+          //   ],
+          // ),
+          // const SizedBox(height: 16),
+          // _buildSettingsSection(
+          //   context,
+          //   'System',
+          //   [
+          //     ListTile(
+          //       leading: const Icon(Icons.bug_report, color: AppColors.primary),
+          //       title: const Text('App Diagnostics'),
+          //       subtitle: const Text('Test OEM alarm background restrictions'),
+          //       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          //       onTap: () {
+          //         context.push('/diagnostics');
+          //       },
+          //     ),
+          //   ],
+          // ),
           const SizedBox(height: 16),
           _buildSettingsSection(
             context,

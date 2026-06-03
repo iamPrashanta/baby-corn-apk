@@ -45,10 +45,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/',
         builder: (context, state) => const SplashScreen(),
       ),
-      GoRoute(
-        path: '/language',
-        builder: (context, state) => const LanguageSelectionScreen(),
-      ),
+      // GoRoute(
+      //   path: '/language',
+      //   builder: (context, state) => const LanguageSelectionScreen(),
+      // ),
       GoRoute(
         path: '/auth',
         builder: (context, state) => const AuthScreen(),

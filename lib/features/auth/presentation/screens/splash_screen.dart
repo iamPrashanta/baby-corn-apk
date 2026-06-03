@@ -53,15 +53,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
       // --- Check language selection ---
       final prefs = await SharedPreferences.getInstance();
-      final hasSelectedLanguage =
-          prefs.getBool('has_selected_language') ?? false;
-      debugPrint('🔍 [Splash] has_selected_language=$hasSelectedLanguage');
+      // Language selection removed
+      // final hasSelectedLanguage =
+      //     prefs.getBool('has_selected_language') ?? false;
+      // debugPrint('🔍 [Splash] has_selected_language=$hasSelectedLanguage');
 
-      if (!hasSelectedLanguage) {
-        debugPrint('🔍 [Splash] → /language (language not selected yet)');
-        if (mounted) context.go('/language');
-        return;
-      }
+      // if (!hasSelectedLanguage) {
+      //   debugPrint('🔍 [Splash] → /language (language not selected yet)');
+      //   if (mounted) context.go('/language');
+      //   return;
+      // }
 
       // --- Read baby list (migration already complete by this point) ---
       final babies = ref.read(babyRepositoryProvider).getBabies();
