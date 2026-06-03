@@ -149,7 +149,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
-              'assets/images/logo.png',
+              'assets/images/logo_transparent.png',
               width: 150,
             ).animate().fade(duration: 800.ms).scale(
                 begin: const Offset(0.8, 0.8),

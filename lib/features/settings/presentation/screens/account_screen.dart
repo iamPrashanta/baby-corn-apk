@@ -301,7 +301,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                     applicationName: 'Baby Corn',
                     applicationVersion: '1.0.0',
                     applicationIcon: Image.asset(
-                      'assets/images/logo.png', // Assuming there's a logo in assets, otherwise a generic icon
+                      'assets/images/logo_transparent.png', // Assuming there's a logo in assets, otherwise a generic icon
                       width: 48,
                       height: 48,
                       errorBuilder: (_, __, ___) =>
