@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../providers/reminder_settings_provider.dart';
 import '../../domain/models/reminder_settings_model.dart';
@@ -48,7 +49,8 @@ class RemindersSettingScreen extends ConsumerWidget {
                 if (val) {
                   await ReminderService.requestPermissions();
                 }
-                ref.read(reminderSettingsProvider.notifier).toggleMaster(val);
+                final is24Hour = MediaQuery.of(context).alwaysUse24HourFormat;
+                ref.read(reminderSettingsProvider.notifier).toggleMaster(val, is24Hour: is24Hour);
               },
             ),
           ),
@@ -184,12 +186,26 @@ class RemindersSettingScreen extends ConsumerWidget {
   }) {
     String subtitleText = '';
     if (catSettings.mode == 'smart') {
-      subtitleText =
-          'Smart Mode: Wait ${catSettings.repeatHours} hr after action';
+      subtitleText = 'Smart Mode: Wait ${catSettings.repeatHours} hr after action';
     } else if (catSettings.mode == 'repeat') {
       subtitleText = 'Repeat every ${catSettings.repeatHours} hr';
     } else {
       subtitleText = 'Exact time: ${catSettings.exactTime}';
+    }
+
+    if (catSettings.isEnabled && catSettings.nextScheduledTime != null) {
+      final now = DateTime.now();
+      final isToday = catSettings.nextScheduledTime!.year == now.year && 
+                      catSettings.nextScheduledTime!.month == now.month && 
+                      catSettings.nextScheduledTime!.day == now.day;
+      
+      final dayStr = isToday ? "Today" : "Tomorrow";
+      final is24Hour = MediaQuery.of(context).alwaysUse24HourFormat;
+      final timeStr = is24Hour 
+          ? DateFormat('HH:mm').format(catSettings.nextScheduledTime!) 
+          : DateFormat('h:mm a').format(catSettings.nextScheduledTime!);
+      
+      subtitleText += '\nNext reminder: $dayStr • $timeStr';
     }
 
     return ListTile(
@@ -202,9 +218,10 @@ class RemindersSettingScreen extends ConsumerWidget {
         onChanged: (val) {
           final notifier = ref.read(reminderSettingsProvider.notifier);
           final updated = catSettings.copyWith(isEnabled: val);
-          if (category == 'feeding') notifier.updateFeeding(updated);
-          if (category == 'sleep') notifier.updateSleep(updated);
-          if (category == 'diaper') notifier.updateDiaper(updated);
+          final is24Hour = MediaQuery.of(context).alwaysUse24HourFormat;
+          if (category == 'feeding') notifier.updateFeeding(updated, is24Hour: is24Hour);
+          if (category == 'sleep') notifier.updateSleep(updated, is24Hour: is24Hour);
+          if (category == 'diaper') notifier.updateDiaper(updated, is24Hour: is24Hour);
         },
       ),
       onTap: () {

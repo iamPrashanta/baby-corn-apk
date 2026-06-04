@@ -2,6 +2,7 @@
 
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../features/settings/domain/models/reminder_settings_model.dart';
 import '../../features/medication/domain/models/medication_model.dart';
@@ -40,22 +41,22 @@ class ReminderService {
     await AlarmService.stopAlarm(id);
   }
 
-  static Future<ReminderSettingsModel> updateSchedules(ReminderSettingsModel settings) async {
+  static Future<ReminderSettingsModel> updateSchedules(ReminderSettingsModel settings, {bool is24Hour = false}) async {
     await cancelAll();
 
     if (!settings.isMasterEnabled) {
       return settings;
     }
 
-    final updatedFeeding = await _scheduleCategory(0, 'Feeding Reminder', 'Time for a feeding session!', settings.feeding, 'feeding');
-    final updatedSleep = await _scheduleCategory(100, 'Sleep Reminder', 'Time for baby to catch some Zzzs.', settings.sleep, 'sleep');
-    final updatedDiaper = await _scheduleCategory(200, 'Diaper Reminder', 'Time for a fresh diaper!', settings.diaper, 'diaper');
+    final updatedFeeding = await _scheduleCategory(0, 'Feeding Reminder', 'Time for a feeding session!', settings.feeding, 'feeding', is24Hour);
+    final updatedSleep = await _scheduleCategory(100, 'Sleep Reminder', 'Time for baby to catch some Zzzs.', settings.sleep, 'sleep', is24Hour);
+    final updatedDiaper = await _scheduleCategory(200, 'Diaper Reminder', 'Time for a fresh diaper!', settings.diaper, 'diaper', is24Hour);
 
     try {
       final box = HiveManager.getMedicationsBox();
       for (final med in box.values) {
         if (med.isActive) {
-          await scheduleMedication(med);
+          await scheduleMedication(med, is24Hour: is24Hour);
         }
       }
     } catch (e) {
@@ -70,7 +71,7 @@ class ReminderService {
   }
 
   static Future<ReminderCategorySettings> _scheduleCategory(
-      int baseId, String title, String body, ReminderCategorySettings category, String type) async {
+      int baseId, String title, String body, ReminderCategorySettings category, String type, bool is24Hour) async {
     if (!category.isEnabled) {
       return category.copyWith(clearNextScheduledTime: true);
     }
@@ -127,6 +128,15 @@ class ReminderService {
       await _executeSchedule(baseId, scheduledDate, title, body, category, 'alarm|$type|exact|$baseId');
     }
 
+    if (nextScheduled != null) {
+      final timeStr = is24Hour ? DateFormat('HH:mm').format(nextScheduled) : DateFormat('h:mm a').format(nextScheduled);
+      NotificationService.showConfirmationNotification(
+        title: 'Reminder Scheduled',
+        body: '$title scheduled for $timeStr',
+      );
+      debugPrint('[REMINDER SCHEDULED] $title | Type: $type | Time: $nextScheduled | ID: $baseId');
+    }
+
     return category.copyWith(nextScheduledTime: nextScheduled);
   }
 
@@ -148,10 +158,12 @@ class ReminderService {
     await NotificationService.scheduleNotification(id: id, dateTime: scheduledDate, title: title, body: body);
   }
 
-  static Future<void> scheduleMedication(MedicationModel med) async {
+  static Future<void> scheduleMedication(MedicationModel med, {bool is24Hour = false}) async {
     if (!med.isActive) return;
 
     final now = DateTime.now();
+    bool hasScheduled = false;
+    DateTime? firstScheduled;
 
     for (int i = 0; i < med.times.length; i++) {
       final timeStr = med.times[i];
@@ -177,9 +189,21 @@ class ReminderService {
       final uniqueId = 10000 + (med.id.hashCode.abs() % 10000) + i;
       final payload = 'alarm|medication|${med.id}|$uniqueId|${scheduledDate.millisecondsSinceEpoch}';
 
-      // Always use full alarm for medications by default
-      // TODO: read medication specific profiles in future
       await NotificationService.scheduleNotification(id: uniqueId, dateTime: scheduledDate, title: 'Medication: ${med.name}', body: 'Time for ${med.doseAmount} ${med.doseUnit}', payload: payload);
+      
+      hasScheduled = true;
+      if (firstScheduled == null || scheduledDate.isBefore(firstScheduled)) {
+        firstScheduled = scheduledDate;
+      }
+      debugPrint('[REMINDER SCHEDULED] Medication ${med.name} | Time: $scheduledDate | ID: $uniqueId');
+    }
+
+    if (hasScheduled && firstScheduled != null) {
+      final timeFmt = is24Hour ? DateFormat('HH:mm').format(firstScheduled) : DateFormat('h:mm a').format(firstScheduled);
+      NotificationService.showConfirmationNotification(
+        title: 'Reminder Scheduled',
+        body: 'Medication reminder scheduled for $timeFmt',
+      );
     }
   }
 

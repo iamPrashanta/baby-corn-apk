@@ -19,7 +19,6 @@ class AlarmScreen extends ConsumerStatefulWidget {
 }
 
 class _AlarmScreenState extends ConsumerState<AlarmScreen> {
-  late Timer _timeoutTimer;
   late Timer _clockTimer;
   DateTime _now = DateTime.now();
   bool _isCanceled = false;
@@ -38,14 +37,6 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
     // Update the clock every second
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) setState(() => _now = DateTime.now());
-    });
-
-    // 60-second timeout: If the user doesn't respond, we cancel the insistent alarm
-    // and re-issue a normal notification, then close this screen.
-    _timeoutTimer = Timer(const Duration(seconds: 60), () {
-      if (!_isCanceled && mounted) {
-        _handleMissedAlarm();
-      }
     });
   }
 
@@ -137,7 +128,6 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
 
   @override
   void dispose() {
-    _timeoutTimer.cancel();
     _clockTimer.cancel();
     if (!_isCanceled) {
       _stopAlarmSound();

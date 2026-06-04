@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:alarm/alarm.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/reminders/domain/models/alarm_profile_model.dart';
-import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import '../router/app_router.dart';
 
 class AlarmService {
@@ -21,19 +20,10 @@ class AlarmService {
     _ringSubscription = Alarm.ringStream.stream.listen((alarmSettings) {
       debugPrint('[ALARM TRIGGERED] Alarm with id ${alarmSettings.id} is ringing!');
       
-      final uri = alarmSettings.payload ?? 'default';
       final payload = alarmSettings.notificationSettings.body;
 
-      if (uri.startsWith('content://')) {
-        // Stop default alarm loop and play custom ringtone
-        Alarm.stop(alarmSettings.id);
-        FlutterRingtonePlayer().play(
-          fromFile: uri, // Passes the content URI
-          looping: true, // we handle stopping this manually on the AlarmScreen
-          volume: 1.0,
-          asAlarm: true,
-        );
-      }
+      // DO NOT STOP the alarm here. Let the native alarm package loop audio, 
+      // wake the screen, and vibrate until the user acts on the AlarmScreen.
       
       // Route to AlarmScreen
       if (rootNavigatorKey.currentContext != null) {
@@ -56,10 +46,14 @@ class AlarmService {
     required AlarmProfile profile,
     String? payload, // Extra data e.g. 'medication|123'
   }) async {
+    final ringtonePath = (profile.ringtoneUri != null && profile.ringtoneUri!.startsWith('content://')) 
+        ? profile.ringtoneUri! 
+        : 'assets/audio/alarm.wav';
+
     final alarmSettings = AlarmSettings(
       id: id,
       dateTime: dateTime,
-      assetAudioPath: 'assets/audio/alarm.wav',
+      assetAudioPath: ringtonePath,
       loopAudio: true,
       vibrate: profile.vibrationEnabled,
       notificationSettings: NotificationSettings(
@@ -77,14 +71,12 @@ class AlarmService {
     );
 
     await Alarm.set(alarmSettings: alarmSettings);
-    debugPrint('[ALARM CREATED] Scheduled exact alarm id: $id at $dateTime with tone ${profile.ringtoneUri}');
+    debugPrint('[ALARM CREATED] Scheduled exact alarm id: $id at $dateTime with tone $ringtonePath');
   }
 
   static Future<void> snoozeAlarm(int originalId, AlarmProfile profile) async {
     final snoozeTime = DateTime.now().add(Duration(minutes: profile.snoozeMinutes));
     
-    // Stop the custom ringtone if playing
-    FlutterRingtonePlayer().stop();
     await Alarm.stop(originalId);
     
     await scheduleAlarm(
@@ -97,13 +89,11 @@ class AlarmService {
   }
 
   static Future<void> stopAlarm(int id) async {
-    FlutterRingtonePlayer().stop();
     await Alarm.stop(id);
     debugPrint('[ALARM DISMISSED] Alarm $id stopped.');
   }
 
   static Future<void> stopAll() async {
-    FlutterRingtonePlayer().stop();
     await Alarm.stopAll();
     debugPrint('[ALARM DISMISSED] All alarms stopped.');
   }

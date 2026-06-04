@@ -58,6 +58,16 @@ class NotificationService {
             enableVibration: true,
           ),
         );
+        await androidImpl.createNotificationChannel(
+          const AndroidNotificationChannel(
+            'baby_corn_confirmation',
+            'Confirmation Notifications',
+            description: 'Silent confirmation messages',
+            importance: Importance.high,
+            playSound: false,
+            enableVibration: false,
+          ),
+        );
       }
     }
 
@@ -75,11 +85,13 @@ class NotificationService {
     final androidDetails = const AndroidNotificationDetails(
       'baby_corn_general',
       'General Notifications',
-      importance: Importance.high,
+      importance: Importance.max,
       priority: Priority.high,
       icon: '@mipmap/launcher_icon',
       playSound: true,
       enableVibration: true,
+      fullScreenIntent: true,
+      category: AndroidNotificationCategory.alarm,
     );
 
     final scheduledDate = tz.TZDateTime.from(dateTime, tz.local);
@@ -95,6 +107,28 @@ class NotificationService {
     );
     
     debugPrint('[NOTIFICATION CREATED] Scheduled notification id: $id at $scheduledDate');
+  }
+
+  static Future<void> showConfirmationNotification({
+    required String title,
+    required String body,
+  }) async {
+    final androidDetails = const AndroidNotificationDetails(
+      'baby_corn_confirmation',
+      'Confirmation Notifications',
+      importance: Importance.high,
+      priority: Priority.high,
+      icon: '@mipmap/launcher_icon',
+      playSound: false,
+      enableVibration: false,
+    );
+
+    await _plugin.show(
+      DateTime.now().millisecond,
+      title,
+      body,
+      NotificationDetails(android: androidDetails),
+    );
   }
 
   static Future<void> cancel(int id) async {

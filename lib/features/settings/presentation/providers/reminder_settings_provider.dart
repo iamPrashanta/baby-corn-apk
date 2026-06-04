@@ -32,12 +32,12 @@ class ReminderSettingsNotifier extends StateNotifier<ReminderSettingsModel> {
     }
   }
 
-  Future<void> _saveSettings(ReminderSettingsModel newSettings) async {
+  Future<void> _saveSettings(ReminderSettingsModel newSettings, bool is24Hour) async {
     // 1. Optimistic Update (Instant UI Response)
     state = newSettings;
 
     // 2. Also trigger actual schedule updates via ReminderService
-    final updatedSettings = await ReminderService.updateSchedules(newSettings);
+    final updatedSettings = await ReminderService.updateSchedules(newSettings, is24Hour: is24Hour);
 
     // 3. Update with exact calculated times
     state = updatedSettings;
@@ -45,19 +45,19 @@ class ReminderSettingsNotifier extends StateNotifier<ReminderSettingsModel> {
     await box.put(_settingsKey, jsonEncode(updatedSettings.toJson()));
   }
 
-  void toggleMaster(bool isEnabled) {
-    _saveSettings(state.copyWith(isMasterEnabled: isEnabled));
+  void toggleMaster(bool isEnabled, {bool is24Hour = false}) {
+    _saveSettings(state.copyWith(isMasterEnabled: isEnabled), is24Hour);
   }
 
-  void updateFeeding(ReminderCategorySettings settings) {
-    _saveSettings(state.copyWith(feeding: settings));
+  void updateFeeding(ReminderCategorySettings settings, {bool is24Hour = false}) {
+    _saveSettings(state.copyWith(feeding: settings), is24Hour);
   }
 
-  void updateSleep(ReminderCategorySettings settings) {
-    _saveSettings(state.copyWith(sleep: settings));
+  void updateSleep(ReminderCategorySettings settings, {bool is24Hour = false}) {
+    _saveSettings(state.copyWith(sleep: settings), is24Hour);
   }
 
-  void updateDiaper(ReminderCategorySettings settings) {
-    _saveSettings(state.copyWith(diaper: settings));
+  void updateDiaper(ReminderCategorySettings settings, {bool is24Hour = false}) {
+    _saveSettings(state.copyWith(diaper: settings), is24Hour);
   }
 }

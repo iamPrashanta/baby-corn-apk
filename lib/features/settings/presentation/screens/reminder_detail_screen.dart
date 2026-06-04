@@ -66,9 +66,11 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
       profile: _profile,
     );
 
-    if (widget.category == 'feeding') notifier.updateFeeding(updated);
-    if (widget.category == 'sleep') notifier.updateSleep(updated);
-    if (widget.category == 'diaper') notifier.updateDiaper(updated);
+    final is24Hour = MediaQuery.of(context).alwaysUse24HourFormat;
+    
+    if (widget.category == 'feeding') notifier.updateFeeding(updated, is24Hour: is24Hour);
+    if (widget.category == 'sleep') notifier.updateSleep(updated, is24Hour: is24Hour);
+    if (widget.category == 'diaper') notifier.updateDiaper(updated, is24Hour: is24Hour);
 
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
