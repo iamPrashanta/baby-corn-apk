@@ -198,7 +198,7 @@ class LaunchpadScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AppColors.primary.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(4.0),
             border: Border.all(color: AppColors.primary.withOpacity(0.5)),
           ),
           child: Row(
@@ -228,6 +228,10 @@ class LaunchpadScreen extends ConsumerWidget {
     int feedsCount = 0;
     int diapersCount = 0;
 
+    DateTime? lastFeed;
+    DateTime? lastSleep;
+    DateTime? lastDiaper;
+
     final now = DateTime.now();
 
     recordsAsync.whenData((records) {
@@ -244,10 +248,19 @@ class LaunchpadScreen extends ConsumerWidget {
             } else if (min != null) {
               sleepMinutes += min as int;
             }
+            if (lastSleep == null || r.timestamp.isAfter(lastSleep!)) {
+              lastSleep = r.timestamp;
+            }
           } else if (type.contains('feed')) {
             feedsCount++;
+            if (lastFeed == null || r.timestamp.isAfter(lastFeed!)) {
+              lastFeed = r.timestamp;
+            }
           } else if (type == 'diaper') {
             diapersCount++;
+            if (lastDiaper == null || r.timestamp.isAfter(lastDiaper!)) {
+              lastDiaper = r.timestamp;
+            }
           }
         }
       }
@@ -257,11 +270,19 @@ class LaunchpadScreen extends ConsumerWidget {
         ? '${sleepMinutes ~/ 60}h ${sleepMinutes % 60}m'
         : '${sleepMinutes}m';
 
+    String _timeAgo(DateTime? time) {
+      if (time == null) return '--';
+      final diff = now.difference(time);
+      if (diff.inMinutes < 60) return '${diff.inMinutes}m';
+      if (diff.inHours < 24) return '${diff.inHours}h ${diff.inMinutes % 60}m';
+      return 'Today';
+    }
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(4.0),
         boxShadow: [
           BoxShadow(
             color: isDark ? Colors.black12 : const Color(0x08000000),
@@ -276,36 +297,46 @@ class LaunchpadScreen extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                "Today's Overview",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white70 : AppColors.surfaceHighlight,
+              Row(
+                children: [
+                  Icon(Icons.auto_awesome_rounded, color: AppColors.primary, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    "Smart Overview",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white70 : Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  DateFormat('MMM d, yyyy').format(now),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
                 ),
               ),
-              Icon(Icons.auto_awesome_rounded,
-                  color: AppColors.primary, size: 20),
             ],
           ),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildSummaryItem(
-                  '😴', sleepMinutes == 0 ? '--' : sleepStr, 'Sleep', isDark),
-              Container(
-                  width: 1,
-                  height: 40,
-                  color:
-                      isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
-              _buildSummaryItem('🍼', '$feedsCount times', 'Feeds', isDark),
-              Container(
-                  width: 1,
-                  height: 40,
-                  color:
-                      isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
-              _buildSummaryItem('🩲', '$diapersCount times', 'Diapers', isDark),
+              Expanded(child: _buildSummaryItem('😴', sleepMinutes == 0 ? '--' : sleepStr, 'Sleep', _timeAgo(lastSleep), isDark)),
+              Container(width: 1, height: 60, color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
+              Expanded(child: _buildSummaryItem('🍼', feedsCount == 0 ? '--' : '$feedsCount times', 'Feeds', _timeAgo(lastFeed), isDark)),
+              Container(width: 1, height: 60, color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
+              Expanded(child: _buildSummaryItem('🩲', diapersCount == 0 ? '--' : '$diapersCount times', 'Diapers', _timeAgo(lastDiaper), isDark)),
             ],
           ),
         ],
@@ -352,7 +383,7 @@ class LaunchpadScreen extends ConsumerWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(4.0),
               border: Border.all(color: AppColors.vaccine.withOpacity(0.3)),
               boxShadow: [
                 BoxShadow(
@@ -391,7 +422,7 @@ class LaunchpadScreen extends ConsumerWidget {
                             const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(color: Colors.red.withOpacity(0.2), borderRadius: BorderRadius.circular(4)),
+                              decoration: BoxDecoration(color: Colors.red.withOpacity(0.2), borderRadius: BorderRadius.circular(4.0)),
                               child: const Text('Overdue', style: TextStyle(color: Colors.red, fontSize: 10, fontWeight: FontWeight.bold)),
                             ),
                           ],
@@ -461,7 +492,7 @@ class LaunchpadScreen extends ConsumerWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(4.0),
               border: Border.all(color: AppColors.primary.withOpacity(0.3)),
               boxShadow: [
                 BoxShadow(
@@ -499,7 +530,7 @@ class LaunchpadScreen extends ConsumerWidget {
                           const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                            decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(4.0)),
                             child: Text(remainingText, style: const TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.bold)),
                           ),
                         ],
@@ -581,7 +612,7 @@ class LaunchpadScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: isDark ? Theme.of(context).cardColor : Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(4.0),
           border: Border.all(color: AppColors.primary.withOpacity(0.3)),
           boxShadow: [
             BoxShadow(
@@ -636,7 +667,7 @@ class LaunchpadScreen extends ConsumerWidget {
               children: [
                 Expanded(
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(4.0),
                     child: LinearProgressIndicator(
                       value: progress,
                       minHeight: 8,
@@ -666,22 +697,56 @@ class LaunchpadScreen extends ConsumerWidget {
   }
 
   Widget _buildSummaryItem(
-      String emoji, String value, String label, bool isDark) {
+      String emoji, String value, String label, String lastTimeStr, bool isDark) {
     return Column(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 20)),
-        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white.withOpacity(0.05) : AppColors.primary.withOpacity(0.05),
+            shape: BoxShape.circle,
+          ),
+          child: Text(emoji, style: const TextStyle(fontSize: 24)),
+        ),
+        const SizedBox(height: 12),
         Text(
           value,
-          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+          style: TextStyle(
+            fontWeight: FontWeight.w800, 
+            fontSize: 16,
+            color: isDark ? Colors.white : Colors.black87,
+          ),
         ),
         const SizedBox(height: 2),
         Text(
           label,
           style: TextStyle(
             fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: isDark ? Colors.white38 : AppColors.lightTextSecondary,
+            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white60 : Colors.black54,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white10 : Colors.black.withOpacity(0.04),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.history, size: 10, color: isDark ? Colors.white54 : Colors.black54),
+              const SizedBox(width: 4),
+              Text(
+                lastTimeStr == '--' ? '--' : '$lastTimeStr ago',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white70 : Colors.black87,
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -843,7 +908,7 @@ class LaunchpadScreen extends ConsumerWidget {
               context: context,
               builder: (ctx) => AlertDialog(
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24)),
+                    borderRadius: BorderRadius.circular(4.0)),
                 title: const Text('Timer Running'),
                 content: const Text(
                     'Stop the active timer before switching profiles.'),
@@ -929,7 +994,7 @@ class _ProfileSwitcherSheet extends StatelessWidget {
                 decoration: BoxDecoration(
                   color:
                       isActive ? AppColors.primary.withOpacity(0.12) : cardBg,
-                  borderRadius: BorderRadius.circular(22),
+                  borderRadius: BorderRadius.circular(4.0),
                   border: Border.all(
                     color: isActive ? AppColors.primary : Colors.transparent,
                     width: 2,
@@ -988,7 +1053,7 @@ class _ProfileSwitcherSheet extends StatelessWidget {
                             horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withOpacity(0.18),
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(4.0),
                         ),
                         child: const Text(
                           'Active',
@@ -1025,7 +1090,7 @@ class _ProfileSwitcherSheet extends StatelessWidget {
                 color: isDark
                     ? Colors.white.withOpacity(0.06)
                     : Colors.black.withOpacity(0.04),
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(4.0),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,

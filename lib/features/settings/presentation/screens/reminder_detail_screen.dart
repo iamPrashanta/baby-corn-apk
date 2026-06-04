@@ -75,7 +75,7 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
       SnackBar(
         content: Text('${_getCategoryTitle()} settings saved!'),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
       ),
     );
 
@@ -144,7 +144,7 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(4.0),
                   border: Border.all(color: AppColors.primary.withOpacity(0.3)),
                 ),
                 child: Column(
@@ -241,13 +241,13 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
                       setState(() => _exactTime = picked);
                     }
                   },
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(4.0),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 48, vertical: 24),
                     decoration: BoxDecoration(
                       color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(4.0),
                       border: Border.all(
                         color:
                             AppColors.primary.withOpacity(isDark ? 0.2 : 0.1),

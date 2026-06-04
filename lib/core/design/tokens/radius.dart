@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 class AppRadius {
-  static const double sm = 12.0;
-  static const double md = 16.0;
-  static const double lg = 24.0;
-  static const double xl = 32.0;
+  static const double sm = 4.0;
+  static const double md = 6.0;
+  static const double lg = 8.0;
+  static const double xl = 12.0;
 
   static final BorderRadius small = BorderRadius.circular(sm);
   static final BorderRadius medium = BorderRadius.circular(md);
@@ -12,7 +12,7 @@ class AppRadius {
   static final BorderRadius extraLarge = BorderRadius.circular(xl);
   
   // Legacy mappings for backwards compatibility during migration
-  static final BorderRadius cardBorder = BorderRadius.circular(24.0);
-  static final BorderRadius buttonBorder = BorderRadius.circular(10.0);
-  static final BorderRadius dialogBorder = BorderRadius.circular(24.0);
+  static final BorderRadius cardBorder = BorderRadius.circular(4.0);
+  static final BorderRadius buttonBorder = BorderRadius.circular(4.0);
+  static final BorderRadius dialogBorder = BorderRadius.circular(4.0);
 }

@@ -192,7 +192,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(4.0),
         boxShadow: [
           BoxShadow(
             color: isDark ? Colors.black26 : Colors.transparent,
@@ -226,7 +226,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: accentColor.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(4.0),
                   ),
                   child: Text(
                     '${items.length}',
@@ -270,7 +270,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(4.0),
         boxShadow: [
           BoxShadow(
             color: isDark ? Colors.black26 : Colors.transparent,
@@ -304,7 +304,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: accentColor.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(4.0),
                   ),
                   child: Text(
                     '${items.length}',
@@ -392,7 +392,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: isDone ? Colors.grey : (isOverdue ? Colors.red : (isDark ? Colors.white : AppColors.surfaceHighlight)),
+                            color: isDone ? Colors.grey : (isOverdue ? Colors.red : (isDark ? Colors.white : Colors.black87)),
                           ),
                         ),
                       ),
@@ -401,7 +401,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: AppColors.vaccine.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(4.0),
                           ),
                           child: const Text('CUSTOM', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.vaccine)),
                         )
@@ -436,7 +436,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: Colors.green.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(4.0),
                         ),
                         child: Text(
                           '✅ Given ${DateFormat('MMM d, yyyy').format(item.loggedRecord!.timestamp)}',
@@ -486,7 +486,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
               ),
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(8.0)),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -666,7 +666,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
               ),
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(8.0)),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -870,29 +870,129 @@ class VaccinationTrackerScreen extends ConsumerWidget {
     );
   }
   void _showActionSheet(BuildContext context, WidgetRef ref, VaccineDisplayItem item) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-             ListTile(
-               leading: const Icon(Icons.check_circle_outline, color: Colors.green),
-               title: const Text('Log as Administered'),
-               onTap: () {
-                 Navigator.pop(ctx);
-                 _showLogDialog(context, ref, item);
-               },
-             ),
-             ListTile(
-               leading: const Icon(Icons.calendar_today, color: AppColors.vaccine),
-               title: const Text('Schedule Reminder'),
-               onTap: () {
-                 Navigator.pop(ctx);
-                 _showScheduleDialog(context, ref, item);
-               },
-             ),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(8.0)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.4 : 0.1),
+              blurRadius: 20,
+              offset: const Offset(0, -4),
+            ),
           ],
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              // Drag handle
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(2.0),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.vaccine.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.vaccines, color: AppColors.vaccine, size: 28),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      item.name,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Choose an action for this vaccine',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDark ? Colors.white54 : Colors.black54,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Action items
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Card(
+                  elevation: 0,
+                  color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        leading: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4.0),
+                          ),
+                          child: const Icon(Icons.check_circle, color: Colors.green),
+                        ),
+                        title: const Text(
+                          'Log as Administered',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        subtitle: const Text('Mark this vaccine as given today or in the past'),
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          _showLogDialog(context, ref, item);
+                        },
+                      ),
+                      Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        leading: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: AppColors.vaccine.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4.0),
+                          ),
+                          child: const Icon(Icons.calendar_month, color: AppColors.vaccine),
+                        ),
+                        title: const Text(
+                          'Schedule Reminder',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        subtitle: const Text('Set a date and time to be reminded later'),
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          _showScheduleDialog(context, ref, item);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
     );
@@ -920,7 +1020,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
               ),
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(8.0)),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,

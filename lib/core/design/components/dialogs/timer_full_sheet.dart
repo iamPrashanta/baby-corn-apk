@@ -225,7 +225,7 @@ class _TimerFullSheetState extends ConsumerState<TimerFullSheet>
                         color: activeSession.isRunning
                             ? accentColor.withOpacity(0.12)
                             : AppColors.primary.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(4.0),
                       ),
                       child: Text(
                         activeSession.isRunning ? 'Running' : 'Paused',
@@ -310,7 +310,7 @@ class _TimerFullSheetState extends ConsumerState<TimerFullSheet>
               color: isDark
                   ? Colors.white.withOpacity(0.05)
                   : Colors.black.withOpacity(0.03),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(4.0),
               border: Border.all(
                 color: isDark
                     ? Colors.white.withOpacity(0.08)
@@ -455,7 +455,7 @@ class _FeedingSideSwitch extends StatelessWidget {
           color: isDark
               ? Colors.white.withOpacity(0.05)
               : Colors.black.withOpacity(0.03),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(4.0),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -501,7 +501,7 @@ class _SideChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       decoration: BoxDecoration(
         color: isActive ? color.withOpacity(0.15) : Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(4.0),
       ),
       child: Text(
         label,

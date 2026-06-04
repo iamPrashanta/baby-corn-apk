@@ -115,7 +115,7 @@ class BabyRashesScreen extends StatelessWidget {
                       color: isDark
                           ? Colors.white.withOpacity(0.05)
                           : Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(4.0),
                       boxShadow: [
                         if (!isDark)
                           BoxShadow(
@@ -139,7 +139,7 @@ class BabyRashesScreen extends StatelessWidget {
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
                                 color: AppColors.primary.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(4.0),
                               ),
                               child: Icon(
                                 rash['icon'] as IconData,

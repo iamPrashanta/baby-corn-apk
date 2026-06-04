@@ -51,7 +51,7 @@ class _AddFoodDialogState extends ConsumerState<AddFoodDialog> {
 
     return Dialog(
       backgroundColor: isDark ? GlassColors.darkGlassSurface : Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
       child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -84,7 +84,7 @@ class _AddFoodDialogState extends ConsumerState<AddFoodDialog> {
                 decoration: InputDecoration(
                   labelText: "Food Name (e.g. Apple Puree)",
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(4.0),
                   ),
                   filled: true,
                   fillColor: isDark ? Colors.white10 : Colors.grey.shade50,
@@ -101,7 +101,7 @@ class _AddFoodDialogState extends ConsumerState<AddFoodDialog> {
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(4.0),
                     ),
                   ),
                   child: const Text(
@@ -117,7 +117,7 @@ class _AddFoodDialogState extends ConsumerState<AddFoodDialog> {
                   onPressed: () => Navigator.of(context).pop(),
                   style: TextButton.styleFrom(
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(4.0),
                     ),
                   ),
                   child: Text(

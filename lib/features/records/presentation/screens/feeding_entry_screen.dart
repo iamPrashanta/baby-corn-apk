@@ -126,17 +126,17 @@ class _FeedingEntryScreenState extends ConsumerState<FeedingEntryScreen> {
           ? Colors.white.withOpacity(0.05)
           : Colors.black.withOpacity(0.02),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(4.0),
         borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(4.0),
         borderSide: BorderSide(
           color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.06),
         ),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(4.0),
         borderSide: BorderSide(
           color: AppColors.primary.withOpacity(0.5),
           width: 1.5,

@@ -219,7 +219,7 @@ class MedicationDashboardScreen extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.redAccent.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(4.0),
         border: Border.all(color: Colors.redAccent.withOpacity(0.3)),
       ),
       child: Row(
@@ -277,7 +277,7 @@ class MedicationDashboardScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(4.0),
               border: Border.all(color: AppColors.primary.withOpacity(0.3)),
             ),
             child: Row(
@@ -475,7 +475,7 @@ class MedicationDashboardScreen extends ConsumerWidget {
                     .colorScheme
                     .surfaceContainerHighest
                     .withOpacity(0.3),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(4.0),
                 border: Border(left: BorderSide(color: statusColor, width: 4)),
               ),
               child: Row(
@@ -505,7 +505,7 @@ class MedicationDashboardScreen extends ConsumerWidget {
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: statusColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(4.0),
                     ),
                     child: Row(
                       children: [
@@ -576,7 +576,7 @@ class _SummaryCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(4.0),
         border: Border.all(color: Colors.white.withOpacity(0.1)),
       ),
       child: Column(

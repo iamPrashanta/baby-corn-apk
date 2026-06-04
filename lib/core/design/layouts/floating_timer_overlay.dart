@@ -115,7 +115,7 @@ class _FloatingTimerOverlayState extends ConsumerState<FloatingTimerOverlay>
       child: GestureDetector(
         onTap: _openFullSheet,
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(4.0),
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
             child: Container(
@@ -125,7 +125,7 @@ class _FloatingTimerOverlayState extends ConsumerState<FloatingTimerOverlay>
                 color: isDark
                     ? Colors.black.withOpacity(0.6)
                     : Colors.white.withOpacity(0.85),
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(4.0),
                 border: Border.all(
                   color: accentColor.withOpacity(0.3),
                   width: 1.5,

@@ -55,7 +55,7 @@ class _ReactionSymptomsDialogState extends State<ReactionSymptomsDialog> {
 
     return Dialog(
       backgroundColor: isDark ? GlassColors.darkGlassSurface : Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: SingleChildScrollView(
@@ -121,7 +121,7 @@ class _ReactionSymptomsDialogState extends State<ReactionSymptomsDialog> {
                   decoration: InputDecoration(
                     labelText: "Additional Notes",
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(4.0),
                     ),
                     filled: true,
                     fillColor: isDark ? Colors.white10 : Colors.grey.shade50,
@@ -143,7 +143,7 @@ class _ReactionSymptomsDialogState extends State<ReactionSymptomsDialog> {
                 decoration: InputDecoration(
                   labelText: "Doctor's Recommendation (e.g. Avoid until 12m)",
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(4.0),
                   ),
                   filled: true,
                   fillColor: isDark ? Colors.white10 : Colors.grey.shade50,
@@ -179,7 +179,7 @@ class _ReactionSymptomsDialogState extends State<ReactionSymptomsDialog> {
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(4.0),
                       ),
                     ),
                     child: const Text("Save Record"),

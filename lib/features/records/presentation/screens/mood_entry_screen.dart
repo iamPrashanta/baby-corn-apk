@@ -155,11 +155,11 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen> {
                   ? Colors.white.withOpacity(0.05)
                   : Colors.black.withOpacity(0.02),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(4.0),
                 borderSide: BorderSide.none,
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(4.0),
                 borderSide: BorderSide(
                   color: isDark
                       ? Colors.white.withOpacity(0.08)
@@ -167,7 +167,7 @@ class _MoodEntryScreenState extends ConsumerState<MoodEntryScreen> {
                 ),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(4.0),
                 borderSide: BorderSide(
                   color: AppColors.mood.withOpacity(0.8),
                   width: 1.5,

@@ -322,7 +322,28 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                   'Log Out',
                   style: TextStyle(color: Colors.red),
                 ),
-                onTap: _signOut,
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('Confirm Logout'),
+                      content: const Text('Are you sure you want to log out?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            _signOut();
+                          },
+                          child: const Text('Log Out', style: TextStyle(color: Colors.red)),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               )
             else if (AppConfig.enableFirebaseAuth)
               ListTile(
@@ -355,7 +376,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(4.0),
         boxShadow: [
           BoxShadow(
             color: AppColors.primary.withOpacity(0.08),
@@ -412,7 +433,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                     color: isGoogleUser
                         ? AppColors.primary.withOpacity(0.12)
                         : AppColors.primary.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(4.0),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -525,7 +546,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
         ),
         Card(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(4.0),
           ),
           clipBehavior: Clip
               .antiAlias, // This clips the rectangular ripple animations of ListTiles inside

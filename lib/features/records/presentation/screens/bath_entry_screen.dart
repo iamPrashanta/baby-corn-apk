@@ -96,11 +96,11 @@ class _BathEntryScreenState extends ConsumerState<BathEntryScreen> {
                   ? Colors.white.withOpacity(0.05)
                   : Colors.black.withOpacity(0.02),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(4.0),
                 borderSide: BorderSide.none,
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(4.0),
                 borderSide: BorderSide(
                   color: isDark
                       ? Colors.white.withOpacity(0.08)
@@ -108,7 +108,7 @@ class _BathEntryScreenState extends ConsumerState<BathEntryScreen> {
                 ),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(4.0),
                 borderSide: BorderSide(
                   color: Colors.lightBlue.withOpacity(0.5),
                   width: 1.5,

@@ -187,7 +187,7 @@ class PermissionService {
           context: context,
           builder: (ctx) => AlertDialog(
             shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
             title: Row(
               children: [
                 Icon(icon, color: Theme.of(context).primaryColor),
@@ -206,7 +206,7 @@ class PermissionService {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                      borderRadius: BorderRadius.circular(4.0)),
                 ),
                 onPressed: () => Navigator.pop(ctx, true),
                 child: const Text('Allow'),
@@ -226,7 +226,7 @@ class PermissionService {
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
         title: Row(
           children: [
             Icon(icon, color: AppColors.primary),

@@ -119,7 +119,7 @@ class DoctorAppointmentsScreen extends ConsumerWidget {
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(4.0),
         boxShadow: [
           BoxShadow(
             color: isDark ? Colors.black26 : Colors.transparent,

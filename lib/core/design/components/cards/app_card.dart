@@ -29,10 +29,10 @@ class AppCard extends StatelessWidget {
     final content = Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: color ?? AppColors.surfaceHighlight,
+        color: color ?? (isDark ? AppColors.surfaceHighlight : AppColors.lightSurfaceHighlight),
         borderRadius: AppRadius.cardBorder,
         border: Border.all(
-          color: AppColors.white.withOpacity(0.08),
+          color: isDark ? AppColors.white.withOpacity(0.08) : Colors.black.withOpacity(0.05),
           width: 1,
         ),
         boxShadow: hasShadow ? AppShadows.premiumShadow : null,

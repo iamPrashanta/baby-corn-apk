@@ -64,7 +64,7 @@ class ManageBabiesScreen extends ConsumerWidget {
         context: context,
         builder: (ctx) => AlertDialog(
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
           title: const Text('Timer Running'),
           content: const Text(
               'Stop the active timer before switching baby profiles.'),
@@ -94,7 +94,7 @@ class ManageBabiesScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
         title: const Text('Delete Baby Profile'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -189,7 +189,7 @@ class _BabyCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(4.0),
         border: isActive
             ? Border.all(color: AppColors.primary, width: 2.5)
             : Border.all(color: Colors.transparent, width: 2.5),
@@ -252,7 +252,7 @@ class _BabyCard extends StatelessWidget {
                                   horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
                                 color: AppColors.primary.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(20),
+                                borderRadius: BorderRadius.circular(4.0),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -299,7 +299,7 @@ class _BabyCard extends StatelessWidget {
                     color: isDark ? Colors.white54 : Colors.black38,
                   ),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
+                      borderRadius: BorderRadius.circular(4.0)),
                   onSelected: (value) {
                     if (value == 'edit') onEdit();
                     if (value == 'delete') onDelete();
@@ -369,7 +369,7 @@ class _BabyCard extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(4.0),
                   ),
                   child: const Center(
                     child: Text(
@@ -404,7 +404,7 @@ class _Badge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(4.0),
       ),
       child: Text(
         label,

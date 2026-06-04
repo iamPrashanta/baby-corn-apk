@@ -43,7 +43,7 @@ class _FoodLibraryTabState extends ConsumerState<FoodLibraryTab> {
               filled: true,
               fillColor: isDark ? GlassColors.darkGlassSurface : Colors.white,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(4.0),
                 borderSide: BorderSide.none,
               ),
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -62,7 +62,7 @@ class _FoodLibraryTabState extends ConsumerState<FoodLibraryTab> {
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
                   color: isDark ? GlassColors.darkGlassSurface : Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(4.0),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.05),
@@ -113,7 +113,7 @@ class _FoodLibraryTabState extends ConsumerState<FoodLibraryTab> {
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
                               color: Colors.red.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(4),
+                              borderRadius: BorderRadius.circular(4.0),
                             ),
                             child: Text(
                               "Allergen",

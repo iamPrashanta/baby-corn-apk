@@ -119,7 +119,7 @@ class SubscriptionScreen extends ConsumerWidget {
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(4.0),
                     border: Border.all(
                         color: AppColors.primary.withOpacity(0.5), width: 2),
                     boxShadow: [
@@ -162,7 +162,7 @@ class SubscriptionScreen extends ConsumerWidget {
                             horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(4.0),
                         ),
                         child: const Text(
                           'Most Popular',
@@ -208,7 +208,7 @@ class SubscriptionScreen extends ConsumerWidget {
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(4.0),
                     ),
                     elevation: 5,
                   ),

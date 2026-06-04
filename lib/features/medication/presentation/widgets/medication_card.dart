@@ -41,10 +41,10 @@ class MedicationCard extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         clipBehavior: Clip.antiAlias,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(4.0),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(4.0),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -183,7 +183,7 @@ class MedicationCard extends StatelessWidget {
                       label: const Text('Take Dose'),
                       style: FilledButton.styleFrom(
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(4.0),
                         ),
                       ),
                     ),
@@ -224,7 +224,7 @@ class MedicationCard extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         ClipRRect(
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(4.0),
           child: LinearProgressIndicator(
             value: progress,
             backgroundColor:

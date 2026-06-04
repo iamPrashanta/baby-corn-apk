@@ -135,7 +135,7 @@ class SanskarJourneyScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(4.0),
           boxShadow: [
             if (!isDark)
               BoxShadow(
@@ -159,7 +159,7 @@ class SanskarJourneyScreen extends ConsumerWidget {
                     color: sanskar.isCompleted
                         ? Colors.green.withOpacity(0.15)
                         : AppColors.primary.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(4.0),
                   ),
                   child: Center(
                     child: sanskar.isCompleted
@@ -209,7 +209,7 @@ class SanskarJourneyScreen extends ConsumerWidget {
                           color: sanskar.isCompleted
                               ? Colors.green.withOpacity(0.1)
                               : AppColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(4.0),
                         ),
                         child: Text(
                           timeText,

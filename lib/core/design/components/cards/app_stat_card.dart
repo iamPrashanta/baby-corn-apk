@@ -21,13 +21,15 @@ class AppStatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surfaceHighlight,
+        color: isDark ? AppColors.surfaceHighlight : AppColors.lightSurfaceHighlight,
         borderRadius: AppRadius.cardBorder,
         border: Border.all(
-          color: AppColors.white.withOpacity(0.08),
+          color: isDark ? AppColors.white.withOpacity(0.08) : Colors.black.withOpacity(0.05),
           width: 1,
         ),
         boxShadow: AppShadows.premiumShadow,
@@ -53,8 +55,8 @@ class AppStatCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
@@ -65,8 +67,8 @@ class AppStatCard extends StatelessWidget {
           const Spacer(),
           Text(
             value,
-            style: const TextStyle(
-              color: AppColors.white,
+            style: TextStyle(
+              color: isDark ? AppColors.white : AppColors.lightTextPrimary,
               fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
@@ -74,8 +76,8 @@ class AppStatCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             subtitle,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
+            style: TextStyle(
+              color: isDark ? AppColors.textSecondary : AppColors.lightTextSecondary,
               fontSize: 12,
             ),
           ),

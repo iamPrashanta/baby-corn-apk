@@ -148,7 +148,7 @@ class _SanskarDetailSheetState extends ConsumerState<SanskarDetailSheet> {
               color: isDark
                   ? Colors.white.withOpacity(0.05)
                   : Colors.black.withOpacity(0.03),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(4.0),
             ),
             child: Column(
               children: [
@@ -224,7 +224,7 @@ class _SanskarDetailSheetState extends ConsumerState<SanskarDetailSheet> {
               fillColor:
                   isDark ? Colors.white10 : Colors.black.withOpacity(0.03),
               border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(4.0),
                   borderSide: BorderSide.none),
             ),
           ),
@@ -237,7 +237,7 @@ class _SanskarDetailSheetState extends ConsumerState<SanskarDetailSheet> {
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(4.0)),
               ),
               child: const Text('Save Notes'),
             ),

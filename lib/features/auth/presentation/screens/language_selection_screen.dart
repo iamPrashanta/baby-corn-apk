@@ -126,14 +126,14 @@ class LanguageSelectionScreen extends ConsumerWidget {
                           context.go(route);
                         }
                       },
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(4.0),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 24, vertical: 20),
                         decoration: BoxDecoration(
                           color:
                               isDark ? const Color(0xFF252229) : Colors.white,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(4.0),
                           border: Border.all(
                             color: isDark ? Colors.white12 : Colors.black12,
                           ),

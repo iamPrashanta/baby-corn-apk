@@ -262,7 +262,7 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 20),
                           decoration: BoxDecoration(
                             color: _color,
-                            borderRadius: BorderRadius.circular(24),
+                            borderRadius: BorderRadius.circular(4.0),
                             boxShadow: [
                               BoxShadow(
                                 color: _color.withOpacity(0.4),
@@ -293,7 +293,7 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
                                 padding: const EdgeInsets.symmetric(vertical: 16),
                                 decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20),
+                                  borderRadius: BorderRadius.circular(4.0),
                                 ),
                                 child: Center(
                                   child: Text(
@@ -313,7 +313,7 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
                                   padding: const EdgeInsets.symmetric(vertical: 16),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(20),
+                                    borderRadius: BorderRadius.circular(4.0),
                                   ),
                                   child: Center(
                                     child: Text(

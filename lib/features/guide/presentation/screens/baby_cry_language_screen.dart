@@ -101,7 +101,7 @@ class BabyCryLanguageScreen extends StatelessWidget {
                       color: isDark
                           ? Colors.white.withOpacity(0.05)
                           : Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(4.0),
                       boxShadow: [
                         if (!isDark)
                           BoxShadow(
@@ -126,7 +126,7 @@ class BabyCryLanguageScreen extends StatelessWidget {
                               decoration: BoxDecoration(
                                 color:
                                     (cry['color'] as Color).withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(4.0),
                               ),
                               child: Icon(
                                 cry['icon'] as IconData,
@@ -157,7 +157,7 @@ class BabyCryLanguageScreen extends StatelessWidget {
                                     decoration: BoxDecoration(
                                       color: (cry['color'] as Color)
                                           .withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(4.0),
                                     ),
                                     child: Text(
                                       cry['meaning'] as String,

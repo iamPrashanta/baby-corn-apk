@@ -112,7 +112,7 @@ class DevelopmentMainScreen extends ConsumerWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(4.0),
                   ),
                   elevation: 4,
                 ),
@@ -348,7 +348,7 @@ class _TimelineNodeItem extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(4.0),
           border: isNextUp ? Border.all(color: AppColors.primary.withOpacity(0.5), width: 2) : null,
           boxShadow: [
             BoxShadow(
@@ -421,7 +421,7 @@ class _TimelineNodeItem extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(4.0),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),

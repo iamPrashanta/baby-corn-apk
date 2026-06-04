@@ -34,7 +34,6 @@ class _PinScreenState extends ConsumerState<PinScreen> {
 
   void _navigateHome() {
     if (!mounted) return;
-    SecureStorageManager.updateLastActiveTime();
     final repo = ref.read(babyRepositoryProvider);
     final hasBabies = repo.getBabies().isNotEmpty;
     context.go(hasBabies ? '/home' : '/onboarding');

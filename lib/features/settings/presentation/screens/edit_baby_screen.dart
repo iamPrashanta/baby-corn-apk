@@ -258,7 +258,7 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(4.0),
       ),
       child: Column(
         children: [
@@ -313,7 +313,7 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(4.0),
       ),
       child: TextField(
         controller: _nameController,
@@ -356,7 +356,7 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         decoration: BoxDecoration(
           color: cardBg,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(4.0),
         ),
         child: Row(
           children: [
@@ -389,7 +389,7 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
     return Container(
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(4.0),
       ),
       child: Column(
         children: options.asMap().entries.map((entry) {
@@ -411,7 +411,7 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
               decoration: BoxDecoration(
                 color:
                     isSelected ? color.withOpacity(0.25) : Colors.transparent,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(4.0),
                 border: Border.all(
                   color: isSelected ? color : Colors.transparent,
                   width: 2,
@@ -451,7 +451,7 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(4.0),
       ),
       child: Column(
         children: [
@@ -506,7 +506,7 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(4.0),
       ),
       child: Column(
         children: [
@@ -586,7 +586,7 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
         height: 60,
         decoration: BoxDecoration(
           color: AppColors.primary,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(4.0),
           boxShadow: [
             BoxShadow(
               color: AppColors.primary.withOpacity(0.35),

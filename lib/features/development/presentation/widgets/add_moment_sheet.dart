@@ -144,7 +144,7 @@ class _AddMomentSheetState extends ConsumerState<AddMomentSheet> {
               width: double.infinity,
               decoration: BoxDecoration(
                 color: isDark ? Colors.white10 : Colors.black.withOpacity(0.04),
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(4.0),
                 border: Border.all(
                   color: isDark ? Colors.white24 : Colors.black12,
                   style: BorderStyle.solid,
@@ -182,7 +182,7 @@ class _AddMomentSheetState extends ConsumerState<AddMomentSheet> {
               labelText: l10n.title,
               hintText: 'e.g. First Steps!',
               border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(4.0)),
               filled: true,
               fillColor: isDark ? Colors.white10 : Colors.white,
             ),
@@ -198,7 +198,7 @@ class _AddMomentSheetState extends ConsumerState<AddMomentSheet> {
               labelText: l10n.description,
               hintText: 'Add some details...',
               border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(4.0)),
               filled: true,
               fillColor: isDark ? Colors.white10 : Colors.white,
             ),
@@ -215,7 +215,7 @@ class _AddMomentSheetState extends ConsumerState<AddMomentSheet> {
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
+                    borderRadius: BorderRadius.circular(4.0)),
               ),
               child: Text(
                 l10n.saveMoment,

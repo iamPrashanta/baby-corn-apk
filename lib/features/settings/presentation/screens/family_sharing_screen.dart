@@ -78,7 +78,7 @@ class _FamilySharingScreenState extends ConsumerState<FamilySharingScreen> {
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(4.0),
                             border: Border.all(color: Colors.white.withOpacity(0.1)),
                           ),
                           child: Column(

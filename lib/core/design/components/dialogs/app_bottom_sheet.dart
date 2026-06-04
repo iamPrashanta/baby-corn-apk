@@ -65,7 +65,7 @@ class AppBottomSheet extends StatelessWidget {
     Widget content = Container(
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(8.0)),
         border: border,
       ),
       padding: mergedPadding,
@@ -82,7 +82,7 @@ class AppBottomSheet extends StatelessWidget {
                   color: isDark
                       ? Colors.white.withOpacity(0.15)
                       : Colors.black.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(2.0),
                 ),
               ),
             ),

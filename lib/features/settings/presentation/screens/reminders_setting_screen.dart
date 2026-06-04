@@ -30,7 +30,7 @@ class RemindersSettingScreen extends ConsumerWidget {
             clipBehavior: Clip.antiAlias,
             elevation: 0,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(4.0),
               side: BorderSide(
                   color: AppColors.primary.withOpacity(isDark ? 0.15 : 0.08)),
             ),
@@ -64,7 +64,7 @@ class RemindersSettingScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: AppColors.error.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(4.0),
                       border: Border.all(
                         color: AppColors.error.withOpacity(0.5),
                       ),
@@ -132,7 +132,7 @@ class RemindersSettingScreen extends ConsumerWidget {
               clipBehavior: Clip.antiAlias,
               elevation: 0,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(4.0),
                 side: BorderSide(
                     color: AppColors.primary.withOpacity(isDark ? 0.15 : 0.08)),
               ),

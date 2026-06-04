@@ -269,7 +269,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 18),
                       elevation: 0,
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
+                          borderRadius: BorderRadius.circular(4.0)),
                     ),
                     child: _isLoading
                         ? SizedBox(
@@ -304,7 +304,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 18),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
+                          borderRadius: BorderRadius.circular(4.0)),
                     ),
                     child: Text(
                       'Use Offline Mode',

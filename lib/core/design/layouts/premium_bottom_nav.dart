@@ -159,7 +159,7 @@ class _NavItemWidgetState extends State<_NavItemWidget>
     final activeColor = widget.isDark ? AppColors.primary : AppColors.primary;
     final inactiveColor = widget.isDark
         ? Colors.white.withOpacity(0.4)
-        : AppColors.textSecondary.withOpacity(0.5);
+        : Colors.black.withOpacity(0.4);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,

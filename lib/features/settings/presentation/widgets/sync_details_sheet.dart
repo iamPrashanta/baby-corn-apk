@@ -128,7 +128,7 @@ class _SyncDetailsSheetState extends ConsumerState<SyncDetailsSheet> {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(8.0)),
       ),
       padding: const EdgeInsets.all(24),
       child: SafeArea(
@@ -143,7 +143,7 @@ class _SyncDetailsSheetState extends ConsumerState<SyncDetailsSheet> {
                 height: 4,
                 decoration: BoxDecoration(
                   color: isDark ? Colors.white24 : Colors.black12,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(2.0),
                 ),
               ),
             ),
@@ -164,7 +164,7 @@ class _SyncDetailsSheetState extends ConsumerState<SyncDetailsSheet> {
                     color: isConnected
                         ? Colors.green.withOpacity(0.1)
                         : Colors.red.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(4.0),
                   ),
                   child: Row(
                     children: [
@@ -218,7 +218,7 @@ class _SyncDetailsSheetState extends ConsumerState<SyncDetailsSheet> {
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(4.0),
                 ),
                 disabledBackgroundColor: Colors.blue.withOpacity(0.5),
               ),

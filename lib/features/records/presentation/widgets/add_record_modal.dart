@@ -358,7 +358,7 @@ class _CategoryTile extends StatelessWidget {
                 SnackBar(
                   content: Text('$label is coming soon!'),
                   behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
                 ),
               );
             },
@@ -371,7 +371,7 @@ class _CategoryTile extends StatelessWidget {
             color: isHighlighted
                 ? color.withOpacity(isDark ? 0.2 : 0.18)
                 : color.withOpacity(isDark ? 0.08 : 0.08),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(4.0),
             border: Border.all(
               color: isHighlighted
                   ? color.withOpacity(0.4)

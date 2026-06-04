@@ -64,7 +64,7 @@ class AppLoadingOverlay extends StatelessWidget {
                 child: Card(
                   elevation: 8,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(4.0),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(AppSpacing.lg),

@@ -30,12 +30,13 @@ class AppColors {
   // Surface and Background
   static const Color surface = Color(0xFF001524); // Same as background
   static const Color surfaceHighlight = Color(0x0CFFFFFF); // 5% white for cards
+  static const Color lightSurfaceHighlight = Color(0xFFF5F5F5); // Light gray for cards
   
   // Text Colors
   static const Color textPrimary = white;
   static const Color textSecondary = Color(0xB3FFFFFF); // 70% white
-  static const Color lightTextPrimary = Colors.black87;
-  static const Color lightTextSecondary = Colors.black54;
+  static const Color lightTextPrimary = Colors.black;
+  static const Color lightTextSecondary = Colors.black87;
   
   // --- LEGACY MAPPINGS (To prevent compile errors during Phase 3 migration) ---
   static const Color primaryContainer = primaryBlue;

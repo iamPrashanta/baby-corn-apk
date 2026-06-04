@@ -286,7 +286,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 _nextPage(); // Auto advance for smooth UX
               }
             },
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(4.0),
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
               decoration: BoxDecoration(
@@ -294,7 +294,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     .colorScheme
                     .surfaceContainerHighest
                     .withOpacity(0.4),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(4.0),
                 border: Border.all(
                     color:
                         Theme.of(context).colorScheme.outline.withOpacity(0.3)),
@@ -418,7 +418,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   .colorScheme
                   .surfaceContainerHighest
                   .withOpacity(0.3),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(4.0),
             ),
             child: Column(
               children: [
@@ -535,7 +535,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   .colorScheme
                   .surfaceContainerHighest
                   .withOpacity(0.3),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(4.0),
             ),
             child: Column(
               children: [
@@ -756,7 +756,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         child: Container(
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.primary,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(4.0),
           ),
           child: Center(
             child: Text(
@@ -781,7 +781,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(4.0),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
@@ -792,7 +792,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   .colorScheme
                   .surfaceContainerHighest
                   .withOpacity(0.3),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(4.0),
           border: Border.all(
             color: isSelected ? color : Colors.transparent,
             width: 2,

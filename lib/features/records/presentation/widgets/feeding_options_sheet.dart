@@ -136,7 +136,7 @@ class _OptionTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
         decoration: BoxDecoration(
           color: isDark ? Colors.white.withOpacity(0.05) : AppColors.feeding.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(4.0),
           border: Border.all(
             color: isDark ? Colors.white.withOpacity(0.1) : AppColors.feeding.withOpacity(0.15),
           ),

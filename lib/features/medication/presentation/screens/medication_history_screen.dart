@@ -183,7 +183,7 @@ class _HistoryCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface.withOpacity(0.7),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(4.0),
         border: Border(left: BorderSide(color: statusColor, width: 4)),
       ),
       child: Row(

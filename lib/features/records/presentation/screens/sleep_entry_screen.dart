@@ -148,7 +148,7 @@ class _SleepEntryScreenState extends ConsumerState<SleepEntryScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: BoxDecoration(
               color: AppColors.sleep.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(4.0),
               border: Border.all(
                 color: AppColors.sleep.withOpacity(0.15),
               ),
@@ -184,11 +184,11 @@ class _SleepEntryScreenState extends ConsumerState<SleepEntryScreen> {
                   ? Colors.white.withOpacity(0.05)
                   : Colors.black.withOpacity(0.02),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(4.0),
                 borderSide: BorderSide.none,
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(4.0),
                 borderSide: BorderSide(
                   color: isDark
                       ? Colors.white.withOpacity(0.08)
@@ -196,7 +196,7 @@ class _SleepEntryScreenState extends ConsumerState<SleepEntryScreen> {
                 ),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(4.0),
                 borderSide: BorderSide(
                   color: AppColors.sleep.withOpacity(0.5),
                   width: 1.5,
@@ -242,7 +242,7 @@ class _TimePickerTile extends StatelessWidget {
           color: isDark
               ? Colors.white.withOpacity(0.05)
               : Colors.black.withOpacity(0.02),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(4.0),
           border: Border.all(
             color: isDark
                 ? Colors.white.withOpacity(0.08)

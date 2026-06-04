@@ -66,7 +66,7 @@ class AppDialog {
               ),
             ),
             borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(24.0),
+              top: Radius.circular(8.0),
             ),
           ),
           child: child,
