@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Screens will be imported here
 import '../../features/auth/presentation/screens/auth_screen.dart';
-import '../../features/auth/presentation/screens/pin_screen.dart';
+
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/language_selection_screen.dart';
 
@@ -53,14 +53,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/auth',
         builder: (context, state) => const AuthScreen(),
       ),
-      GoRoute(
-        path: '/pin_setup',
-        builder: (context, state) => const PinScreen(isSetup: true),
-      ),
-      GoRoute(
-        path: '/pin_verify',
-        builder: (context, state) => const PinScreen(isSetup: false),
-      ),
+
       GoRoute(
         path: '/onboarding',
         builder: (context, state) {

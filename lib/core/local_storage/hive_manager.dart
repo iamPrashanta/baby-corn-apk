@@ -15,7 +15,7 @@ class HiveManager {
   static const String recordsBox = 'records';
   static const String remindersBox = 'reminders';
   static const String settingsBox = 'settings';
-  static const String cachedStatsBox = 'cached_stats';
+
   static const String syncQueueBox = 'sync_queue'; // for offline-first sync engine
   static const String activeSessionBox = 'active_session';
   static const String sanskarsBox = 'sanskars';
@@ -69,7 +69,7 @@ class HiveManager {
       Hive.openBox<RecordModel>(recordsBox),
       Hive.openBox(remindersBox),
       Hive.openBox(settingsBox),
-      Hive.openBox(cachedStatsBox),
+
       Hive.openBox(syncQueueBox),
       Hive.openBox<ActiveSessionModel>(activeSessionBox),
       Hive.openBox<SanskarModel>(sanskarsBox),

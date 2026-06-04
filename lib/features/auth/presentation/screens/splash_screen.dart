@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../../../core/local_storage/secure_storage_manager.dart';
+
 import '../../data/repositories/baby_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -99,21 +99,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         if (!mounted) return;
 
         if (currentUser != null) {
-          // ✅ Returning user: Firebase session confirmed, check local session expiry
-          final isExpired = await SecureStorageManager.isSessionExpired();
-          debugPrint('🔍 [Splash] isSessionExpired=$isExpired');
-
+          // ✅ Returning user: Firebase session confirmed
           if (!mounted) return;
-
-          if (isExpired) {
-            debugPrint('🔍 [Splash] → /pin_verify (session expired, need biometric)');
-            context.go('/pin_verify');
-          } else {
-            await SecureStorageManager.updateLastActiveTime();
-            final route = hasBabies ? '/home' : '/onboarding';
-            debugPrint('🔍 [Splash] → $route');
-            context.go(route);
-          }
+          final route = hasBabies ? '/home' : '/onboarding';
+          debugPrint('🔍 [Splash] → $route');
+          context.go(route);
         } else {
           // Not signed in → show Google sign-in screen
           debugPrint('🔍 [Splash] → /auth (no Firebase session)');
@@ -130,7 +120,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           if (mounted) context.go('/onboarding');
         } else {
           debugPrint('🔍 [Splash] → /home (offline)');
-          await SecureStorageManager.updateLastActiveTime();
           if (mounted) context.go('/home');
         }
       }
@@ -144,13 +133,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/images/logo_transparent.png',
-              width: 150,
+            ClipRect(
+              child: SizedBox(
+                width: 150,
+                height: 150,
+                child: Image.asset(
+                  'assets/animations/378464813.gif',
+                  fit: BoxFit.cover,
+                ),
+              ),
             ).animate().fade(duration: 800.ms).scale(
                 begin: const Offset(0.8, 0.8),
                 curve: Curves.easeOutBack,

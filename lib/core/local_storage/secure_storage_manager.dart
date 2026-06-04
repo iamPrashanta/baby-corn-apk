@@ -5,59 +5,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class SecureStorageManager {
   static const _storage = FlutterSecureStorage();
   
-  static const String _pinKey = 'user_pin';
-  static const String _sessionTimeoutKey = 'session_timeout';
-  static const String _lastActiveTimeKey = 'last_active_time';
-  static const String _pinFailedAttemptsKey = 'pin_failed_attempts';
-  static const String _pinLockoutUntilKey = 'pin_lockout_until';
-  
   // OTP Abuse Prevention Keys
   static const String _otpAttemptsKey = 'otp_attempts_timestamps';
   static const String _otpLockoutUntilKey = 'otp_lockout_until';
   // Security & Privacy Keys
-  static const String _biometricEnabledKey = 'biometric_enabled';
   static const String _screenshotProtectionKey = 'screenshot_protection';
 
-  // PIN Management
-  static Future<void> savePin(String pin) async {
-    await _storage.write(key: _pinKey, value: pin);
-  }
-  
-  static Future<String?> getPin() async {
-    return await _storage.read(key: _pinKey);
-  }
-  
-  static Future<bool> hasPin() async {
-    final pin = await getPin();
-    return pin != null && pin.isNotEmpty;
-  }
-  
-  // PIN Brute Force Protection
-  static Future<int> getPinFailedAttempts() async {
-    final count = await _storage.read(key: _pinFailedAttemptsKey);
-    return int.tryParse(count ?? '0') ?? 0;
-  }
-  
-  static Future<void> incrementPinFailedAttempts() async {
-    final count = await getPinFailedAttempts();
-    await _storage.write(key: _pinFailedAttemptsKey, value: (count + 1).toString());
-  }
-  
-  static Future<void> resetPinFailedAttempts() async {
-    await _storage.delete(key: _pinFailedAttemptsKey);
-    await _storage.delete(key: _pinLockoutUntilKey);
-  }
-  
-  static Future<void> setPinLockoutUntil(DateTime until) async {
-    await _storage.write(key: _pinLockoutUntilKey, value: until.millisecondsSinceEpoch.toString());
-  }
-  
-  static Future<DateTime?> getPinLockoutUntil() async {
-    final msStr = await _storage.read(key: _pinLockoutUntilKey);
-    if (msStr == null) return null;
-    return DateTime.fromMillisecondsSinceEpoch(int.parse(msStr));
-  }
-  
+
   // OTP Abuse Prevention
   static Future<List<DateTime>> getOtpAttemptTimestamps() async {
     final data = await _storage.read(key: _otpAttemptsKey);
@@ -92,57 +46,12 @@ class SecureStorageManager {
     return DateTime.fromMillisecondsSinceEpoch(int.parse(msStr));
   }
   
-  // Session Management
-  static Future<void> saveSessionTimeout(int minutes) async {
-    await _storage.write(key: _sessionTimeoutKey, value: minutes.toString());
-  }
-  
-  static Future<int> getSessionTimeout() async {
-    final timeoutStr = await _storage.read(key: _sessionTimeoutKey);
-    return int.tryParse(timeoutStr ?? '5') ?? 5; // Default 5 minutes
-  }
-  
-  static Future<void> updateLastActiveTime() async {
-    await _storage.write(key: _lastActiveTimeKey, value: DateTime.now().millisecondsSinceEpoch.toString());
-  }
-  
-  static Future<bool> isSessionExpired() async {
-    final lastActiveStr = await _storage.read(key: _lastActiveTimeKey);
 
-    // FIX #3: If the timestamp is missing (e.g. after app reinstall or
-    // Android clearing secure storage), do NOT treat the session as expired.
-    // Firebase auth state is the authoritative source — if the user is
-    // signed in via Firebase, we trust that session.
-    // Returning true here caused biometric prompts on every reinstall.
-    if (lastActiveStr == null) return false;
-
-    final lastActiveTime =
-        DateTime.fromMillisecondsSinceEpoch(int.parse(lastActiveStr));
-    final timeoutMinutes = await getSessionTimeout();
-
-    // If timeout is -1, it means 'Never'
-    if (timeoutMinutes == -1) return false;
-    // If timeout is 0, it means 'Immediately'
-    if (timeoutMinutes == 0) return true;
-
-    final difference = DateTime.now().difference(lastActiveTime).inMinutes;
-    return difference >= timeoutMinutes;
-  }
-  
   static Future<void> clearAll() async {
     await _storage.deleteAll();
   }
   
-  // Biometric & Privacy Settings
-  static Future<void> setBiometricEnabled(bool enabled) async {
-    await _storage.write(key: _biometricEnabledKey, value: enabled.toString());
-  }
-  
-  static Future<bool> isBiometricEnabled() async {
-    final val = await _storage.read(key: _biometricEnabledKey);
-    return val == 'true';
-  }
-  
+  // Security & Privacy Settings
   static Future<void> setScreenshotProtectionEnabled(bool enabled) async {
     await _storage.write(key: _screenshotProtectionKey, value: enabled.toString());
   }

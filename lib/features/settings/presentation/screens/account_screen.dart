@@ -8,7 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../../../core/design/tokens/colors.dart';
 // import '../widgets/sync_details_sheet.dart';
-import '../../../../core/local_storage/secure_storage_manager.dart';
+
 import '../../../../core/config/app_config.dart';
 import '../../../../core/design/layouts/custom_app_bar.dart';
 // import '../../../../core/services/backup_service.dart';
@@ -28,7 +28,7 @@ class AccountScreen extends ConsumerStatefulWidget {
 
 class _AccountScreenState extends ConsumerState<AccountScreen>
     with WidgetsBindingObserver {
-  int _timeoutMinutes = 0;
+
 
   // Firebase user (null if offline)
   User? get _firebaseUser =>
@@ -38,7 +38,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _loadTimeout();
+
   }
 
   @override
@@ -54,15 +54,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
     }
   }
 
-  Future<void> _loadTimeout() async {
-    final timeout = await SecureStorageManager.getSessionTimeout();
-    setState(() => _timeoutMinutes = timeout);
-  }
 
-  Future<void> _updateTimeout(int minutes) async {
-    await SecureStorageManager.saveSessionTimeout(minutes);
-    setState(() => _timeoutMinutes = minutes);
-  }
 
   Future<void> _signInWithGoogle() async {
     try {
@@ -184,23 +176,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                   ],
                 ),
               ),
-              ListTile(
-                leading: const Icon(Icons.lock),
-                title: const Text('App Lock Timeout'),
-                trailing: DropdownButton<int>(
-                  value: _timeoutMinutes,
-                  onChanged: (val) {
-                    if (val != null) _updateTimeout(val);
-                  },
-                  items: const [
-                    DropdownMenuItem(value: 0, child: Text('Immediately')),
-                    DropdownMenuItem(value: 1, child: Text('1 minute')),
-                    DropdownMenuItem(value: 5, child: Text('5 minutes')),
-                    DropdownMenuItem(value: 30, child: Text('30 minutes')),
-                    DropdownMenuItem(value: -1, child: Text('Never')),
-                  ],
-                ),
-              ),
+
             ],
           ),
           const SizedBox(height: 16),
