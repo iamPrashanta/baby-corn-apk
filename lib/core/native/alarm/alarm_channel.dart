@@ -1,4 +1,7 @@
+// lib/core/native/alarm/alarm_channel.dart
+
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 
 class AlarmChannel {
   static const MethodChannel _channel = MethodChannel('com.babycorn.app/alarm');
@@ -7,7 +10,7 @@ class AlarmChannel {
     try {
       await _channel.invokeMethod('setAlarm');
     } on PlatformException catch (e) {
-      print("Failed to set alarm: '${e.message}'.");
+      debugPrint("Failed to set alarm: '${e.message}'.");
     }
   }
 
@@ -15,7 +18,7 @@ class AlarmChannel {
     try {
       await _channel.invokeMethod('cancelAlarm');
     } on PlatformException catch (e) {
-      print("Failed to cancel alarm: '${e.message}'.");
+      debugPrint("Failed to cancel alarm: '${e.message}'.");
     }
   }
 }

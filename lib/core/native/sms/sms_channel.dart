@@ -1,4 +1,8 @@
+// lib/core/native/sms/sms_channel.dart
+
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
+
 
 class SmsChannel {
   static const MethodChannel _channel = MethodChannel('com.babycorn.app/sms');
@@ -7,7 +11,7 @@ class SmsChannel {
     try {
       await _channel.invokeMethod('sendSms', {'number': number, 'message': message});
     } on PlatformException catch (e) {
-      print("Failed to send sms: '${e.message}'.");
+      debugPrint("Failed to send sms: '${e.message}'.");
     }
   }
 }

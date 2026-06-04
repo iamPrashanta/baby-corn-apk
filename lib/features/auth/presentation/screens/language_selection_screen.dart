@@ -78,22 +78,19 @@ class LanguageSelectionScreen extends ConsumerWidget {
                           // FIX #2: Check Firebase auth state BEFORE routing.
                           // Previously this always routed to /auth even for
                           // signed-in users whose SharedPrefs were cleared.
-                          debugPrint(
-                              '🌐 [Language] Awaiting Firebase auth state...');
+                          debugPrint('🌐 [Language] Awaiting Firebase auth state...');
                           final currentUser = await FirebaseAuth.instance
                               .authStateChanges()
                               .first
                               .timeout(
                                 const Duration(seconds: 5),
                                 onTimeout: () {
-                                  debugPrint(
-                                      '⚠️ [Language] Firebase auth state timeout — routing to /auth');
+                                  debugPrint('⚠️ [Language] Firebase auth state timeout — routing to /auth');
                                   return null;
                                 },
                               );
 
-                          debugPrint(
-                              '🌐 [Language] currentUser=${currentUser?.email}');
+                          debugPrint('🌐 [Language] currentUser=${currentUser?.email}');
 
                           if (!context.mounted) return;
 
@@ -105,13 +102,11 @@ class LanguageSelectionScreen extends ConsumerWidget {
                                 .isNotEmpty;
                             final route =
                                 hasBabies ? '/home' : '/onboarding';
-                            debugPrint(
-                                '🌐 [Language] Already signed in → $route');
+                            debugPrint('🌐 [Language] Already signed in → $route');
                             context.go(route);
                           } else {
                             // Not signed in — show Google sign-in
-                            debugPrint(
-                                '🌐 [Language] Not signed in → /auth');
+                            debugPrint('🌐 [Language] Not signed in → /auth');
                             context.go('/auth');
                           }
                         } else {
@@ -121,8 +116,7 @@ class LanguageSelectionScreen extends ConsumerWidget {
                               .getBabies()
                               .isNotEmpty;
                           final route = hasBabies ? '/home' : '/onboarding';
-                          debugPrint(
-                              '🌐 [Language] Offline mode → $route');
+                          debugPrint('🌐 [Language] Offline mode → $route');
                           context.go(route);
                         }
                       },

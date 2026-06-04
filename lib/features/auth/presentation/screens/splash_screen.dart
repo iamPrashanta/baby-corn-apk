@@ -70,8 +70,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       final hasBabies = babies.isNotEmpty;
       final activeBabyId =
           ref.read(babyRepositoryProvider).getActiveBabyId();
-      debugPrint(
-          '🔍 [Splash] babies.count=${babies.length}, hasBabies=$hasBabies, activeBabyId=$activeBabyId');
+      debugPrint('🔍 [Splash] babies.count=${babies.length}, hasBabies=$hasBabies, activeBabyId=$activeBabyId');
 
       final isOfflineMode = prefs.getBool('is_offline_mode') ?? false;
 
@@ -87,14 +86,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             .timeout(
               const Duration(seconds: 5),
               onTimeout: () {
-                debugPrint(
-                    '⚠️ [Splash] Firebase auth state timeout — treating as signed out');
+                debugPrint('⚠️ [Splash] Firebase auth state timeout — treating as signed out');
                 return null;
               },
             );
 
-        debugPrint(
-            '🔍 [Splash] currentUser.uid=${currentUser?.uid}, currentUser.email=${currentUser?.email}');
+        debugPrint('🔍 [Splash] currentUser.uid=${currentUser?.uid}, currentUser.email=${currentUser?.email}');
 
         if (!mounted) return;
 

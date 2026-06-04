@@ -1,3 +1,5 @@
+// lib/core/design/components/app_avatar.dart
+
 import 'package:flutter/material.dart';
 import '../tokens/colors.dart';
 import '../tokens/shadows.dart';

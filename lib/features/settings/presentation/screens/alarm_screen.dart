@@ -1,3 +1,5 @@
+// lib/features/settings/presentation/screens/alarm_screen.dart
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,8 +12,9 @@ import '../../../../core/services/notification_service.dart';
 import '../../../../core/widgets/bouncing_button.dart';
 
 class AlarmScreen extends ConsumerStatefulWidget {
-  final String payload; // e.g. "alarm|feeding|fallback|0" or "alarm|medication|med123|10001|time"
-  
+  final String
+      payload; // e.g. "alarm|feeding|fallback|0" or "alarm|medication|med123|10001|time"
+
   const AlarmScreen({super.key, required this.payload});
 
   @override
@@ -33,7 +36,7 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
   void initState() {
     super.initState();
     _parsePayload();
-    
+
     // Update the clock every second
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) setState(() => _now = DateTime.now());
@@ -44,7 +47,7 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
     final parts = widget.payload.split('|');
     if (parts.length >= 4) {
       _type = parts[1].toLowerCase();
-      
+
       if (_type == 'medication') {
         // "alarm|medication|med123|10001|time"
         _notificationId = int.tryParse(parts[3]) ?? 0;
@@ -52,7 +55,7 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
         // "alarm|feeding|fallback|0"
         _notificationId = int.tryParse(parts[3]) ?? 0;
       }
-      
+
       if (_type == 'feeding') {
         _title = "Feeding Reminder";
         _emoji = "🍼";
@@ -88,7 +91,8 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
       id: _notificationId + 9999, // offset to avoid conflict
       title: "Missed: $_title",
       body: "You missed a reminder. Please check the app.",
-      dateTime: DateTime.now().add(const Duration(seconds: 1)), // fire immediately
+      dateTime:
+          DateTime.now().add(const Duration(seconds: 1)), // fire immediately
     );
     if (mounted) {
       context.go('/home'); // Fall back to home
@@ -171,7 +175,7 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
             filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
             child: Container(color: Colors.transparent),
           ),
-          
+
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
@@ -209,7 +213,7 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
                       ),
                     ],
                   ),
-                  
+
                   // Middle section (Activity Info)
                   Column(
                     children: [
@@ -220,7 +224,8 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white24, width: 2),
                         ),
-                        child: Text(_emoji, style: const TextStyle(fontSize: 64)),
+                        child:
+                            Text(_emoji, style: const TextStyle(fontSize: 64)),
                       ),
                       const SizedBox(height: 24),
                       Text(
@@ -241,7 +246,7 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
                       ),
                     ],
                   ),
-                  
+
                   // Bottom section (Actions)
                   Column(
                     children: [
@@ -280,7 +285,8 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
                             child: BouncingButton(
                               onPressed: () => _onSnooze(_getSnoozeDuration1()),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
                                 decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(4.0),
@@ -288,7 +294,9 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
                                 child: Center(
                                   child: Text(
                                     'Snooze ${_getSnoozeDuration1()}m',
-                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600),
                                   ),
                                 ),
                               ),
@@ -298,9 +306,11 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
                             const SizedBox(width: 16),
                             Expanded(
                               child: BouncingButton(
-                                onPressed: () => _onSnooze(_getSnoozeDuration2()!),
+                                onPressed: () =>
+                                    _onSnooze(_getSnoozeDuration2()!),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(4.0),
@@ -308,7 +318,9 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
                                   child: Center(
                                     child: Text(
                                       'Snooze ${_getSnoozeDuration2()!}m',
-                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600),
                                     ),
                                   ),
                                 ),
@@ -360,7 +372,7 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
   int? _getSnoozeDuration2() {
     if (_type == 'sleep') return 30;
     if (_type == 'medication') return null; // Only one snooze for meds
-    return 30; 
+    return 30;
   }
 
   String _getSkipActionText() {

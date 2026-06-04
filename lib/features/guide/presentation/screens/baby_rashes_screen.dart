@@ -1,7 +1,6 @@
 // lib/features/guide/presentation/screens/baby_rashes_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/design/tokens/colors.dart';
 import '../../../../core/design/layouts/custom_app_bar.dart';
 

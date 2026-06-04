@@ -1,4 +1,6 @@
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
+
 
 class NotificationChannel {
   static const MethodChannel _channel = MethodChannel('com.babycorn.app/notification');
@@ -7,7 +9,7 @@ class NotificationChannel {
     try {
       await _channel.invokeMethod('showNotification');
     } on PlatformException catch (e) {
-      print("Failed to show notification: '${e.message}'.");
+      debugPrint("Failed to show notification: '${e.message}'.");
     }
   }
 }

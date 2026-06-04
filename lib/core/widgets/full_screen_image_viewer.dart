@@ -1,3 +1,5 @@
+// lib/core/widgets/full_screen_image_viewer.dart
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';

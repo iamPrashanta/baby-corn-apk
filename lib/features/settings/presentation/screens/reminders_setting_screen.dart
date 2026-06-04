@@ -38,21 +38,18 @@ class RemindersSettingScreen extends ConsumerWidget {
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 _buildMasterToggle(context, ref, settings, isDark),
-                
                 if (Platform.isAndroid && settings.isMasterEnabled)
                   _buildExactAlarmWarning(),
-
                 const SizedBox(height: 32),
-
                 if (settings.isMasterEnabled) ...[
                   _buildSectionHeader('EVERYDAY CARE'),
                   _buildEverydayCareCard(context, ref, settings, isDark),
-                  
+
                   const SizedBox(height: 32),
-                  
+
                   _buildSectionHeader('HEALTH & TRACKING'),
                   _buildHealthCard(context, ref, isDark),
-                  
+
                   const SizedBox(height: 64), // bottom padding
                 ],
               ]),
@@ -63,31 +60,36 @@ class RemindersSettingScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMasterToggle(BuildContext context, WidgetRef ref, ReminderSettingsModel settings, bool isDark) {
+  Widget _buildMasterToggle(BuildContext context, WidgetRef ref,
+      ReminderSettingsModel settings, bool isDark) {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: settings.isMasterEnabled 
-            ? [AppColors.primary, AppColors.primary.withOpacity(0.8)]
-            : [Colors.grey.shade400, Colors.grey.shade500],
+          colors: settings.isMasterEnabled
+              ? [AppColors.primary, AppColors.primary.withOpacity(0.8)]
+              : [Colors.grey.shade400, Colors.grey.shade500],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(4.0),
-        boxShadow: settings.isMasterEnabled ? [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ] : [],
+        boxShadow: settings.isMasterEnabled
+            ? [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ]
+            : [],
       ),
       child: SwitchListTile(
         title: const Text(
           'Master Reminders',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
+          style: TextStyle(
+              fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
         ),
-        subtitle: const Text('Enable or disable all app reminders', style: TextStyle(color: Colors.white70)),
+        subtitle: const Text('Enable or disable all app reminders',
+            style: TextStyle(color: Colors.white70)),
         value: settings.isMasterEnabled,
         activeColor: Colors.white,
         activeTrackColor: Colors.white30,
@@ -98,7 +100,9 @@ class RemindersSettingScreen extends ConsumerWidget {
             await ReminderService.requestPermissions();
           }
           final is24Hour = MediaQuery.of(context).alwaysUse24HourFormat;
-          ref.read(reminderSettingsProvider.notifier).toggleMaster(val, is24Hour: is24Hour);
+          ref
+              .read(reminderSettingsProvider.notifier)
+              .toggleMaster(val, is24Hour: is24Hour);
         },
       ),
     );
@@ -126,11 +130,14 @@ class RemindersSettingScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text('Exact Alarms Denied',
-                          style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
+                          style: TextStyle(
+                              color: AppColors.error,
+                              fontWeight: FontWeight.bold)),
                       const SizedBox(height: 4),
                       const Text(
                           'Reminders may be delayed or missed. Please enable "Alarms & reminders" in settings.',
-                          style: TextStyle(color: AppColors.error, fontSize: 12)),
+                          style:
+                              TextStyle(color: AppColors.error, fontSize: 12)),
                       TextButton(
                         onPressed: () => openAppSettings(),
                         style: TextButton.styleFrom(
@@ -139,7 +146,9 @@ class RemindersSettingScreen extends ConsumerWidget {
                           alignment: Alignment.centerLeft,
                         ),
                         child: const Text('Open Settings',
-                            style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
+                            style: TextStyle(
+                                color: AppColors.error,
+                                fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -168,13 +177,15 @@ class RemindersSettingScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEverydayCareCard(BuildContext context, WidgetRef ref, ReminderSettingsModel settings, bool isDark) {
+  Widget _buildEverydayCareCard(BuildContext context, WidgetRef ref,
+      ReminderSettingsModel settings, bool isDark) {
     return Card(
       clipBehavior: Clip.antiAlias,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(4.0),
-        side: BorderSide(color: AppColors.primary.withOpacity(isDark ? 0.15 : 0.08)),
+        side: BorderSide(
+            color: AppColors.primary.withOpacity(isDark ? 0.15 : 0.08)),
       ),
       color: Theme.of(context).cardColor,
       child: Column(
@@ -229,16 +240,16 @@ class RemindersSettingScreen extends ConsumerWidget {
 
     if (catSettings.isEnabled && catSettings.nextScheduledTime != null) {
       final now = DateTime.now();
-      final isToday = catSettings.nextScheduledTime!.year == now.year && 
-                      catSettings.nextScheduledTime!.month == now.month && 
-                      catSettings.nextScheduledTime!.day == now.day;
-      
+      final isToday = catSettings.nextScheduledTime!.year == now.year &&
+          catSettings.nextScheduledTime!.month == now.month &&
+          catSettings.nextScheduledTime!.day == now.day;
+
       final dayStr = isToday ? "Today" : "Tomorrow";
       final is24Hour = MediaQuery.of(context).alwaysUse24HourFormat;
-      final timeStr = is24Hour 
-          ? DateFormat('HH:mm').format(catSettings.nextScheduledTime!) 
+      final timeStr = is24Hour
+          ? DateFormat('HH:mm').format(catSettings.nextScheduledTime!)
           : DateFormat('h:mm a').format(catSettings.nextScheduledTime!);
-      
+
       subtitleText += '\nNext: $dayStr • $timeStr';
     }
 
@@ -253,8 +264,10 @@ class RemindersSettingScreen extends ConsumerWidget {
         ),
         child: Center(child: Text(emoji, style: const TextStyle(fontSize: 24))),
       ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-      subtitle: Text(subtitleText, style: const TextStyle(height: 1.4, fontSize: 13)),
+      title: Text(title,
+          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+      subtitle:
+          Text(subtitleText, style: const TextStyle(height: 1.4, fontSize: 13)),
       trailing: Switch(
         value: catSettings.isEnabled,
         activeColor: AppColors.primary,
@@ -262,9 +275,12 @@ class RemindersSettingScreen extends ConsumerWidget {
           final notifier = ref.read(reminderSettingsProvider.notifier);
           final updated = catSettings.copyWith(isEnabled: val);
           final is24Hour = MediaQuery.of(context).alwaysUse24HourFormat;
-          if (category == 'feeding') notifier.updateFeeding(updated, is24Hour: is24Hour);
-          if (category == 'sleep') notifier.updateSleep(updated, is24Hour: is24Hour);
-          if (category == 'diaper') notifier.updateDiaper(updated, is24Hour: is24Hour);
+          if (category == 'feeding')
+            notifier.updateFeeding(updated, is24Hour: is24Hour);
+          if (category == 'sleep')
+            notifier.updateSleep(updated, is24Hour: is24Hour);
+          if (category == 'diaper')
+            notifier.updateDiaper(updated, is24Hour: is24Hour);
         },
       ),
       onTap: () {
@@ -285,22 +301,32 @@ class RemindersSettingScreen extends ConsumerWidget {
     final recordsAsync = ref.watch(recordsProvider);
     final activeBaby = ref.watch(activeBabyProvider);
     DateTime? nextVaccineDate;
-    
+
     if (recordsAsync is AsyncData && activeBaby != null) {
       final records = recordsAsync.value!;
       final vaccineRecords = records.where((r) => r.type == 'vaccine').toList();
-      
+
       for (final item in standardVaccineSchedule) {
-        final isDone = vaccineRecords.any((r) => r.metadata['vaccineName'] == item.name && (r.metadata['status'] == 'completed' || r.metadata['status'] == null));
+        final isDone = vaccineRecords.any((r) =>
+            r.metadata['vaccineName'] == item.name &&
+            (r.metadata['status'] == 'completed' ||
+                r.metadata['status'] == null));
         if (!isDone) {
-          final pendingRecord = vaccineRecords.where((r) => r.metadata['vaccineName'] == item.name && r.metadata['status'] == 'pending').firstOrNull;
-          DateTime dueDate = activeBaby.birthDate.add(Duration(days: item.recommendedDaysFromBirth));
+          final pendingRecord = vaccineRecords
+              .where((r) =>
+                  r.metadata['vaccineName'] == item.name &&
+                  r.metadata['status'] == 'pending')
+              .firstOrNull;
+          DateTime dueDate = activeBaby.birthDate
+              .add(Duration(days: item.recommendedDaysFromBirth));
           if (pendingRecord != null) {
             final dueDateStr = pendingRecord.metadata['dueDate'];
-            if (dueDateStr != null) dueDate = DateTime.parse(dueDateStr);
-            else dueDate = pendingRecord.timestamp;
+            if (dueDateStr != null)
+              dueDate = DateTime.parse(dueDateStr);
+            else
+              dueDate = pendingRecord.timestamp;
           }
-          
+
           if (nextVaccineDate == null || dueDate.isBefore(nextVaccineDate)) {
             nextVaccineDate = dueDate;
           }
@@ -313,14 +339,16 @@ class RemindersSettingScreen extends ConsumerWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(4.0),
-        side: BorderSide(color: AppColors.primary.withOpacity(isDark ? 0.15 : 0.08)),
+        side: BorderSide(
+            color: AppColors.primary.withOpacity(isDark ? 0.15 : 0.08)),
       ),
       color: Theme.of(context).cardColor,
       child: Column(
         children: [
           // Medications
           ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             leading: Container(
               width: 48,
               height: 48,
@@ -328,19 +356,27 @@ class RemindersSettingScreen extends ConsumerWidget {
                 color: Colors.red.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Center(child: Text('💊', style: TextStyle(fontSize: 24))),
+              child: const Center(
+                  child: Text('💊', style: TextStyle(fontSize: 24))),
             ),
-            title: const Text('Medications', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-            subtitle: Text(activeMeds > 0 ? '$activeMeds active medication(s)' : 'No active medications', style: const TextStyle(height: 1.4, fontSize: 13)),
-            trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.grey),
+            title: const Text('Medications',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+            subtitle: Text(
+                activeMeds > 0
+                    ? '$activeMeds active medication(s)'
+                    : 'No active medications',
+                style: const TextStyle(height: 1.4, fontSize: 13)),
+            trailing: const Icon(Icons.arrow_forward_ios_rounded,
+                size: 16, color: Colors.grey),
             onTap: () => context.push('/medications'),
           ),
-          
+
           const Divider(height: 1, indent: 64),
-          
+
           // Vaccines
           ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             leading: Container(
               width: 48,
               height: 48,
@@ -348,16 +384,18 @@ class RemindersSettingScreen extends ConsumerWidget {
                 color: AppColors.vaccine.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Center(child: Text('💉', style: TextStyle(fontSize: 24))),
+              child: const Center(
+                  child: Text('💉', style: TextStyle(fontSize: 24))),
             ),
-            title: const Text('Vaccinations', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+            title: const Text('Vaccinations',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
             subtitle: Text(
-              nextVaccineDate != null 
-                ? 'Next due: ${DateFormat('MMM d, yyyy').format(nextVaccineDate)}'
-                : 'All caught up!',
-              style: const TextStyle(height: 1.4, fontSize: 13)
-            ),
-            trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.grey),
+                nextVaccineDate != null
+                    ? 'Next due: ${DateFormat('MMM d, yyyy').format(nextVaccineDate)}'
+                    : 'All caught up!',
+                style: const TextStyle(height: 1.4, fontSize: 13)),
+            trailing: const Icon(Icons.arrow_forward_ios_rounded,
+                size: 16, color: Colors.grey),
             onTap: () => context.push('/vaccines'),
           ),
         ],

@@ -1,4 +1,4 @@
-// core/services/backup_service.dart
+// lib/core/services/backup_service.dart
 
 import 'dart:convert';
 import 'dart:io';
@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 
 import '../local_storage/hive_manager.dart';
 import '../../features/records/domain/models/record_model.dart';
+
 
 class GoogleAuthClient extends http.BaseClient {
   final Map<String, String> _headers;
@@ -160,6 +161,14 @@ class BackupService {
   /// Restores from Google Drive's hidden AppData folder
   static Future<bool> restoreFromGoogleDrive() async {
     try {
+      if (Platform.isAndroid) {
+        debugPrint('Running on Android');
+      }
+
+      if (Platform.isIOS) {
+        debugPrint('Running on iPhone');
+      }
+
       final driveApi = await _getDriveApi();
       if (driveApi == null) return false;
 

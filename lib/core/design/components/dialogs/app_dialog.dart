@@ -1,3 +1,5 @@
+// lib/core/design/components/dialogs/app_dialog.dart
+
 import 'package:flutter/material.dart';
 import '../../tokens/colors.dart';
 import '../../tokens/radius.dart';

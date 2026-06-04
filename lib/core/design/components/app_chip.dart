@@ -1,3 +1,5 @@
+// // lib/core/design/components/app_chip.dart
+
 import 'package:flutter/material.dart';
 import '../tokens/colors.dart';
 import '../tokens/radius.dart';
