@@ -64,10 +64,17 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
       repeatHours: _repeatHours,
       exactTime: formattedTime,
       profile: _profile,
+      isEnabled: true, // Auto-enable when saving from inner page
     );
 
     final is24Hour = MediaQuery.of(context).alwaysUse24HourFormat;
     
+    // Auto-enable master switch if it was off
+    final fullSettings = ref.read(reminderSettingsProvider);
+    if (!fullSettings.isMasterEnabled) {
+      notifier.toggleMaster(true, is24Hour: is24Hour);
+    }
+
     if (widget.category == 'feeding') notifier.updateFeeding(updated, is24Hour: is24Hour);
     if (widget.category == 'sleep') notifier.updateSleep(updated, is24Hour: is24Hour);
     if (widget.category == 'diaper') notifier.updateDiaper(updated, is24Hour: is24Hour);

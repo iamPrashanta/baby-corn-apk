@@ -15,7 +15,6 @@ import '../../../settings/presentation/screens/subscription_screen.dart';
 import '../providers/moments_provider.dart';
 import '../widgets/add_moment_sheet.dart';
 import '../../domain/models/moment_model.dart';
-import '../../../../core/widgets/full_screen_image_viewer.dart';
 
 class DevelopmentMainScreen extends ConsumerWidget {
   const DevelopmentMainScreen({super.key});
@@ -28,7 +27,7 @@ class DevelopmentMainScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(title: l10n.development),
-      body: isPremium ? const _JourneyTimeline() : _buildPremiumLock(context),
+      body: isPremium ? const _MomentsGallery() : _buildPremiumLock(context),
       floatingActionButton: isPremium
           ? SafeArea(
               child: Padding(
@@ -125,19 +124,11 @@ class DevelopmentMainScreen extends ConsumerWidget {
   }
 }
 
-class _JourneyTimeline extends ConsumerStatefulWidget {
-  const _JourneyTimeline();
+class _MomentsGallery extends ConsumerWidget {
+  const _MomentsGallery();
 
   @override
-  ConsumerState<_JourneyTimeline> createState() => _JourneyTimelineState();
-}
-
-class _JourneyTimelineState extends ConsumerState<_JourneyTimeline> {
-  String _selectedFilter = 'All Journey';
-  final List<String> _filters = ['All Journey', 'Photos Only', 'Milestones Only'];
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final momentsAsync = ref.watch(momentsProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
@@ -153,362 +144,347 @@ class _JourneyTimelineState extends ConsumerState<_JourneyTimeline> {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, _) => Center(child: Text('Error: $err')),
       data: (moments) {
-        final List<Map<String, dynamic>> timelineNodes = [];
+        // Find achieved milestones
+        final achievedCount = standardMilestones.where((m) => 
+          moments.any((moment) => moment.title.toLowerCase() == (m['title'] as String).toLowerCase())
+        ).length;
 
-        for (var milestone in standardMilestones) {
-          final title = milestone['title'] as String;
-          final exists = moments.any((m) => m.title.toLowerCase() == title.toLowerCase());
-          if (!exists) {
-            timelineNodes.add({
-              'type': 'pending_milestone',
-              'emoji': milestone['emoji'],
-              'title': title,
-              'subtitle': milestone['subtitle'],
-            });
-          }
-        }
+        // Ensure newest photos at the top
+        final sortedMoments = List<MomentModel>.from(moments)
+          ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
-        for (var moment in moments) {
-          timelineNodes.add({
-            'type': 'moment',
-            'moment': moment,
-          });
-        }
-
-        timelineNodes.sort((a, b) {
-          if (a['type'] == 'pending_milestone' && b['type'] == 'moment') return -1;
-          if (a['type'] == 'moment' && b['type'] == 'pending_milestone') return 1;
-          if (a['type'] == 'moment' && b['type'] == 'moment') {
-            final m1 = a['moment'] as MomentModel;
-            final m2 = b['moment'] as MomentModel;
-            return m2.timestamp.compareTo(m1.timestamp); // Newest moments first
-          }
-          return 0;
-        });
-
-        final filteredNodes = timelineNodes.where((node) {
-          if (_selectedFilter == 'Photos Only') return node['type'] == 'moment';
-          if (_selectedFilter == 'Milestones Only') return node['type'] == 'pending_milestone';
-          return true; // All Journey
-        }).toList();
-
-        if (filteredNodes.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('🌱', style: TextStyle(fontSize: 64)),
-                const SizedBox(height: 24),
-                Text(
-                  'Your Journey Begins',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : AppColors.lightTextPrimary,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Record moments and track milestones here.',
-                  style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
-                ),
-              ],
-            ).animate().fadeIn(),
-          );
-        }
-
-        return Column(
-          children: [
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: _filters.map((filter) {
-                  final isSelected = _selectedFilter == filter;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: FilterChip(
-                      label: Text(filter),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        if (selected) setState(() => _selectedFilter = filter);
-                      },
-                      backgroundColor: Theme.of(context).colorScheme.surface.withOpacity(0.5),
-                      selectedColor: AppColors.primary.withOpacity(0.2),
-                    ),
-                  );
-                }).toList(),
-              ),
+        return CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: _buildHeaderCard(context, achievedCount, sortedMoments.length, isDark),
             ),
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.only(top: 8, bottom: 120, left: 16, right: 16),
-                itemCount: filteredNodes.length,
-                itemBuilder: (context, index) {
-                  final node = filteredNodes[index];
-                  final isFirst = index == 0;
-                  final isLast = index == filteredNodes.length - 1;
-
-                  return _TimelineNodeItem(
-                    node: node,
-                    isFirst: isFirst,
-                    isLast: isLast,
-                    isDark: isDark,
-                    index: index,
-                  );
-                },
-              ),
+            SliverToBoxAdapter(
+              child: _buildHorizontalMilestones(context, standardMilestones, sortedMoments, isDark),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.only(left: 16, right: 16, top: 24, bottom: 120),
+              sliver: sortedMoments.isEmpty
+                  ? SliverToBoxAdapter(child: _buildEmptyState(isDark))
+                  : SliverToBoxAdapter(
+                      child: _buildMasonryGrid(context, sortedMoments, isDark),
+                    ),
             ),
           ],
         );
       },
     );
   }
-}
 
-class _TimelineNodeItem extends StatelessWidget {
-  final Map<String, dynamic> node;
-  final bool isFirst;
-  final bool isLast;
-  final bool isDark;
-  final int index;
-
-  const _TimelineNodeItem({
-    required this.node,
-    required this.isFirst,
-    required this.isLast,
-    required this.isDark,
-    required this.index,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final bool isPending = node['type'] == 'pending_milestone';
-    final bool isNextUp = isFirst && isPending;
-
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Timeline Line & Node indicator
-          SizedBox(
-            width: 40,
-            child: Column(
-              children: [
-                Container(
-                  width: 2,
-                  height: 32,
-                  color: isFirst ? Colors.transparent : (isDark ? Colors.white24 : Colors.black12),
-                ),
-                Container(
-                  width: 16,
-                  height: 16,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isPending ? (isNextUp ? AppColors.primary : Colors.grey) : AppColors.primary,
-                    border: Border.all(
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                      width: 4,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Container(
-                    width: 2,
-                    color: isLast ? Colors.transparent : (isDark ? Colors.white24 : Colors.black12),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          // Content Card
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 24),
-              child: isPending ? _buildPendingCard(context, isNextUp) : _buildMomentCard(context),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPendingCard(BuildContext context, bool isNextUp) {
-    return GestureDetector(
-      onTap: () {
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (ctx) => AddMomentSheet(initialTitle: node['title']),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(4.0),
-          border: isNextUp ? Border.all(color: AppColors.primary.withOpacity(0.5), width: 2) : null,
-          boxShadow: [
-            BoxShadow(
-              color: isNextUp ? AppColors.primary.withOpacity(0.2) : Colors.black.withOpacity(0.04),
-              blurRadius: isNextUp ? 24 : 16,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: isNextUp ? AppColors.primary.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Text(node['emoji'], style: const TextStyle(fontSize: 28)),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (isNextUp)
-                    Text(
-                      'Next Up',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  Text(
-                    node['title'],
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : AppColors.lightTextPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    node['subtitle'],
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isDark ? Colors.white54 : AppColors.lightTextSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.add_circle_outline_rounded,
-              color: isNextUp ? AppColors.primary : Colors.grey,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMomentCard(BuildContext context) {
-    final moment = node['moment'] as MomentModel;
+  Widget _buildHeaderCard(BuildContext context, int milestones, int photos, bool isDark) {
     return Container(
-      clipBehavior: Clip.antiAlias,
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary,
+            AppColors.primary.withOpacity(0.8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(4.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 16,
+            color: AppColors.primary.withOpacity(0.3),
+            blurRadius: 15,
             offset: const Offset(0, 8),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          Builder(
-            builder: (context) {
-              final file = File(moment.imagePath);
-              if (!file.existsSync()) {
-                return Container(
-                  height: 250,
-                  color: Colors.grey.shade200,
-                  child: const Center(child: Icon(Icons.broken_image, size: 64, color: Colors.grey)),
-                );
-              }
-              return GestureDetector(
-                onTap: () {
-                  context.push('/image_viewer', extra: {
-                    'imagePath': file.path,
-                    'tag': moment.id,
-                  });
-                },
-                child: Hero(
-                  tag: moment.id,
-                  child: Image.file(
-                    file,
-                    height: 250,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      height: 250,
-                      color: Colors.grey.shade200,
-                      child: const Center(child: Icon(Icons.broken_image, size: 64, color: Colors.grey)),
-                    ),
-                  ),
-                ),
-              );
-            }
+          _Stat(label: 'Milestones', value: milestones.toString()),
+          Container(width: 1, height: 40, color: Colors.white24),
+          _Stat(label: 'Moments', value: photos.toString()),
+        ],
+      ),
+    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.05, end: 0);
+  }
+
+  Widget _buildHorizontalMilestones(BuildContext context, List<Map<String, String>> milestones, List<MomentModel> moments, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          child: Text(
+            'Milestones',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: isDark ? Colors.white : AppColors.lightTextPrimary,
+            ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        moment.title,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : AppColors.lightTextPrimary,
-                        ),
-                      ),
+        ),
+        SizedBox(
+          height: 110,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: milestones.length,
+            itemBuilder: (context, index) {
+              final m = milestones[index];
+              final title = m['title']!;
+              final exists = moments.any((moment) => moment.title.toLowerCase() == title.toLowerCase());
+              return _MilestoneStoryItem(
+                emoji: m['emoji']!,
+                title: title,
+                isCompleted: exists,
+                isDark: isDark,
+                onTap: () {
+                  if (!exists) {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (ctx) => AddMomentSheet(initialTitle: title),
+                    );
+                  }
+                },
+              ).animate().fadeIn(delay: (index * 100).ms).slideX(begin: 0.1, end: 0);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMasonryGrid(BuildContext context, List<MomentModel> moments, bool isDark) {
+    final leftColumn = <Widget>[];
+    final rightColumn = <Widget>[];
+    
+    for (int i = 0; i < moments.length; i++) {
+      if (i % 2 == 0) {
+        leftColumn.add(_buildPhotoCard(context, moments[i], isDark));
+      } else {
+        rightColumn.add(_buildPhotoCard(context, moments[i], isDark));
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
+          child: Text(
+            'Moments Gallery',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: isDark ? Colors.white : AppColors.lightTextPrimary,
+            ),
+          ),
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: Column(children: leftColumn)),
+            const SizedBox(width: 12),
+            Expanded(child: Column(children: rightColumn)),
+          ],
+        ).animate().fadeIn(duration: 500.ms),
+      ],
+    );
+  }
+
+  Widget _buildPhotoCard(BuildContext context, MomentModel moment, bool isDark) {
+    final file = File(moment.imagePath);
+    return GestureDetector(
+      onTap: () {
+        if (file.existsSync()) {
+          context.push('/image_viewer', extra: {
+            'imagePath': file.path,
+            'tag': moment.id,
+          });
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(4.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Hero(
+              tag: moment.id,
+              child: file.existsSync()
+                  ? Image.file(
+                      file,
+                      fit: BoxFit.cover,
+                    )
+                  : Container(
+                      height: 120,
+                      color: Colors.grey.withOpacity(0.2),
+                      child: const Center(child: Icon(Icons.broken_image, color: Colors.grey)),
                     ),
-                    Text(
-                      DateFormat('MMM d, yyyy').format(moment.timestamp),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ],
-                ),
-                if (moment.description.isNotEmpty) ...[
-                  const SizedBox(height: 8),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    moment.description,
+                    moment.title,
                     style: TextStyle(
+                      fontWeight: FontWeight.bold,
                       fontSize: 14,
-                      color: isDark ? Colors.white70 : AppColors.surfaceHighlight,
-                      height: 1.4,
+                      color: isDark ? Colors.white : AppColors.lightTextPrimary,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    DateFormat('MMM d').format(moment.timestamp),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
                     ),
                   ),
                 ],
-              ],
+              ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(bool isDark) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 40),
+        child: Column(
+          children: [
+            const Text('🌱', style: TextStyle(fontSize: 64)),
+            const SizedBox(height: 16),
+            Text(
+              'No Moments Yet',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : AppColors.lightTextPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Capture your baby\'s firsts!',
+              style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+            ),
+          ],
+        ),
+      ),
+    ).animate().fadeIn();
+  }
+}
+
+class _Stat extends StatelessWidget {
+  final String label;
+  final String value;
+  const _Stat({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
           ),
-        ],
+        ),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Colors.white70,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MilestoneStoryItem extends StatelessWidget {
+  final String emoji;
+  final String title;
+  final bool isCompleted;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  const _MilestoneStoryItem({
+    required this.emoji,
+    required this.title,
+    required this.isCompleted,
+    required this.isDark,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 80,
+        margin: const EdgeInsets.only(right: 12),
+        child: Column(
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isCompleted ? AppColors.primary.withOpacity(0.1) : (isDark ? Colors.white12 : Colors.grey.shade100),
+                border: Border.all(
+                  color: isCompleted ? AppColors.primary : (isDark ? Colors.white24 : Colors.grey.shade300),
+                  width: isCompleted ? 2.5 : 1,
+                  style: BorderStyle.solid,
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  emoji,
+                  style: TextStyle(fontSize: 28),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: isCompleted ? FontWeight.w700 : FontWeight.w500,
+                color: isCompleted ? (isDark ? Colors.white : AppColors.lightTextPrimary) : Colors.grey,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

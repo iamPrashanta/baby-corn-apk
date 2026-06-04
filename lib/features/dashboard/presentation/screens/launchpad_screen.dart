@@ -875,13 +875,38 @@ class LaunchpadScreen extends ConsumerWidget {
   }
 
   String _formatAge(DateTime birthDate) {
-    final now = DateTime.now();
-    final diff = now.difference(birthDate);
-    final days = diff.inDays;
-    if (days < 7) return '$days days old';
-    if (days < 30) return '${(days / 7).floor()} weeks old';
+    final days = DateTime.now().difference(birthDate).inDays;
+    
+    if (days <= 0) return '0 days old';
+    
+    if (days < 7) {
+      return '$days day${days > 1 ? 's' : ''} old';
+    } 
+    
+    if (days < 30) {
+      final weeks = (days / 7).floor();
+      final remainingDays = days % 7;
+      if (remainingDays == 0) {
+        return '$weeks week${weeks > 1 ? 's' : ''} old';
+      }
+      return '$weeks week${weeks > 1 ? 's' : ''} and $remainingDays day${remainingDays > 1 ? 's' : ''} old';
+    }
+    
     final months = (days / 30.44).floor();
-    return '$months months old';
+    if (months < 24) {
+      final remainingDays = (days - (months * 30.44)).round();
+      if (remainingDays <= 0) {
+        return '$months month${months > 1 ? 's' : ''} old';
+      }
+      return '$months month${months > 1 ? 's' : ''} and $remainingDays day${remainingDays > 1 ? 's' : ''} old';
+    }
+    
+    final years = (months / 12).floor();
+    final remainingMonths = months % 12;
+    if (remainingMonths == 0) {
+      return '$years year${years > 1 ? 's' : ''} old';
+    }
+    return '$years year${years > 1 ? 's' : ''} and $remainingMonths month${remainingMonths > 1 ? 's' : ''} old';
   }
 
   void _showProfileSwitcherSheet(
@@ -956,11 +981,37 @@ class _ProfileSwitcherSheet extends StatelessWidget {
 
   String _formatAge(DateTime birthDate) {
     final days = DateTime.now().difference(birthDate).inDays;
-    if (days < 7) return '$days days old';
-    if (days < 30) return '${(days / 7).floor()} weeks old';
+    
+    if (days <= 0) return '0 days old';
+    
+    if (days < 7) {
+      return '$days day${days > 1 ? 's' : ''} old';
+    } 
+    
+    if (days < 30) {
+      final weeks = (days / 7).floor();
+      final remainingDays = days % 7;
+      if (remainingDays == 0) {
+        return '$weeks week${weeks > 1 ? 's' : ''} old';
+      }
+      return '$weeks week${weeks > 1 ? 's' : ''} and $remainingDays day${remainingDays > 1 ? 's' : ''} old';
+    }
+    
     final months = (days / 30.44).floor();
-    if (months < 24) return '$months months old';
-    return '${(months / 12).floor()} years old';
+    if (months < 24) {
+      final remainingDays = (days - (months * 30.44)).round();
+      if (remainingDays <= 0) {
+        return '$months month${months > 1 ? 's' : ''} old';
+      }
+      return '$months month${months > 1 ? 's' : ''} and $remainingDays day${remainingDays > 1 ? 's' : ''} old';
+    }
+    
+    final years = (months / 12).floor();
+    final remainingMonths = months % 12;
+    if (remainingMonths == 0) {
+      return '$years year${years > 1 ? 's' : ''} old';
+    }
+    return '$years year${years > 1 ? 's' : ''} and $remainingMonths month${remainingMonths > 1 ? 's' : ''} old';
   }
 
   @override

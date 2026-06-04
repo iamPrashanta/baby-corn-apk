@@ -124,10 +124,10 @@ class NotificationService {
     );
 
     await _plugin.show(
-      DateTime.now().millisecond,
-      title,
-      body,
-      NotificationDetails(android: androidDetails),
+      id: DateTime.now().millisecond,
+      title: title,
+      body: body,
+      notificationDetails: NotificationDetails(android: androidDetails),
     );
   }
 
