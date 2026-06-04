@@ -106,16 +106,89 @@ class PureeRecipeList extends StatelessWidget {
   Widget _buildRecipeCard(BuildContext context, String title, String? subtitle) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
-    FoodLibraryItem? matchedItem;
+    List<FoodLibraryItem> matchedItems = [];
     for (var item in standardFirstFoods) {
       if (title.toLowerCase().contains(item.name.toLowerCase())) {
-        matchedItem = item;
-        break;
+        matchedItems.add(item);
       }
     }
     
-    final bool isHighAllergyRisk = matchedItem?.isHighAllergyRisk ?? false;
-    final String ageReq = matchedItem?.ageRecommendation ?? "6+ Months";
+    // Sort matched items to match the order they appear in the title
+    matchedItems.sort((a, b) => title.toLowerCase().indexOf(a.name.toLowerCase())
+        .compareTo(title.toLowerCase().indexOf(b.name.toLowerCase())));
+    
+    final bool isHighAllergyRisk = matchedItems.any((item) => item.isHighAllergyRisk);
+    final String ageReq = matchedItems.isNotEmpty ? matchedItems.first.ageRecommendation : "6+ Months";
+
+    Widget leadingWidget;
+    if (matchedItems.isEmpty) {
+      leadingWidget = Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: AppColors.primary.withOpacity(0.15),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(Icons.restaurant_menu_rounded, color: AppColors.primary),
+      );
+    } else if (matchedItems.length == 1) {
+      final item = matchedItems.first;
+      leadingWidget = Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: AppColors.primary.withOpacity(0.15),
+          shape: BoxShape.circle,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: item.imageAssetPath != null
+            ? Image.asset(item.imageAssetPath!, fit: BoxFit.cover)
+            : Center(
+                child: Text(
+                  item.emoji,
+                  style: const TextStyle(fontSize: 24),
+                ),
+              ),
+      );
+    } else {
+      const double itemSize = 42.0;
+      const double overlap = 16.0;
+      final double totalWidth = itemSize + (matchedItems.length - 1) * (itemSize - overlap);
+      
+      leadingWidget = SizedBox(
+        width: totalWidth,
+        height: itemSize,
+        child: Stack(
+          children: List.generate(matchedItems.length, (index) {
+            final item = matchedItems[index];
+            return Positioned(
+              left: index * (itemSize - overlap),
+              child: Container(
+                width: itemSize,
+                height: itemSize,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isDark ? GlassColors.darkGlassSurface : Colors.white,
+                    width: 2.5,
+                  ),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: item.imageAssetPath != null
+                    ? Image.asset(item.imageAssetPath!, fit: BoxFit.cover)
+                    : Center(
+                        child: Text(
+                          item.emoji,
+                          style: const TextStyle(fontSize: 20),
+                        ),
+                      ),
+              ),
+            );
+          }),
+        ),
+      );
+    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -137,14 +210,7 @@ class PureeRecipeList extends StatelessWidget {
           children: [
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.restaurant_menu_rounded, color: AppColors.primary),
-                ),
+                leadingWidget,
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(

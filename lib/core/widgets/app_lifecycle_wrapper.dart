@@ -9,6 +9,8 @@ import '../services/security_service.dart';
 import '../../features/records/presentation/providers/active_session_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/config/app_config.dart';
+import '../router/app_router.dart';
+import '../../features/auth/data/repositories/baby_repository.dart';
 
 class AppLifecycleWrapper extends ConsumerStatefulWidget {
   final Widget child;
@@ -58,11 +60,9 @@ class _AppLifecycleWrapperState extends ConsumerState<AppLifecycleWrapper>
       // App came to foreground — restart the timer ticker for UI updates
       ref.read(activeSessionProvider.notifier).resumeTicker();
 
-      final isSignedIn = AppConfig.enableFirebaseAuth
-          ? FirebaseAuth.instance.currentUser != null
-          : true; // Offline mode: always treat as signed in for session tracking
+      final hasBabies = ref.read(babyRepositoryProvider).getBabies().isNotEmpty;
 
-      if (isSignedIn) {
+      if (hasBabies) {
         final isExpired = await SecureStorageManager.isSessionExpired();
         if (isExpired) {
           final isBiometricEnabled =
@@ -78,7 +78,7 @@ class _AppLifecycleWrapperState extends ConsumerState<AppLifecycleWrapper>
           } else {
             if (mounted && !_hasNavigated) {
               _hasNavigated = true;
-              GoRouter.of(context).go('/pin_verify');
+              ref.read(routerProvider).go('/pin_verify');
             }
           }
         } else {

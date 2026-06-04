@@ -169,18 +169,23 @@ Baby Corn follows **Clean Architecture** with a **feature-first folder structure
 lib/
 ├── core/
 │   ├── config/          # AppConfig feature flags (Firebase, sync, auth)
-│   ├── constants/       # App colors and design tokens
+│   ├── constants/       # App constants
+│   ├── design/          # Design tokens, layouts, and system
 │   ├── local_storage/   # Hive and SecureStorage managers
+│   ├── native/          # Native platform integrations
+│   ├── providers/       # Global Riverpod providers
 │   ├── router/          # GoRouter app navigation
 │   ├── services/        # Background services (sync, backup, reminders, biometrics)
 │   ├── theme/           # Light/dark theme definitions
+│   ├── utils/           # Utility functions and helpers
 │   └── widgets/         # Shared global widgets (overlays, lifecycle wrapper)
 │
 ├── features/
 │   ├── auth/            # Firebase auth, Google Sign-In, baby model
 │   ├── dashboard/       # Home launchpad, main scaffold
-│   ├── development/     # Baby development milestones (future)
+│   ├── development/     # Baby development milestones
 │   ├── guide/           # Parenting guide content
+│   ├── medication/      # Medication dashboard and tracking
 │   ├── onboarding/      # Baby profile setup wizard
 │   ├── records/         # Activity logging (feeding, sleep, diaper, bath)
 │   ├── reminders/       # Reminder creation and management
@@ -198,36 +203,52 @@ The startup flow is **strictly sequential** — each step is `await`ed before th
 ```mermaid
 sequenceDiagram
     participant M  as main()
+    participant FB as Firebase
     participant HV as HiveManager
+    participant SV as Services
     participant BR as BabyRepository
     participant SP as SplashScreen
     participant RT as Router
 
+    M->>FB: await Firebase.initializeApp()
+    FB-->>M: ✅ Firebase Ready
+    
     M->>HV: await HiveManager.init()
     HV-->>M: ✅ Hive ready
 
+    M->>SV: await Alarm.init() & Services
+    SV-->>M: ✅ Alarm, Reminder & Widget Services
+
     M->>BR: await BabyRepository.runStartupMigration()
-    Note over BR: Migrate v1 keys (baby_name, baby_birthdate)<br/>Migrate v2 settingsBox → profileBox
+    Note over BR: Migrate old data structure to current schemas
     BR-->>M: ✅ Migration complete
 
-    M->>M: Log babies_list count, active_baby_id
-    M->>M: runApp()
+    M->>M: runApp(BabyCornApp)
 
     M->>SP: SplashScreen mounted
     SP->>SP: await 2s splash delay
-    SP->>BR: getBabies()
-    BR-->>SP: List<BabyModel> (guaranteed post-migration)
-
-    alt language not selected
+    
+    alt Launched via Alarm Notification
+        SP->>RT: context.go('/alarm')
+    else Language not selected
         SP->>RT: context.go('/language')
-    else babies list is empty
-        SP->>RT: context.go('/onboarding')
-    else babies list is not empty
-        SP->>RT: context.go('/home')
+    else Firebase Session Valid
+        SP->>SP: Check Session Timeout (App Lock)
+        alt Session Expired
+            SP->>RT: context.go('/pin_verify')
+        else Valid Session & No Babies
+            SP->>RT: context.go('/onboarding')
+        else Valid Session & Has Babies
+            SP->>RT: context.go('/home')
+        end
+    else No Firebase Session (Online Mode)
+        SP->>RT: context.go('/auth')
+    else Offline Mode
+        SP->>RT: context.go('/home') or go('/onboarding')
     end
 ```
 
-> **Single Source of Truth:** Routing depends **only** on `babies_list.isNotEmpty`. No flags like `onboarding_complete`, `welcome_seen`, or `first_launch` are consulted.
+> **Single Source of Truth:** The app intelligently delegates routing based on Firebase Auth state, the local Hive database (`babies_list`), and session expiry status.
 
 ### Data Flow
 
@@ -364,7 +385,6 @@ This generates an `.xcarchive` and an `.ipa` file located in `build/ios/ipa/`, w
 
 - [ ] Growth tracking (weight/height charts)
 - [ ] Teething tracker
-- [ ] Moments & memories (photo album)
 - [ ] Baby development milestone cards
 - [ ] AI parenting assistant
 - [ ] Family sync & multi-caregiver support
@@ -374,6 +394,8 @@ This generates an `.xcarchive` and an `.ipa` file located in `build/ios/ipa/`, w
 - [ ] 16 Sanskar & Indian parenting guide content
 - [ ] Naamkaran & Annaprashan ceremony guidance
 - [ ] Premium subscription tier
+- [ ] Calling-Messaging-VideoCalling from app to parent or to Doctor
+
 
 ---
 

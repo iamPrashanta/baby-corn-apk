@@ -17,7 +17,7 @@ import '../../../auth/presentation/providers/baby_provider.dart';
 import '../../../records/presentation/providers/records_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../providers/premium_provider.dart';
-
+import '../providers/theme_provider.dart';
 
 class AccountScreen extends ConsumerStatefulWidget {
   const AccountScreen({super.key});
@@ -94,9 +94,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Sign in failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Sign in failed: $e')));
       }
     }
   }
@@ -109,14 +109,15 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
         setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Signed out. You are now in Offline Mode.')),
+            content: Text('Signed out. You are now in Offline Mode.'),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Sign out failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Sign out failed: $e')));
       }
     }
   }
@@ -156,6 +157,34 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                 },
               ),
               ListTile(
+                leading: const Icon(Icons.palette),
+                title: const Text('App Theme'),
+                trailing: DropdownButton<ThemeMode>(
+                  value: ref.watch(themeModeProvider),
+                  onChanged: (mode) {
+                    if (mode != null) {
+                      ref
+                          .read(themeModeProvider.notifier)
+                          .updateThemeMode(mode);
+                    }
+                  },
+                  items: const [
+                    DropdownMenuItem(
+                      value: ThemeMode.system,
+                      child: Text('System'),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeMode.light,
+                      child: Text('Light'),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeMode.dark,
+                      child: Text('Dark'),
+                    ),
+                  ],
+                ),
+              ),
+              ListTile(
                 leading: const Icon(Icons.lock),
                 title: const Text('App Lock Timeout'),
                 trailing: DropdownButton<int>(
@@ -175,32 +204,28 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
             ],
           ),
           const SizedBox(height: 16),
-          _buildSettingsSection(
-            context,
-            'Family',
-            [
-              ListTile(
-                leading: const Icon(Icons.family_restroom),
-                title: const Text('Manage Babies'),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  if (!isPremium) {
-                    context.push('/subscription');
-                  } else {
-                    context.push('/manage_babies');
-                  }
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.workspace_premium),
-                title: const Text('Manage Subscription'),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
+          _buildSettingsSection(context, 'Family', [
+            ListTile(
+              leading: const Icon(Icons.family_restroom),
+              title: const Text('Manage Babies'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                if (!isPremium) {
                   context.push('/subscription');
-                },
-              ),
-            ],
-          ),
+                } else {
+                  context.push('/manage_babies');
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.workspace_premium),
+              title: const Text('Manage Subscription'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                context.push('/subscription');
+              },
+            ),
+          ]),
           // const SizedBox(height: 16),
           // _buildSettingsSection(
           //   context,
@@ -288,52 +313,55 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
           //   ],
           // ),
           const SizedBox(height: 16),
-          _buildSettingsSection(
-            context,
-            'About',
-            [
-              ListTile(
-                leading: const Icon(Icons.info),
-                title: const Text('About Baby Corn'),
-                onTap: () {
-                  showAboutDialog(
-                    context: context,
-                    applicationName: 'Baby Corn',
-                    applicationVersion: '1.0.0',
-                    applicationIcon: Image.asset(
-                      'assets/images/logo_transparent.png', // Assuming there's a logo in assets, otherwise a generic icon
-                      width: 48,
-                      height: 48,
-                      errorBuilder: (_, __, ___) =>
-                          const Icon(Icons.child_care, size: 48),
+          _buildSettingsSection(context, 'About', [
+            ListTile(
+              leading: const Icon(Icons.info),
+              title: const Text('About Baby Corn'),
+              onTap: () {
+                showAboutDialog(
+                  context: context,
+                  applicationName: 'Baby Corn',
+                  applicationVersion: '1.0.0',
+                  applicationIcon: Image.asset(
+                    'assets/images/logo_transparent.png', // Assuming there's a logo in assets, otherwise a generic icon
+                    width: 48,
+                    height: 48,
+                    errorBuilder: (_, __, ___) =>
+                        const Icon(Icons.child_care, size: 48),
+                  ),
+                  applicationLegalese: '© 2026 Baby Corn App',
+                  children: [
+                    const SizedBox(height: 16),
+                    const Text(
+                      "Baby Corn is an all-in-one companion app for modern parents to track and manage their baby's daily activities like feeding, sleeping, and diaper changes.",
                     ),
-                    applicationLegalese: '© 2026 Baby Corn App',
-                    children: [
-                      const SizedBox(height: 16),
-                      const Text(
-                        "Baby Corn is an all-in-one companion app for modern parents to track and manage their baby's daily activities like feeding, sleeping, and diaper changes.",
-                      ),
-                    ],
-                  );
-                },
-              ),
-              if (_firebaseUser != null)
-                ListTile(
-                  leading: const Icon(Icons.logout, color: Colors.red),
-                  title: const Text('Log Out',
-                      style: TextStyle(color: Colors.red)),
-                  onTap: _signOut,
-                )
-              else if (AppConfig.enableFirebaseAuth)
-                ListTile(
-                  leading: const Icon(Icons.g_mobiledata,
-                      size: 32, color: Colors.blue),
-                  title: Text(AppLocalizations.of(context)?.signInWithGoogle ??
-                      'Sign in with Google'),
-                  onTap: _signInWithGoogle,
+                  ],
+                );
+              },
+            ),
+            if (_firebaseUser != null)
+              ListTile(
+                leading: const Icon(Icons.logout, color: Colors.red),
+                title: const Text(
+                  'Log Out',
+                  style: TextStyle(color: Colors.red),
                 ),
-            ],
-          ),
+                onTap: _signOut,
+              )
+            else if (AppConfig.enableFirebaseAuth)
+              ListTile(
+                leading: const Icon(
+                  Icons.g_mobiledata,
+                  size: 32,
+                  color: Colors.blue,
+                ),
+                title: Text(
+                  AppLocalizations.of(context)?.signInWithGoogle ??
+                      'Sign in with Google',
+                ),
+                onTap: _signInWithGoogle,
+              ),
+          ]),
           const SizedBox(height: 24),
         ],
       ),
@@ -378,8 +406,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                 Text(
                   isGoogleUser
                       ? (user.displayName?.isNotEmpty == true
-                          ? user.displayName!
-                          : 'Baby Corn User')
+                            ? user.displayName!
+                            : 'Baby Corn User')
                       : 'Offline User',
                   style: TextStyle(
                     fontSize: 18,
@@ -400,8 +428,10 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                 const SizedBox(height: 8),
                 // Badge
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: isGoogleUser
                         ? AppColors.primary.withOpacity(0.12)
@@ -416,7 +446,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                             ? Icons.verified_rounded
                             : Icons.wifi_off_rounded,
                         size: 12,
-                        color: isGoogleUser ? AppColors.primary : AppColors.primary,
+                        color: isGoogleUser
+                            ? AppColors.primary
+                            : AppColors.primary,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -424,8 +456,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color:
-                              isGoogleUser ? AppColors.primary : AppColors.primary,
+                          color: isGoogleUser
+                              ? AppColors.primary
+                              : AppColors.primary,
                         ),
                       ),
                     ],
@@ -471,10 +504,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            AppColors.primary.withOpacity(0.8),
-            AppColors.secondary,
-          ],
+          colors: [AppColors.primary.withOpacity(0.8), AppColors.secondary],
         ),
       ),
       child: Center(
@@ -500,7 +530,10 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
   }
 
   Widget _buildSettingsSection(
-      BuildContext context, String title, List<Widget> children) {
+    BuildContext context,
+    String title,
+    List<Widget> children,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -509,14 +542,15 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
           child: Text(
             title,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                ),
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         Card(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           clipBehavior: Clip
               .antiAlias, // This clips the rectangular ripple animations of ListTiles inside
           child: Column(children: children),
