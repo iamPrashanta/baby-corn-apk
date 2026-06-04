@@ -10,6 +10,7 @@ import '../../../settings/presentation/screens/account_screen.dart';
 import '../../../../core/design/layouts/premium_bottom_nav.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/permission_service.dart';
+import '../../../../core/services/alarm_service.dart';
 import '../../../../core/local_storage/hive_manager.dart';
 
 class MainScaffold extends StatefulWidget {
@@ -28,6 +29,10 @@ class _MainScaffoldState extends State<MainScaffold> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndRequestNotifications();
+      // Alarm recovery hook: if the FullScreenIntent launched the app while
+      // the main.dart post-frame callback ran before this scaffold was mounted,
+      // this second call ensures navigation still happens.
+      AlarmService.checkPendingAlarm();
     });
   }
 

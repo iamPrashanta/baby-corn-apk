@@ -41,9 +41,12 @@ class ReminderCategorySettings {
       lastTriggeredTime: json['lastTriggeredTime'] != null
           ? DateTime.parse(json['lastTriggeredTime'] as String)
           : null,
-      profile: json['profile'] != null 
+      // RC-7: When no profile is stored (legacy data or new category), always
+      // default to full_alarm. Previously smart-mode defaulted to 'notification'
+      // which silently bypassed AlarmService entirely — alarms never rang.
+      profile: json['profile'] != null
           ? AlarmProfile.fromJson(Map<String, dynamic>.from(json['profile'] as Map))
-          : AlarmProfile(id: 'cat_${DateTime.now().millisecondsSinceEpoch}', alarmType: parsedMode == 'smart' ? 'notification' : 'full_alarm'),
+          : AlarmProfile(id: 'cat_${DateTime.now().millisecondsSinceEpoch}', alarmType: 'full_alarm'),
     );
   }
 

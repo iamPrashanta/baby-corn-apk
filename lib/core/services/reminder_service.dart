@@ -1,14 +1,13 @@
-// lib/core/services/reminder_service.dart
-
 import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:permission_handler/permission_handler.dart';
 import '../../features/settings/domain/models/reminder_settings_model.dart';
 import '../../features/medication/domain/models/medication_model.dart';
 import '../../core/local_storage/hive_manager.dart';
+import '../../features/reminders/domain/models/alarm_profile_model.dart';
 import 'alarm_service.dart';
 import 'notification_service.dart';
+import 'permission_service.dart';
 
 class ReminderService {
   static Future<void> init() async {
@@ -17,16 +16,12 @@ class ReminderService {
     debugPrint("ReminderService: Orchestrator initialized.");
   }
 
-  static Future<bool> requestPermissions() async {
-    // Request Alarm permissions
+  /// Requests all alarm-related permissions using the full permission suite.
+  /// Includes: notifications, exact alarm, battery optimization, FSI (Android 14+).
+  /// Requires a BuildContext for rationale dialogs — call from a widget.
+  static Future<bool> requestPermissions(BuildContext context) async {
     if (Platform.isAndroid) {
-      final exactAlarmStatus = await Permission.scheduleExactAlarm.request();
-      final notificationStatus = await Permission.notification.request();
-      // Android 13+ WAKE_LOCK, SYSTEM_ALERT_WINDOW
-      await Permission.systemAlertWindow.request();
-      
-      debugPrint("ReminderService: Permissions requested. Alarm=$exactAlarmStatus, Notifications=$notificationStatus");
-      return notificationStatus.isGranted || exactAlarmStatus.isGranted;
+      return PermissionService.requestAlarmPermissions(context);
     }
     return true;
   }
@@ -158,12 +153,30 @@ class ReminderService {
     await NotificationService.scheduleNotification(id: id, dateTime: scheduledDate, title: title, body: body);
   }
 
+  /// Schedules medication reminders as full-screen alarms (RC-6 fix).
+  ///
+  /// Previously this called NotificationService.scheduleNotification() which
+  /// produced silent notifications with no screen wake, no alarm sound, and
+  /// no AlarmScreen. Now it routes through AlarmService.scheduleAlarm() so
+  /// medication reminders behave identically to feeding/sleep/diaper reminders.
+  ///
+  /// A default AlarmProfile is used for medications since medications do not
+  /// have a category settings profile (they come from MedicationModel directly).
   static Future<void> scheduleMedication(MedicationModel med, {bool is24Hour = false}) async {
     if (!med.isActive) return;
 
     final now = DateTime.now();
     bool hasScheduled = false;
     DateTime? firstScheduled;
+
+    // Default alarm profile for medications: uses app's bundled alarm sound,
+    // vibration enabled, 10-minute snooze (appropriate for medications).
+    const medProfile = AlarmProfile(
+      id: 'medication_default',
+      alarmType: 'full_alarm',
+      vibrationEnabled: true,
+      snoozeMinutes: 10,
+    );
 
     for (int i = 0; i < med.times.length; i++) {
       final timeStr = med.times[i];
@@ -178,7 +191,9 @@ class ReminderService {
 
       if (parts[1].toUpperCase() == 'PM' && hour != 12) {
         hour += 12;
-      } else if (parts[1].toUpperCase() == 'AM' && hour == 12) hour = 0;
+      } else if (parts[1].toUpperCase() == 'AM' && hour == 12) {
+        hour = 0;
+      }
 
       DateTime scheduledDate = DateTime(now.year, now.month, now.day, hour, minute);
 
@@ -189,8 +204,16 @@ class ReminderService {
       final uniqueId = 10000 + (med.id.hashCode.abs() % 10000) + i;
       final payload = 'alarm|medication|${med.id}|$uniqueId|${scheduledDate.millisecondsSinceEpoch}';
 
-      await NotificationService.scheduleNotification(id: uniqueId, dateTime: scheduledDate, title: 'Medication: ${med.name}', body: 'Time for ${med.doseAmount} ${med.doseUnit}', payload: payload);
-      
+      // RC-6: Use AlarmService instead of NotificationService so medication
+      // reminders wake the screen and play alarm audio.
+      await AlarmService.scheduleAlarm(
+        id: uniqueId,
+        dateTime: scheduledDate,
+        title: 'Medication: ${med.name}',
+        profile: medProfile,
+        payload: payload,
+      );
+
       hasScheduled = true;
       if (firstScheduled == null || scheduledDate.isBefore(firstScheduled)) {
         firstScheduled = scheduledDate;

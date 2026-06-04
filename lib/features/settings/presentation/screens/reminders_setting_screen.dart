@@ -5,19 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../providers/reminder_settings_provider.dart';
 import '../../domain/models/reminder_settings_model.dart';
 import '../../../../core/design/tokens/colors.dart';
 import '../../../../core/services/reminder_service.dart';
+import '../../../../core/services/permission_service.dart';
 
 // Health integrations
 import '../../../medication/presentation/providers/medication_provider.dart';
 import '../../../records/presentation/providers/records_provider.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
 import '../../../records/domain/models/vaccine_schedule.dart';
-import '../../../records/domain/models/record_model.dart';
 
 class RemindersSettingScreen extends ConsumerWidget {
   const RemindersSettingScreen({super.key});
@@ -39,7 +38,7 @@ class RemindersSettingScreen extends ConsumerWidget {
               delegate: SliverChildListDelegate([
                 _buildMasterToggle(context, ref, settings, isDark),
                 if (Platform.isAndroid && settings.isMasterEnabled)
-                  _buildExactAlarmWarning(),
+                  _buildAlarmProtectionCard(context, isDark),
                 const SizedBox(height: 32),
                 if (settings.isMasterEnabled) ...[
                   _buildSectionHeader('EVERYDAY CARE'),
@@ -97,7 +96,7 @@ class RemindersSettingScreen extends ConsumerWidget {
         inactiveTrackColor: Colors.black26,
         onChanged: (val) async {
           if (val) {
-            await ReminderService.requestPermissions();
+            await ReminderService.requestPermissions(context);
           }
           final is24Hour = MediaQuery.of(context).alwaysUse24HourFormat;
           ref
@@ -108,57 +107,81 @@ class RemindersSettingScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildExactAlarmWarning() {
-    return FutureBuilder<PermissionStatus>(
-      future: Permission.scheduleExactAlarm.status,
+  Widget _buildAlarmProtectionCard(BuildContext context, bool isDark) {
+    if (!Platform.isAndroid) return const SizedBox.shrink();
+
+    return FutureBuilder<Map<String, bool>>(
+      future: PermissionService.getAlarmPermissionDiagnostics(),
       builder: (context, snapshot) {
-        if (snapshot.hasData && !snapshot.data!.isGranted) {
-          return Container(
-            margin: const EdgeInsets.only(top: 16),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.error.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(4.0),
-              border: Border.all(color: AppColors.error.withOpacity(0.5)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.warning_amber_rounded, color: AppColors.error),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Exact Alarms Denied',
-                          style: TextStyle(
-                              color: AppColors.error,
-                              fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 4),
-                      const Text(
-                          'Reminders may be delayed or missed. Please enable "Alarms & reminders" in settings.',
-                          style:
-                              TextStyle(color: AppColors.error, fontSize: 12)),
-                      TextButton(
-                        onPressed: () => openAppSettings(),
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size(50, 30),
-                          alignment: Alignment.centerLeft,
-                        ),
-                        child: const Text('Open Settings',
-                            style: TextStyle(
-                                color: AppColors.error,
-                                fontWeight: FontWeight.bold)),
-                      ),
-                    ],
+        if (!snapshot.hasData) return const SizedBox.shrink();
+        
+        final diagnostics = snapshot.data!;
+        final allGranted = diagnostics.values.every((v) => v == true);
+        final color = allGranted ? Colors.green : AppColors.error;
+
+        return Container(
+          margin: const EdgeInsets.only(top: 16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: color.withOpacity(isDark ? 0.15 : 0.05),
+            borderRadius: BorderRadius.circular(8.0),
+            border: Border.all(color: color.withOpacity(0.5)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(allGranted ? Icons.verified_user_rounded : Icons.shield_rounded, color: color),
+                  const SizedBox(width: 8),
+                  Text('Alarm Protection Status', style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 16)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                allGranted 
+                  ? 'All systems go! Your alarms are protected and will ring reliably.'
+                  : 'Some permissions are missing. Your alarms might not ring on time.', 
+                style: TextStyle(color: color, fontSize: 13, height: 1.4)
+              ),
+              const SizedBox(height: 16),
+              _buildDiagnosticRow('Notification permission', diagnostics['notifications'] == true, isDark),
+              _buildDiagnosticRow('Exact alarm permission', diagnostics['exactAlarm'] == true, isDark),
+              _buildDiagnosticRow('Battery optimization disabled', diagnostics['batteryOptimization'] == true, isDark),
+              _buildDiagnosticRow('Full screen intent enabled', diagnostics['fullScreenIntent'] == true, isDark),
+              if (!allGranted) ...[
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: color,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
+                    ),
+                    onPressed: () => PermissionService.openSettings(),
+                    child: const Text('Open Settings to Fix', style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
-            ),
-          );
-        }
-        return const SizedBox.shrink();
-      },
+            ],
+          ),
+        );
+      }
+    );
+  }
+
+  Widget _buildDiagnosticRow(String label, bool isGranted, bool isDark) {
+    final color = isGranted ? Colors.green : AppColors.error;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      child: Row(
+        children: [
+          Icon(isGranted ? Icons.check_circle_rounded : Icons.cancel_rounded, color: color, size: 20),
+          const SizedBox(width: 12),
+          Text(label, style: TextStyle(color: isDark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.w500, fontSize: 14)),
+        ],
+      ),
     );
   }
 
@@ -275,12 +298,15 @@ class RemindersSettingScreen extends ConsumerWidget {
           final notifier = ref.read(reminderSettingsProvider.notifier);
           final updated = catSettings.copyWith(isEnabled: val);
           final is24Hour = MediaQuery.of(context).alwaysUse24HourFormat;
-          if (category == 'feeding')
+          if (category == 'feeding') {
             notifier.updateFeeding(updated, is24Hour: is24Hour);
-          if (category == 'sleep')
+          }
+          if (category == 'sleep') {
             notifier.updateSleep(updated, is24Hour: is24Hour);
-          if (category == 'diaper')
+          }
+          if (category == 'diaper') {
             notifier.updateDiaper(updated, is24Hour: is24Hour);
+          }
         },
       ),
       onTap: () {
@@ -321,10 +347,11 @@ class RemindersSettingScreen extends ConsumerWidget {
               .add(Duration(days: item.recommendedDaysFromBirth));
           if (pendingRecord != null) {
             final dueDateStr = pendingRecord.metadata['dueDate'];
-            if (dueDateStr != null)
+            if (dueDateStr != null) {
               dueDate = DateTime.parse(dueDateStr);
-            else
+            } else {
               dueDate = pendingRecord.timestamp;
+            }
           }
 
           if (nextVaccineDate == null || dueDate.isBefore(nextVaccineDate)) {

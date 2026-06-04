@@ -10,6 +10,7 @@ import 'features/auth/data/repositories/baby_repository.dart';
 import 'core/local_storage/hive_manager.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'features/settings/presentation/providers/theme_provider.dart';
+import 'core/services/alarm_service.dart';
 import 'core/services/reminder_service.dart';
 import 'core/services/widget_service.dart';
 import 'core/config/app_config.dart';
@@ -66,6 +67,15 @@ void main() async {
     debugPrint("STEP 3.1: Initializing Alarm Service");
     await Alarm.init();
 
+    // Startup alarm diagnostic: shows how many alarms survived in SharedPreferences
+    // after any process death. If this is 0 but an alarm should be ringing,
+    // it means AlarmStorage was cleared unexpectedly (RC investigation layer).
+    final startupAlarms = await Alarm.getAlarms();
+    debugPrint('[ALARM STARTUP] stored alarms: ${startupAlarms.length}');
+    for (final a in startupAlarms) {
+      debugPrint('[ALARM STARTUP]   id=${a.id} | scheduled=${a.dateTime} | payload=${a.payload}');
+    }
+
     debugPrint("STEP 3.5: Running startup migration");
     await BabyRepository.runStartupMigration();
     debugPrint("STEP 3.5: Migration complete");
@@ -79,6 +89,14 @@ void main() async {
 
     debugPrint("STEP 5: Running App");
     runApp(const ProviderScope(child: BabyCornApp()));
+
+    // Post-frame alarm recovery: catches the case where FullScreenIntent
+    // launched the app while the widget tree was still building, meaning
+    // _tryNavigate() couldn't find a context. By now the first frame has
+    // been drawn and rootNavigatorKey.currentContext is available.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await AlarmService.checkPendingAlarm();
+    });
   } catch (e, st) {
     debugPrint("STARTUP ERROR: $e");
     debugPrint(st.toString());

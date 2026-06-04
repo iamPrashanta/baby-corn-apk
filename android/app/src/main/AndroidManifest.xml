@@ -19,7 +19,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     
-    <!-- Notifications -->
+    <!-- Notifications & Alarms -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
     <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
@@ -27,6 +27,10 @@
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <!-- RC-9: Required to request battery optimization exemption at runtime.
+         Without this, OEM battery savers (Samsung, Xiaomi, Oppo, Realme, Vivo)
+         kill AlarmService before it fires. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
     
     <!-- Calendar (Future Scope) -->
     <uses-permission android:name="android.permission.READ_CALENDAR"/>
