@@ -3,8 +3,13 @@ package com.babycorn.app
 import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
+import android.app.NotificationManager
+import android.provider.Settings
+import android.net.Uri
+import android.os.Build
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
 import com.babycorn.app.native.*
 
 class MainActivity: FlutterFragmentActivity() {
@@ -39,6 +44,26 @@ class MainActivity: FlutterFragmentActivity() {
         contactBridge = ContactBridge(this, messenger)
         callBridge = CallBridge(this, messenger)
         smsBridge = SmsBridge(this, messenger)
+
+        MethodChannel(messenger, "com.babycorn.app/fsi").setMethodCallHandler { call, result ->
+            if (call.method == "canUseFullScreenIntent") {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    val nm = getSystemService(NotificationManager::class.java)
+                    result.success(nm.canUseFullScreenIntent())
+                } else {
+                    result.success(true)
+                }
+            } else if (call.method == "requestFullScreenIntent") {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    val intent = Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT)
+                    intent.data = Uri.parse("package:$packageName")
+                    startActivity(intent)
+                }
+                result.success(null)
+            } else {
+                result.notImplemented()
+            }
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

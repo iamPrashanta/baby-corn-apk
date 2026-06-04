@@ -2,6 +2,7 @@
 
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../design/tokens/colors.dart';
 
@@ -10,6 +11,8 @@ import '../design/tokens/colors.dart';
 /// RULE: Never call these at app startup. Call them immediately BEFORE
 /// the feature that needs the permission (e.g., camera before taking a baby photo).
 class PermissionService {
+  static const MethodChannel _fsiChannel = MethodChannel('com.babycorn.app/fsi');
+  
   // ---------------------------------------------------------------------------
   // Camera — for baby milestone photos
   // ---------------------------------------------------------------------------
@@ -164,12 +167,9 @@ class PermissionService {
       );
     }
 
-    // 4. USE_FULL_SCREEN_INTENT (Android 14 / API 34+)
-    // permission_handler does not directly expose this permission.
-    // We open the app's "Special app access" settings page where the user
-    // can manually grant it. Only relevant on Android 14+.
-    final sdkInt = await _getAndroidSdkVersion();
-    if (sdkInt >= 34 && context.mounted) {
+    // We use a custom MethodChannel to query NotificationManager and launch
+    // the system settings page directly for ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT.
+    if (context.mounted) {
       final alreadyGranted = await _isFullScreenIntentGranted();
       if (!alreadyGranted) {
         await _showFullScreenIntentDialog(context);
@@ -215,24 +215,14 @@ class PermissionService {
   }
 
   /// Checks if USE_FULL_SCREEN_INTENT is granted.
+  /// Uses a native Kotlin MethodChannel.
   /// On Android < 14, always returns true (permission is auto-granted).
-  /// On Android 14+, queries NotificationManager.canUseFullScreenIntent()
-  /// via a platform check. We approximate this by checking if the
-  /// permission is granted via permission_handler's systemAlertWindow check,
-  /// which uses the same special-app-access flow.
+  /// On Android 14+, queries NotificationManager.canUseFullScreenIntent().
   static Future<bool> _isFullScreenIntentGranted() async {
+    if (!Platform.isAndroid) return true;
     try {
-      final sdkInt = await _getAndroidSdkVersion();
-      if (sdkInt < 34) return true;
-      // On API 34+, USE_FULL_SCREEN_INTENT requires special app access.
-      // permission_handler maps Permission.systemAlertWindow to
-      // ACTION_MANAGE_OVERLAY_PERMISSION. For FSI on API 34, we check
-      // notification policy access as the closest proxy available without
-      // a native plugin.
-      // NOTE: This is a conservative check — if uncertain, returns false
-      // so the user is shown the settings dialog.
-      final status = await Permission.notification.isGranted;
-      return status; // use notification as minimum viable proxy
+      final result = await _fsiChannel.invokeMethod<bool>('canUseFullScreenIntent');
+      return result ?? true;
     } catch (_) {
       return true; // assume granted if check fails
     }
@@ -276,7 +266,7 @@ class PermissionService {
             ),
             onPressed: () {
               Navigator.pop(ctx);
-              openAppSettings();
+              _fsiChannel.invokeMethod('requestFullScreenIntent');
             },
             child: const Text('Open Settings'),
           ),

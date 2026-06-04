@@ -8,9 +8,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../data/repositories/baby_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
-import '../../../../core/config/app_config.dart';
 import '../../../../core/design/tokens/colors.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -72,53 +70,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           ref.read(babyRepositoryProvider).getActiveBabyId();
       debugPrint('🔍 [Splash] babies.count=${babies.length}, hasBabies=$hasBabies, activeBabyId=$activeBabyId');
 
-      final isOfflineMode = prefs.getBool('is_offline_mode') ?? false;
-
-      if (AppConfig.enableFirebaseAuth && !isOfflineMode) {
-        // FIX #1: Await full Firebase auth state restoration before reading currentUser.
-        // FirebaseAuth.instance.currentUser is synchronous and may be null on cold
-        // start even for signed-in users — the SDK hasn't finished restoring the
-        // persisted token yet. authStateChanges().first waits until it is ready.
-        debugPrint('🔍 [Splash] Awaiting Firebase auth state...');
-        final currentUser = await FirebaseAuth.instance
-            .authStateChanges()
-            .first
-            .timeout(
-              const Duration(seconds: 5),
-              onTimeout: () {
-                debugPrint('⚠️ [Splash] Firebase auth state timeout — treating as signed out');
-                return null;
-              },
-            );
-
-        debugPrint('🔍 [Splash] currentUser.uid=${currentUser?.uid}, currentUser.email=${currentUser?.email}');
-
-        if (!mounted) return;
-
-        if (currentUser != null) {
-          // ✅ Returning user: Firebase session confirmed
-          if (!mounted) return;
-          final route = hasBabies ? '/home' : '/onboarding';
-          debugPrint('🔍 [Splash] → $route');
-          context.go(route);
-        } else {
-          // Not signed in → show Google sign-in screen
-          debugPrint('🔍 [Splash] → /auth (no Firebase session)');
-          context.go('/auth');
-        }
+      if (!hasBabies) {
+        debugPrint('🔍 [Splash] → /onboarding (no babies)');
+        if (mounted) context.go('/onboarding');
       } else {
-        // Local-First Offline mode — no Firebase auth required
-        debugPrint("🔍 Splash babies count = ${babies.length}");
-        debugPrint("🔍 Splash active baby = $activeBabyId");
-        debugPrint("🔍 Splash route => ${hasBabies ? '/home' : '/onboarding'}");
-
-        if (!hasBabies) {
-          debugPrint('🔍 [Splash] → /onboarding (offline, no babies)');
-          if (mounted) context.go('/onboarding');
-        } else {
-          debugPrint('🔍 [Splash] → /home (offline)');
-          if (mounted) context.go('/home');
-        }
+        debugPrint('🔍 [Splash] → /home (babies exist)');
+        if (mounted) context.go('/home');
       }
     } catch (e, st) {
       debugPrint('🔴 [Splash] Routing error: $e\n$st');

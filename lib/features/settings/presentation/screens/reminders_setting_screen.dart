@@ -10,7 +10,9 @@ import '../providers/reminder_settings_provider.dart';
 import '../../domain/models/reminder_settings_model.dart';
 import '../../../../core/design/tokens/colors.dart';
 import '../../../../core/services/reminder_service.dart';
+import '../../../../core/services/alarm_service.dart';
 import '../../../../core/services/permission_service.dart';
+import '../../../reminders/domain/models/alarm_profile_model.dart';
 
 // Health integrations
 import '../../../medication/presentation/providers/medication_provider.dart';
@@ -41,6 +43,10 @@ class RemindersSettingScreen extends ConsumerWidget {
                   _buildAlarmProtectionCard(context, isDark),
                 const SizedBox(height: 32),
                 if (settings.isMasterEnabled) ...[
+                  _buildSectionHeader('ALARM TEST'),
+                  _buildAlarmTestCard(context, isDark),
+                  const SizedBox(height: 32),
+                  
                   _buildSectionHeader('EVERYDAY CARE'),
                   _buildEverydayCareCard(context, ref, settings, isDark),
 
@@ -102,6 +108,53 @@ class RemindersSettingScreen extends ConsumerWidget {
           ref
               .read(reminderSettingsProvider.notifier)
               .toggleMaster(val, is24Hour: is24Hour);
+        },
+      ),
+    );
+  }
+
+  Widget _buildAlarmTestCard(BuildContext context, bool isDark) {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(4.0),
+        side: BorderSide(
+            color: AppColors.primary.withOpacity(isDark ? 0.15 : 0.08)),
+      ),
+      color: Theme.of(context).cardColor,
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: Colors.orange.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: const Center(child: Text('⏱️', style: TextStyle(fontSize: 24))),
+        ),
+        title: const Text('Test Full Alarm (10 sec)',
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+        subtitle: const Text('Lock your screen to verify it wakes up',
+            style: TextStyle(height: 1.4, fontSize: 13)),
+        trailing: const Icon(Icons.play_arrow_rounded, color: Colors.orange),
+        onTap: () async {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Alarm will ring in 10 seconds. Lock your phone now!')),
+          );
+          
+          await AlarmService.scheduleAlarm(
+            id: 99999, // Specific test ID
+            dateTime: DateTime.now().add(const Duration(seconds: 10)),
+            title: "Baby Corn Alarm Test",
+            profile: const AlarmProfile(
+              id: 'test',
+              alarmType: 'full_alarm',
+              ringtoneUri: 'assets/audio/alarm.wav',
+            ),
+            payload: 'alarm|test|0|99999',
+          );
         },
       ),
     );
