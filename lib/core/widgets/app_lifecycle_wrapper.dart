@@ -2,13 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../local_storage/secure_storage_manager.dart';
-import '../services/biometric_service.dart';
 import '../services/security_service.dart';
 import '../../features/records/presentation/providers/active_session_provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../../core/config/app_config.dart';
 import '../router/app_router.dart';
 import '../../features/auth/data/repositories/baby_repository.dart';
 
@@ -60,26 +56,25 @@ class _AppLifecycleWrapperState extends ConsumerState<AppLifecycleWrapper>
       // App came to foreground — restart the timer ticker for UI updates
       ref.read(activeSessionProvider.notifier).resumeTicker();
 
+      // Skip lock check if already on the PIN verify screen or splash/auth
+      final router = ref.read(routerProvider);
+      final currentLocation = router.routerDelegate.currentConfiguration.uri.toString();
+      if (currentLocation == '/pin_verify' ||
+          currentLocation == '/' ||
+          currentLocation == '/auth' ||
+          currentLocation == '/language') {
+        return;
+      }
+
       final hasBabies = ref.read(babyRepositoryProvider).getBabies().isNotEmpty;
 
       if (hasBabies) {
         final isExpired = await SecureStorageManager.isSessionExpired();
         if (isExpired) {
-          final isBiometricEnabled =
-              await SecureStorageManager.isBiometricEnabled();
-          bool unlocked = false;
-
-          if (isBiometricEnabled && await BiometricService.isAvailable()) {
-            unlocked = await BiometricService.authenticate();
-          }
-
-          if (unlocked) {
-            await SecureStorageManager.updateLastActiveTime();
-          } else {
-            if (mounted && !_hasNavigated) {
-              _hasNavigated = true;
-              ref.read(routerProvider).go('/pin_verify');
-            }
+          // Navigate to pin_verify — let PinScreen handle biometric prompt
+          if (mounted && !_hasNavigated) {
+            _hasNavigated = true;
+            router.go('/pin_verify');
           }
         } else {
           await SecureStorageManager.updateLastActiveTime();

@@ -11,7 +11,7 @@ import 'core/router/app_router.dart';
 import 'features/auth/data/repositories/baby_repository.dart';
 import 'core/local_storage/hive_manager.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-// import 'features/settings/presentation/providers/theme_provider.dart';
+import 'features/settings/presentation/providers/theme_provider.dart';
 import 'core/services/reminder_service.dart';
 import 'core/services/widget_service.dart';
 import 'core/config/app_config.dart';
@@ -111,15 +111,15 @@ class BabyCornApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
-    // final themeMode = ref.watch(themeModeProvider);
+    final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
 
     return AppLifecycleWrapper(
       child: MaterialApp.router(
         title: 'Baby Corn',
-        theme: AppTheme.darkTheme,
+        theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.dark,
+        themeMode: themeMode,
         locale: locale,
         builder: (context, child) {
           // Global overlay layer: floating timer appears on ALL screens
