@@ -11,8 +11,9 @@ import '../../../../core/design/tokens/colors.dart';
 
 import '../../../../core/config/app_config.dart';
 import '../../../../core/design/layouts/custom_app_bar.dart';
-// import '../../../../core/services/backup_service.dart';
-import '../../../../core/services/sync_service.dart';
+// import '../../../../core/local_storage/hive_manager.dart';
+import '../../../auth/domain/services/auth_service.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
 import '../../../records/presentation/providers/records_provider.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -29,10 +30,7 @@ class AccountScreen extends ConsumerStatefulWidget {
 class _AccountScreenState extends ConsumerState<AccountScreen>
     with WidgetsBindingObserver {
 
-
-  // Firebase user (null if offline)
-  User? get _firebaseUser =>
-      AppConfig.enableFirebaseAuth ? FirebaseAuth.instance.currentUser : null;
+  // Firebase user accessed via provider in build()
 
   @override
   void initState() {
@@ -58,27 +56,15 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
 
   Future<void> _signInWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) return;
-
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      await FirebaseAuth.instance.signInWithCredential(credential);
+      final user = await AuthService.signInWithGoogle();
+      if (user == null) return;
 
       if (mounted) {
-        setState(() {}); // Refresh to show Google user
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Successfully signed in with Google!')),
         );
-        // Sync cloud data FIRST so a fresh install pulls the old data
-        await SyncService.syncCloudDataToLocal();
-        // Then sync any local data up to cloud
-        await SyncService.syncOfflineDataToCloud();
+        // Note: Auto-sync on sign-in is removed in favor of manual Backup & Restore.
+        // The user can go to the Backup & Restore screen to retrieve their data.
 
         // Invalidate providers to force UI refresh with new Hive data
         ref.invalidate(activeBabyProvider);
@@ -94,30 +80,22 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
   }
 
   Future<void> _signOut() async {
-    try {
-      await FirebaseAuth.instance.signOut();
-      await GoogleSignIn().signOut();
-      if (mounted) {
-        setState(() {});
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Signed out. You are now in Offline Mode.'),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Sign out failed: $e')));
-      }
+    await AuthService.signOut();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Signed out. You are now in Offline Mode.'),
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('[ACCOUNT UI UPDATED]');
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isPremium = ref.watch(premiumProvider);
+    final user = ref.watch(authStateProvider).value;
 
     return Scaffold(
       appBar: const CustomAppBar(title: 'Account & Settings'),
@@ -125,7 +103,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
         padding: const EdgeInsets.all(16.0),
         children: [
           // ─── Profile Card ───────────────────────────────────────────
-          _buildProfileCard(isDark),
+          _buildProfileCard(isDark, user),
           const SizedBox(height: 24),
 
           _buildSettingsSection(
@@ -216,18 +194,6 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                   context.push('/backup_restore');
                 },
               ),
-              if (AppConfig.enableCloudSync)
-                ListTile(
-                  leading: const Icon(Icons.cloud_sync, color: Colors.blue),
-                  title: const Text('Sync Data'),
-                  subtitle: const Text('Manage cloud sync and backups'),
-                  onTap: () {
-                    if (!isPremium) {
-                      context.push('/subscription');
-                      return;
-                    }
-                  },
-                ),
             ],
           ),
           const SizedBox(height: 16),
@@ -273,7 +239,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                 );
               },
             ),
-            if (_firebaseUser != null)
+            if (user != null)
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.red),
                 title: const Text(
@@ -323,8 +289,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
     );
   }
 
-  Widget _buildProfileCard(bool isDark) {
-    final user = _firebaseUser;
+  Widget _buildProfileCard(bool isDark, User? user) {
     final isGoogleUser = user != null;
 
     final cardBg = Theme.of(context).cardColor;

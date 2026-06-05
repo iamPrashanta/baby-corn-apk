@@ -7,8 +7,7 @@ import '../../../../core/local_storage/hive_manager.dart';
 import '../../domain/models/active_session_model.dart';
 import '../../domain/models/record_model.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
-import '../../../../core/services/sync_service.dart';
-import '../../../../core/config/app_config.dart';
+
 import '../../../../core/services/haptic_service.dart';
 import 'records_provider.dart';
 
@@ -142,10 +141,7 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
       final recordsBox = HiveManager.getRecordsBox();
       await recordsBox.put(record.id, record);
 
-      // Cloud Sync (if enabled and online)
-      if (AppConfig.enableCloudSync) {
-        SyncService.pushRecord(record);
-      }
+      // Removed realtime cloud sync to preserve Spark limits
 
       // Clear active session
       state = null;

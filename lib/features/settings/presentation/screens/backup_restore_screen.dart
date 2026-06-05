@@ -212,6 +212,14 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
                                 const TextStyle(fontWeight: FontWeight.bold)),
                         Text(user.email ?? '',
                             style: const TextStyle(color: Colors.grey)),
+                        const SizedBox(height: 4),
+                        const Row(
+                          children: [
+                            Icon(Icons.check_circle, color: Colors.green, size: 16),
+                            SizedBox(width: 4),
+                            Text('Connected', style: TextStyle(color: Colors.green, fontWeight: FontWeight.w500)),
+                          ],
+                        ),
                       ],
                     ),
                   ),

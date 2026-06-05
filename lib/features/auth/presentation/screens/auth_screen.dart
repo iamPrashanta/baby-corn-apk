@@ -8,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/design/tokens/colors.dart';
 import '../../../../core/theme/glass_system/glass_colors.dart';
-import '../../../../core/services/sync_service.dart';
 import '../../data/repositories/baby_repository.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -81,9 +80,8 @@ class _AuthScreenState extends State<AuthScreen> {
       debugPrint('🔑 Firebase UID: ${userCredential.user?.uid}');
       debugPrint('==============================');
 
-      // Sync cloud data
-      await SyncService.syncCloudDataToLocal();
-      await SyncService.syncOfflineDataToCloud();
+      // Cloud Sync (Auto-Sync) has been replaced by Manual Backup & Restore
+      // users will be prompted to restore backups inside the app if needed.
 
       if (!mounted) return;
       setState(() => _isLoading = false);

@@ -3,6 +3,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -29,8 +30,14 @@ class AuthService {
 
       final UserCredential userCredential =
           await _auth.signInWithCredential(credential);
-      debugPrint(
-          '[AUTH] Google Sign-In successful for: ${userCredential.user?.email}');
+      debugPrint('[AUTH LOGIN SUCCESS] Google Sign-In successful for: ${userCredential.user?.email}');
+      
+      // Clear offline mode
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('is_offline_mode', false);
+      debugPrint('[OFFLINE MODE CLEARED]');
+      debugPrint('[AUTH PROVIDER REFRESH]');
+      
       return userCredential.user;
     } catch (e) {
       debugPrint('[AUTH ERROR] Google Sign-In failed: $e');
