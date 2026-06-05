@@ -33,7 +33,7 @@ import '../../features/settings/presentation/screens/diagnostics_screen.dart';
 import '../../features/guide/presentation/screens/first_foods_screen.dart';
 import '../../features/guide/presentation/screens/food_tracker_screen.dart';
 import '../../features/development/presentation/screens/image_viewer_screen.dart';
-
+import '../../features/settings/presentation/screens/backup_restore_screen.dart';
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -144,6 +144,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/diagnostics',
         builder: (context, state) => const DiagnosticsScreen(),
+      ),
+      GoRoute(
+        path: '/backup_restore',
+        builder: (context, state) => const BackupRestoreScreen(),
       ),
       GoRoute(
         path: '/alarm',

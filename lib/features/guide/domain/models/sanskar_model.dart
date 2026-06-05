@@ -129,4 +129,36 @@ class SanskarModel extends HiveObject {
       reminderEnabled: reminderEnabled ?? this.reminderEnabled,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'sanskritName': sanskritName,
+      'description': description,
+      'category': category,
+      'emojiIcon': emojiIcon,
+      'defaultRule': defaultRule.toJson(),
+      'customDate': customDate?.toIso8601String(),
+      'isCompleted': isCompleted,
+      'notes': notes,
+      'reminderEnabled': reminderEnabled,
+    };
+  }
+
+  factory SanskarModel.fromJson(Map<String, dynamic> json) {
+    return SanskarModel(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      sanskritName: json['sanskritName'] as String,
+      description: json['description'] as String,
+      category: json['category'] as String,
+      emojiIcon: json['emojiIcon'] as String,
+      defaultRule: SanskarRule.fromJson(Map<String, dynamic>.from(json['defaultRule'])),
+      customDate: json['customDate'] != null ? DateTime.parse(json['customDate'] as String) : null,
+      isCompleted: json['isCompleted'] as bool? ?? false,
+      notes: json['notes'] as String? ?? '',
+      reminderEnabled: json['reminderEnabled'] as bool? ?? true,
+    );
+  }
 }

@@ -50,4 +50,26 @@ class MomentModel extends HiveObject {
       imagePath: imagePath ?? this.imagePath,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'babyId': babyId,
+      'timestamp': timestamp.toIso8601String(),
+      'title': title,
+      'description': description,
+      'imagePath': imagePath,
+    };
+  }
+
+  factory MomentModel.fromJson(Map<String, dynamic> json) {
+    return MomentModel(
+      id: json['id'] as String,
+      babyId: json['babyId'] as String? ?? 'default',
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      title: json['title'] as String,
+      description: json['description'] as String? ?? '',
+      imagePath: json['imagePath'] as String,
+    );
+  }
 }

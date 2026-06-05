@@ -27,7 +27,7 @@ dependencies:
   firebase_storage: ^13.4.1
   firebase_analytics: ^12.4.1
   firebase_crashlytics: ^5.2.2
-  firebase_app_check: ^0.4.4+1
+  firebase_app_check: ^0.4.4+2
   
   # Local Storage & Database
   hive: ^2.2.3

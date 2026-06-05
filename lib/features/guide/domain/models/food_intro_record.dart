@@ -84,5 +84,37 @@ class FoodIntroRecord extends HiveObject {
       doctorVisitDate: doctorVisitDate ?? this.doctorVisitDate,
     );
   }
-}
 
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'babyId': babyId,
+      'foodName': foodName,
+      'dateIntroduced': dateIntroduced.toIso8601String(),
+      'status': status.toString().split('.').last,
+      'symptoms': symptoms,
+      'notes': notes,
+      'ageInMonthsAtIntroduction': ageInMonthsAtIntroduction,
+      'doctorNote': doctorNote,
+      'doctorVisitDate': doctorVisitDate?.toIso8601String(),
+    };
+  }
+
+  factory FoodIntroRecord.fromJson(Map<String, dynamic> json) {
+    return FoodIntroRecord(
+      id: json['id'] as String,
+      babyId: json['babyId'] as String,
+      foodName: json['foodName'] as String,
+      dateIntroduced: DateTime.parse(json['dateIntroduced'] as String),
+      status: FoodIntroStatus.values.firstWhere(
+        (e) => e.toString().split('.').last == json['status'],
+        orElse: () => FoodIntroStatus.observing,
+      ),
+      symptoms: List<String>.from(json['symptoms'] ?? []),
+      notes: json['notes'] as String? ?? '',
+      ageInMonthsAtIntroduction: json['ageInMonthsAtIntroduction'] as int? ?? 0,
+      doctorNote: json['doctorNote'] as String?,
+      doctorVisitDate: json['doctorVisitDate'] != null ? DateTime.parse(json['doctorVisitDate'] as String) : null,
+    );
+  }
+}

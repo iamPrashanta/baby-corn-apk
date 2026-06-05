@@ -120,4 +120,50 @@ class MedicationModel extends HiveObject {
       reason: reason ?? this.reason,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'babyId': babyId,
+      'name': name,
+      'type': type,
+      'prescribedFor': prescribedFor,
+      'scheduleType': scheduleType,
+      'times': times,
+      'doseAmount': doseAmount,
+      'doseUnit': doseUnit,
+      'totalQuantity': totalQuantity,
+      'remainingQuantity': remainingQuantity,
+      'lowStockThreshold': lowStockThreshold,
+      'startDate': startDate.toIso8601String(),
+      'endDate': endDate?.toIso8601String(),
+      'notes': notes,
+      'isActive': isActive,
+      'doctorName': doctorName,
+      'reason': reason,
+    };
+  }
+
+  factory MedicationModel.fromJson(Map<String, dynamic> json) {
+    return MedicationModel(
+      id: json['id'] as String,
+      babyId: json['babyId'] as String,
+      name: json['name'] as String,
+      type: json['type'] as String,
+      prescribedFor: json['prescribedFor'] as String,
+      scheduleType: json['scheduleType'] as String,
+      times: List<String>.from(json['times'] ?? []),
+      doseAmount: (json['doseAmount'] as num).toDouble(),
+      doseUnit: json['doseUnit'] as String,
+      totalQuantity: (json['totalQuantity'] as num).toDouble(),
+      remainingQuantity: (json['remainingQuantity'] as num).toDouble(),
+      lowStockThreshold: (json['lowStockThreshold'] as num).toDouble(),
+      startDate: DateTime.parse(json['startDate'] as String),
+      endDate: json['endDate'] != null ? DateTime.parse(json['endDate'] as String) : null,
+      notes: json['notes'] as String? ?? '',
+      isActive: json['isActive'] as bool? ?? true,
+      doctorName: json['doctorName'] as String?,
+      reason: json['reason'] as String?,
+    );
+  }
 }

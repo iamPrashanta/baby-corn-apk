@@ -202,92 +202,50 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
               },
             ),
           ]),
-          // const SizedBox(height: 16),
-          // _buildSettingsSection(
-          //   context,
-          //   'Data & Backup',
-          //   [
-          //     ListTile(
-          //       leading: const Icon(Icons.cloud_upload_outlined),
-          //       title: const Text('Back up to Google Drive'),
-          //       onTap: () async {
-          //         final success = await BackupService.backupToGoogleDrive();
-          //         if (mounted) {
-          //           ScaffoldMessenger.of(context).showSnackBar(
-          //             SnackBar(
-          //                 content: Text(success
-          //                     ? 'Backup uploaded successfully!'
-          //                     : 'Cloud backup failed. Are you signed in?')),
-          //           );
-          //         }
-          //       },
-          //     ),
-          //     ListTile(
-          //       leading: const Icon(Icons.cloud_download_outlined),
-          //       title: const Text('Restore from Google Drive'),
-          //       onTap: () async {
-          //         final success = await BackupService.restoreFromGoogleDrive();
-          //         if (mounted) {
-          //           ScaffoldMessenger.of(context).showSnackBar(
-          //             SnackBar(
-          //                 content: Text(success
-          //                     ? 'Backup restored successfully! Restarting...'
-          //                     : 'Cloud restore failed. No backup found?')),
-          //           );
-          //           if (success) context.go('/'); // Restart app to reload state
-          //         }
-          //       },
-          //     ),
-          //     if (AppConfig.enableCloudSync)
-          //       ListTile(
-          //         leading: const Icon(Icons.cloud_sync, color: Colors.blue),
-          //         title: const Text('Sync Data'),
-          //         subtitle: const Text('Manage cloud sync and backups'),
-          //         onTap: () {
-          //           if (!isPremium) {
-          //             context.push('/subscription');
-          //             return;
-          //           }
-          //           showModalBottomSheet(
-          //             context: context,
-          //             isScrollControlled: true,
-          //             backgroundColor: Colors.transparent,
-          //             builder: (ctx) => const SyncDetailsSheet(),
-          //           );
-          //         },
-          //       ),
-          //     if (!AppConfig.enableCloudBackup)
-          //       ListTile(
-          //         leading: const Icon(Icons.group, color: Colors.blue),
-          //         title: const Text('Family Sharing'),
-          //         subtitle: const Text('Invite partner or family member'),
-          //         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-          //         onTap: () {
-          //           if (!isPremium) {
-          //             context.push('/subscription');
-          //             return;
-          //           }
-          //           context.push('/family_sharing');
-          //         },
-          //       ),
-          //   ],
-          // ),
-          // const SizedBox(height: 16),
-          // _buildSettingsSection(
-          //   context,
-          //   'System',
-          //   [
-          //     ListTile(
-          //       leading: const Icon(Icons.bug_report, color: AppColors.primary),
-          //       title: const Text('App Diagnostics'),
-          //       subtitle: const Text('Test OEM alarm background restrictions'),
-          //       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-          //       onTap: () {
-          //         context.push('/diagnostics');
-          //       },
-          //     ),
-          //   ],
-          // ),
+          const SizedBox(height: 16),
+          _buildSettingsSection(
+            context,
+            'Data & Backup',
+            [
+              ListTile(
+                leading: const Icon(Icons.cloud_sync, color: AppColors.primary),
+                title: const Text('Backup & Restore'),
+                subtitle: const Text('Save your baby\'s records to Google Cloud'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () {
+                  context.push('/backup_restore');
+                },
+              ),
+              if (AppConfig.enableCloudSync)
+                ListTile(
+                  leading: const Icon(Icons.cloud_sync, color: Colors.blue),
+                  title: const Text('Sync Data'),
+                  subtitle: const Text('Manage cloud sync and backups'),
+                  onTap: () {
+                    if (!isPremium) {
+                      context.push('/subscription');
+                      return;
+                    }
+                  },
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildSettingsSection(
+            context,
+            'System',
+            [
+              ListTile(
+                leading: const Icon(Icons.bug_report, color: AppColors.primary),
+                title: const Text('App Diagnostics'),
+                subtitle: const Text('Test OEM alarm background restrictions'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () {
+                  context.push('/diagnostics');
+                },
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
           _buildSettingsSection(context, 'About', [
             ListTile(

@@ -54,4 +54,28 @@ class MedicationLogModel extends HiveObject {
       takenBy: takenBy ?? this.takenBy,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'medicationId': medicationId,
+      'scheduledTime': scheduledTime.toIso8601String(),
+      'actualTime': actualTime?.toIso8601String(),
+      'status': status,
+      'note': note,
+      'takenBy': takenBy,
+    };
+  }
+
+  factory MedicationLogModel.fromJson(Map<String, dynamic> json) {
+    return MedicationLogModel(
+      id: json['id'] as String,
+      medicationId: json['medicationId'] as String,
+      scheduledTime: DateTime.parse(json['scheduledTime'] as String),
+      actualTime: json['actualTime'] != null ? DateTime.parse(json['actualTime'] as String) : null,
+      status: json['status'] as String? ?? 'pending',
+      note: json['note'] as String? ?? '',
+      takenBy: json['takenBy'] as String? ?? '',
+    );
+  }
 }
