@@ -28,6 +28,9 @@ class BackupService {
 
   static Future<void> backupNow() async {
     final user = AuthService.currentUser;
+    debugPrint('[BACKUP USER] uid=${user?.uid}');
+    debugPrint('[BACKUP USER] email=${user?.email}');
+    
     if (user == null) {
       debugPrint('[BACKUP ERROR] User not logged in.');
       throw Exception('User not logged in');
