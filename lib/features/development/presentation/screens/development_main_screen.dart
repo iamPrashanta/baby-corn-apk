@@ -298,12 +298,10 @@ class _MomentsGallery extends ConsumerWidget {
     final file = File(moment.imagePath);
     return GestureDetector(
       onTap: () {
-        if (file.existsSync()) {
-          context.push('/image_viewer', extra: {
-            'imagePath': file.path,
-            'tag': moment.id,
-          });
-        }
+        context.push('/image_viewer', extra: {
+          'imagePath': file.existsSync() ? file.path : 'placeholder',
+          'tag': moment.id,
+        });
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -324,16 +322,20 @@ class _MomentsGallery extends ConsumerWidget {
           children: [
             Hero(
               tag: moment.id,
-              child: file.existsSync()
-                  ? Image.file(
-                      file,
-                      fit: BoxFit.cover,
-                    )
-                  : Container(
-                      height: 120,
-                      color: Colors.grey.withOpacity(0.2),
-                      child: const Center(child: Icon(Icons.broken_image, color: Colors.grey)),
-                    ),
+              child: () {
+                if (file.existsSync()) {
+                  return Image.file(
+                    file,
+                    fit: BoxFit.cover,
+                  );
+                } else {
+                  debugPrint('[MOMENT IMAGE MISSING] Falling back to placeholder');
+                  return Image.asset(
+                    'assets/images/moment_placeholder.png',
+                    fit: BoxFit.cover,
+                  );
+                }
+              }(),
             ),
             Padding(
               padding: const EdgeInsets.all(12),

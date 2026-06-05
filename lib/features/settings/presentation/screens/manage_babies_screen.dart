@@ -215,19 +215,25 @@ class _BabyCard extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                   child: ClipOval(
-                    child: baby.profileImagePath != null
-                        ? Image.file(
-                            File(baby.profileImagePath!),
-                            fit: BoxFit.cover,
-                            width: 64,
-                            height: 64,
-                          )
-                        : Center(
-                            child: Text(
-                              baby.avatarEmoji,
-                              style: const TextStyle(fontSize: 36),
-                            ),
-                          ),
+                    child: () {
+                      final hasPhoto = baby.profileImagePath != null && File(baby.profileImagePath!).existsSync();
+                      if (baby.profileImagePath != null && !hasPhoto) {
+                        debugPrint('[BABY PHOTO MISSING] Using avatar fallback');
+                      }
+                      return hasPhoto
+                          ? Image.file(
+                              File(baby.profileImagePath!),
+                              fit: BoxFit.cover,
+                              width: 64,
+                              height: 64,
+                            )
+                          : Center(
+                              child: Text(
+                                baby.avatarEmoji,
+                                style: const TextStyle(fontSize: 36),
+                              ),
+                            );
+                    }(),
                   ),
                 ),
                 const SizedBox(width: 16),

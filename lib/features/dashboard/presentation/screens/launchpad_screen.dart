@@ -20,6 +20,7 @@ import '../../../settings/presentation/providers/reminder_settings_provider.dart
 import '../../../settings/domain/models/reminder_settings_model.dart';
 import '../../../guide/domain/models/food_intro_record.dart';
 import '../../../guide/presentation/providers/food_tracker_provider.dart';
+import '../../../../core/services/backup_service.dart';
 
 final _launchpadAnimProvider = StateProvider<bool>((ref) => false);
 
@@ -45,6 +46,9 @@ class LaunchpadScreen extends ConsumerWidget {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!hasAnimated) {
+        // Trigger 24-hour backup check on main dashboard launch silently
+        BackupService.checkAutoBackup();
+
         Future.delayed(const Duration(milliseconds: 2000), () {
           if (context.mounted) {
             ref.read(_launchpadAnimProvider.notifier).state = true;
@@ -182,19 +186,25 @@ class LaunchpadScreen extends ConsumerWidget {
               ],
             ),
             child: ClipOval(
-              child: activeBaby?.profileImagePath != null
-                  ? Image.file(
-                      File(activeBaby!.profileImagePath!),
-                      fit: BoxFit.cover,
-                      width: 64,
-                      height: 64,
-                    )
-                  : Center(
-                      child: Text(
-                        activeBaby?.avatarEmoji ?? '👶',
-                        style: const TextStyle(fontSize: 32),
-                      ),
-                    ),
+              child: () {
+                final hasPhoto = activeBaby?.profileImagePath != null && File(activeBaby!.profileImagePath!).existsSync();
+                if (activeBaby?.profileImagePath != null && !hasPhoto) {
+                  debugPrint('[BABY PHOTO MISSING] Using avatar fallback');
+                }
+                return hasPhoto
+                    ? Image.file(
+                        File(activeBaby!.profileImagePath!),
+                        fit: BoxFit.cover,
+                        width: 64,
+                        height: 64,
+                      )
+                    : Center(
+                        child: Text(
+                          activeBaby?.avatarEmoji ?? '👶',
+                          style: const TextStyle(fontSize: 32),
+                        ),
+                      );
+              }(),
             ),
           ).animateIf(!hasAnimated, (a) => a.scale(
               duration: 600.ms, curve: Curves.easeOutBack, delay: 200.ms)),
@@ -1025,19 +1035,25 @@ class _ProfileSwitcherSheet extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                       child: ClipOval(
-                        child: baby.profileImagePath != null
-                            ? Image.file(
-                                File(baby.profileImagePath!),
-                                fit: BoxFit.cover,
-                                width: 52,
-                                height: 52,
-                              )
-                            : Center(
-                                child: Text(
-                                  baby.avatarEmoji,
-                                  style: const TextStyle(fontSize: 28),
-                                ),
-                              ),
+                        child: () {
+                          final hasPhoto = baby.profileImagePath != null && File(baby.profileImagePath!).existsSync();
+                          if (baby.profileImagePath != null && !hasPhoto) {
+                            debugPrint('[BABY PHOTO MISSING] Using avatar fallback');
+                          }
+                          return hasPhoto
+                              ? Image.file(
+                                  File(baby.profileImagePath!),
+                                  fit: BoxFit.cover,
+                                  width: 52,
+                                  height: 52,
+                                )
+                              : Center(
+                                  child: Text(
+                                    baby.avatarEmoji,
+                                    style: const TextStyle(fontSize: 28),
+                                  ),
+                                );
+                        }(),
                       ),
                     ),
                     const SizedBox(width: 16),

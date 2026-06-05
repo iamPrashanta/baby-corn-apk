@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../design/tokens/colors.dart';
+import 'notification_service.dart';
 
 /// Centralized just-in-time permission service for Baby Corn.
 ///
@@ -329,7 +330,8 @@ class PermissionService {
     required String reason,
     required IconData icon,
   }) async {
-    if (await permission.isGranted) return true;
+    final wasGranted = await permission.isGranted;
+    if (wasGranted) return true;
 
     if (await permission.isPermanentlyDenied) {
       if (context.mounted) {
@@ -346,7 +348,18 @@ class PermissionService {
     }
 
     final status = await permission.request();
-    return status.isGranted;
+    final isGranted = status.isGranted;
+
+    if (!wasGranted && isGranted && permission == Permission.notification) {
+      await NotificationService.scheduleNotification(
+        id: 9999, // Welcome ID
+        dateTime: DateTime.now().add(const Duration(seconds: 2)), // Slight delay
+        title: 'Welcome to Baby Corn! 🎉',
+        body: 'Congratulations! You are all set to track your baby\'s milestones and routines.',
+      );
+    }
+
+    return isGranted;
   }
 
   static Future<bool> _showRationaleDialog(

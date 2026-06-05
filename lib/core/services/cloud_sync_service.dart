@@ -50,50 +50,7 @@ class CloudSyncService {
         }
       } else {
         // Scenario B: Existing Data
-        final prefs = await SharedPreferences.getInstance();
-        final localModifiedStr = prefs.getString('last_local_modified');
-        DateTime localDate = DateTime.now().subtract(const Duration(days: 365));
-        if (localModifiedStr != null) {
-          localDate = DateTime.parse(localModifiedStr);
-        } else {
-           // fallback heuristic
-           if (recordsBox.isNotEmpty) {
-             localDate = DateTime.now(); // Assume local is dirty if no pref
-           }
-        }
-
-        if (localDate.isAfter(cloudDate)) {
-          debugPrint('[AUTO RESTORE SKIPPED] Local data is newer. Keeping local.');
-          // Offer Backup Now? We can just do nothing or show a snackbar.
-        } else {
-          debugPrint('[AUTO RESTORE MERGE REQUIRED] Cloud backup is newer.');
-          if (context.mounted) {
-            final result = await AppDialog.show(
-              context: context,
-              title: 'Cloud Backup Found',
-              contentText: 'A newer backup was found in the cloud. Would you like to merge it with your local data or keep your local data?',
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, 'keep'),
-                  child: const Text('Keep Local'),
-                ),
-                ElevatedButton(
-                  onPressed: () => Navigator.pop(context, 'merge'),
-                  child: const Text('Merge Data'),
-                ),
-              ],
-            );
-
-            if (result == 'merge') {
-              _showLoadingDialog(context, 'Merging Data...');
-              await BackupService.mergeBackup();
-              if (context.mounted) Navigator.pop(context); // pop loading
-              debugPrint('[AUTO RESTORE SUCCESS]');
-            } else {
-              debugPrint('[AUTO RESTORE SKIPPED] User chose to keep local data.');
-            }
-          }
-        }
+        debugPrint('[AUTO RESTORE SKIPPED] Local data exists. Keeping local data implicitly.');
       }
     } catch (e) {
       debugPrint('[AUTO RESTORE ERROR] $e');

@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import 'dart:convert';
 import '../../features/settings/domain/models/reminder_settings_model.dart';
@@ -26,6 +25,32 @@ class UnsupportedBackupVersionException implements Exception {
 class BackupService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  static Future<void> checkAutoBackup() async {
+    final user = AuthService.currentUser;
+    if (user == null) return;
+
+    try {
+      debugPrint('[AUTO BACKUP CHECK] Checking last backup date...');
+      final lastBackup = await getLastBackupDate();
+      
+      if (lastBackup == null) {
+        debugPrint('[AUTO BACKUP STARTED] No previous backup found. Starting backup...');
+        await backupNow();
+        return;
+      }
+
+      final diff = DateTime.now().difference(lastBackup);
+      if (diff.inHours > 24) {
+        debugPrint('[AUTO BACKUP STARTED] Last backup was > 24 hours ago. Starting backup...');
+        await backupNow();
+      } else {
+        debugPrint('[AUTO BACKUP SKIPPED] Last backup is recent (${diff.inHours} hours ago).');
+      }
+    } catch (e) {
+      debugPrint('[AUTO BACKUP ERROR] $e');
+    }
+  }
+
   static Future<void> backupNow() async {
     final user = AuthService.currentUser;
     debugPrint('[BACKUP USER] uid=${user?.uid}');
@@ -43,20 +68,6 @@ class BackupService {
           .doc(user.uid)
           .collection('backup')
           .doc('latest');
-
-      // 1. Check Rate Limit (6 hours)
-      final existingDoc = await latestBackupRef.get();
-      if (existingDoc.exists) {
-        final data = existingDoc.data()!;
-        final lastBackupTimestamp = data['createdAt'] as Timestamp?;
-        if (lastBackupTimestamp != null) {
-          final lastBackup = lastBackupTimestamp.toDate();
-          final diff = DateTime.now().difference(lastBackup);
-          if (diff.inHours < 6) {
-             throw Exception('Backup already performed recently. Please wait 6 hours.');
-          }
-        }
-      }
 
       int totalRecords = 0;
 
@@ -80,22 +91,7 @@ class BackupService {
       final moments = <Map<String, dynamic>>[];
       for (final m in momentsBox.values) {
         final json = m.toJson();
-        final imagePath = m.imagePath;
-        if (!imagePath.startsWith('http') && imagePath.isNotEmpty) {
-          final file = File(imagePath);
-          if (await file.exists()) {
-            try {
-              debugPrint('[BACKUP STORAGE UPLOAD] Uploading moment photo: ${m.id}.jpg');
-              final ref = FirebaseStorage.instance
-                  .ref()
-                  .child('users/${user.uid}/moments/${m.id}.jpg');
-              await ref.putFile(file);
-              json['imagePath'] = await ref.getDownloadURL();
-            } catch (e) {
-              debugPrint('[BACKUP ERROR] Failed to upload moment image: $e');
-            }
-          }
-        }
+        json['photoBackedUp'] = false;
         moments.add(json);
       }
       totalRecords += moments.length;

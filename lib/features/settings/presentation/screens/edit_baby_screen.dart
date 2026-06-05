@@ -306,34 +306,40 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
                   shape: BoxShape.circle,
                 ),
                 child: ClipOval(
-                  child: _profileImagePath != null
-                      ? Image.file(
-                          File(_profileImagePath!),
-                          fit: BoxFit.cover,
-                          width: 90,
-                          height: 90,
-                        )
-                      : Center(
-                          child: TextField(
-                            textAlign: TextAlign.center,
-                            maxLength: 2,
-                            style: const TextStyle(fontSize: 40),
-                            decoration: const InputDecoration(
-                              border: InputBorder.none,
-                              counterText: "",
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                            controller: TextEditingController(text: _avatarEmoji)
-                              ..selection = TextSelection.fromPosition(
-                                TextPosition(offset: _avatarEmoji.length),
+                  child: () {
+                    final hasPhoto = _profileImagePath != null && File(_profileImagePath!).existsSync();
+                    if (_profileImagePath != null && !hasPhoto) {
+                      debugPrint('[BABY PHOTO MISSING] Using avatar fallback');
+                    }
+                    return hasPhoto
+                        ? Image.file(
+                            File(_profileImagePath!),
+                            fit: BoxFit.cover,
+                            width: 90,
+                            height: 90,
+                          )
+                        : Center(
+                            child: TextField(
+                              textAlign: TextAlign.center,
+                              maxLength: 2,
+                              style: const TextStyle(fontSize: 40),
+                              decoration: const InputDecoration(
+                                border: InputBorder.none,
+                                counterText: "",
+                                contentPadding: EdgeInsets.zero,
                               ),
-                            onChanged: (val) {
-                              if (val.isNotEmpty) {
-                                _avatarEmoji = val;
-                              }
-                            },
-                          ),
-                        ),
+                              controller: TextEditingController(text: _avatarEmoji)
+                                ..selection = TextSelection.fromPosition(
+                                  TextPosition(offset: _avatarEmoji.length),
+                                ),
+                              onChanged: (val) {
+                                if (val.isNotEmpty) {
+                                  _avatarEmoji = val;
+                                }
+                              },
+                            ),
+                          );
+                  }(),
                 ),
               ),
               Positioned(
@@ -380,43 +386,124 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
   }
 
   Future<void> _pickImage() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return Container(
-          margin: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: const Text('Take a Photo'),
-                onTap: () async {
-                  Navigator.pop(ctx);
-                  final picker = ImagePicker();
-                  final picked = await picker.pickImage(source: ImageSource.camera);
-                  if (picked != null) setState(() => _profileImagePath = picked.path);
-                },
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            // Drag handle
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(2.0),
               ),
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Choose from Gallery'),
-                onTap: () async {
-                  Navigator.pop(ctx);
-                  final picker = ImagePicker();
-                  final picked = await picker.pickImage(source: ImageSource.gallery);
-                  if (picked != null) setState(() => _profileImagePath = picked.path);
-                },
+            ),
+            const SizedBox(height: 24),
+            // Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.add_a_photo_rounded, color: AppColors.primary, size: 28),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Add Photo',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Choose a source for your photo',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark ? Colors.white54 : Colors.black54,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        );
-      },
+            ),
+            const SizedBox(height: 24),
+            // Action items
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Card(
+                elevation: 0,
+                color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
+                child: Column(
+                  children: [
+                    ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      leading: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4.0),
+                        ),
+                        child: const Icon(Icons.photo_library, color: Colors.blue),
+                      ),
+                      title: const Text(
+                        'Choose from Gallery',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      subtitle: const Text('Select an existing photo from your device'),
+                      onTap: () async {
+                        Navigator.pop(ctx);
+                        final picker = ImagePicker();
+                        final picked = await picker.pickImage(source: ImageSource.gallery);
+                        if (picked != null) setState(() => _profileImagePath = picked.path);
+                      },
+                    ),
+                    Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
+                    ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      leading: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4.0),
+                        ),
+                        child: const Icon(Icons.camera_alt, color: AppColors.primary),
+                      ),
+                      title: const Text(
+                        'Take a Photo',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      subtitle: const Text('Use your camera to take a new picture'),
+                      onTap: () async {
+                        Navigator.pop(ctx);
+                        final picker = ImagePicker();
+                        final picked = await picker.pickImage(source: ImageSource.camera);
+                        if (picked != null) setState(() => _profileImagePath = picked.path);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
     );
   }
 

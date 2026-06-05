@@ -64,20 +64,21 @@ class _ImageViewerScreenState extends ConsumerState<ImageViewerScreen> {
         backgroundColor: Colors.black,
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
-          IconButton(
-            icon: _isSaving
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
-                : const Icon(Icons.download_rounded),
-            onPressed: _isSaving ? null : _saveImage,
-            tooltip: 'Save to Gallery',
-          ),
+          if (widget.imagePath != 'placeholder')
+            IconButton(
+              icon: _isSaving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Icon(Icons.download_rounded),
+              onPressed: _isSaving ? null : _saveImage,
+              tooltip: 'Save to Gallery',
+            ),
         ],
       ),
       body: Center(
@@ -88,10 +89,15 @@ class _ImageViewerScreenState extends ConsumerState<ImageViewerScreen> {
             boundaryMargin: const EdgeInsets.all(20),
             minScale: 0.5,
             maxScale: 4.0,
-            child: Image.file(
-              File(widget.imagePath),
-              fit: BoxFit.contain,
-            ),
+            child: widget.imagePath == 'placeholder'
+                ? Image.asset(
+                    'assets/images/moment_placeholder.png',
+                    fit: BoxFit.contain,
+                  )
+                : Image.file(
+                    File(widget.imagePath),
+                    fit: BoxFit.contain,
+                  ),
           ),
         ),
       ),
