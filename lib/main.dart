@@ -13,6 +13,7 @@ import 'features/settings/presentation/providers/theme_provider.dart';
 import 'core/services/alarm_service.dart';
 import 'core/services/reminder_service.dart';
 import 'core/services/widget_service.dart';
+import 'core/services/engagement_notification_service.dart';
 import 'core/config/app_config.dart';
 import 'core/widgets/app_lifecycle_wrapper.dart';
 import 'core/design/layouts/floating_timer_overlay.dart';
@@ -86,6 +87,9 @@ void main() async {
 
     debugPrint("STEP 4.5: Initializing WidgetService");
     await WidgetService.initialize();
+
+    debugPrint("STEP 4.6: Initializing Engagement Notifications");
+    await EngagementNotificationService.init();
 
     debugPrint("STEP 5: Running App");
     runApp(const ProviderScope(child: BabyCornApp()));

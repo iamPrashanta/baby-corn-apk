@@ -68,6 +68,16 @@ class NotificationService {
             enableVibration: false,
           ),
         );
+        await androidImpl.createNotificationChannel(
+          const AndroidNotificationChannel(
+            'baby_corn_engagement',
+            'Engagement Notifications',
+            description: 'Daily check-ins',
+            importance: Importance.low,
+            playSound: false,
+            enableVibration: false,
+          ),
+        );
       }
     }
 
@@ -81,16 +91,21 @@ class NotificationService {
     required String title,
     required String body,
     String? payload,
+    String channelId = 'baby_corn_general',
+    String channelName = 'General Notifications',
+    Importance importance = Importance.max,
+    Priority priority = Priority.high,
+    bool playSound = true,
   }) async {
-    final androidDetails = const AndroidNotificationDetails(
-      'baby_corn_general',
-      'General Notifications',
-      importance: Importance.max,
-      priority: Priority.high,
+    final androidDetails = AndroidNotificationDetails(
+      channelId,
+      channelName,
+      importance: importance,
+      priority: priority,
       icon: '@mipmap/launcher_icon',
-      playSound: true,
-      enableVibration: true,
-      fullScreenIntent: true,
+      playSound: playSound,
+      enableVibration: playSound,
+      fullScreenIntent: playSound,
       category: AndroidNotificationCategory.alarm,
     );
 

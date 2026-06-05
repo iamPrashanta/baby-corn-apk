@@ -37,9 +37,12 @@ class ReminderService {
   }
 
   static Future<ReminderSettingsModel> updateSchedules(ReminderSettingsModel settings, {bool is24Hour = false}) async {
+    debugPrint('[SCHEDULE] updateSchedules called. master=${settings.isMasterEnabled}');
     await cancelAll();
+    debugPrint('[CANCEL] All existing alarms cancelled.');
 
     if (!settings.isMasterEnabled) {
+      debugPrint('[SCHEDULE] Master is disabled. No alarms scheduled.');
       return settings;
     }
 
@@ -101,13 +104,12 @@ class ReminderService {
         debugPrint("ReminderService: Error in SMART mode calculation: $e");
       }
     } else if (category.mode == 'repeat') {
-      nextScheduled = now.add(Duration(hours: category.repeatHours));
-      // For alarms, scheduling 12 upfront might exceed alarm package constraints or pollute DB.
-      // But we will schedule a few to emulate repeat.
-      for (int i = 1; i <= 4; i++) {
-        final scheduledDate = now.add(Duration(hours: category.repeatHours * i));
-        await _executeSchedule(baseId + i, scheduledDate, title, body, category, 'alarm|$type|repeat|${baseId + i}');
-      }
+      // RC-3: Schedule only the NEXT alarm. When the user acts on AlarmScreen
+      // (Done / Snooze / Skip), AlarmScreen._rescheduleNext() schedules the
+      // following one. This gives infinite repeat without a hardcoded limit.
+      final scheduledDate = now.add(Duration(hours: category.repeatHours));
+      nextScheduled = scheduledDate;
+      await _executeSchedule(baseId, scheduledDate, title, body, category, 'alarm|$type|repeat|$baseId');
     } else {
       final parts = category.exactTime.split(':');
       final hour = int.tryParse(parts[0]) ?? 8;

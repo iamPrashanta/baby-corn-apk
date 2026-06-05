@@ -166,53 +166,58 @@ class AlarmService {
   // Scheduling
   // ---------------------------------------------------------------------------
 
-  /// Resolves the audio path to use for an alarm.
+  /// Resolves the audio path for an alarm based on the profile's ringtoneUri.
   ///
-  /// Fallback hierarchy (Change #1):
-  ///   1. Valid Flutter asset path (starts with 'assets/') → pass through
-  ///   2. content:// URI, 'default', empty, or unknown → 'assets/audio/alarm.wav'
-  ///   3. If assets/audio/alarm.wav is missing (caught below) → null
-  ///      (AlarmService native layer then uses device default alarm)
-  ///
-  /// Why not pass null directly for content://?
-  ///   Passing null triggers AudioService to use RingtoneManager.getDefaultUri(),
-  ///   which varies by OEM: Samsung uses "Over The Horizon", Xiaomi uses "Ringer",
-  ///   etc. Some are quiet. 'assets/audio/alarm.wav' ensures consistent,
-  ///   tested audio on every device.
+  /// Hierarchy:
+  ///   1. 'default' or '' → null  → AlarmManager uses device default alarm tone
+  ///      (RingtoneManager.TYPE_ALARM). User explicitly chose this.
+  ///   2. 'assets/*'      → pass through as Flutter asset path.
+  ///   3. 'content://'   → warn, try assets/audio/alarm.wav fallback.
+  ///   4. assets/audio/alarm.wav missing → null (device default as last resort).
   static Future<String?> _resolveAudioPath(AlarmProfile profile) async {
     final uri = profile.ringtoneUri;
 
+    // User explicitly selected device default alarm — respect it.
+    if (uri == 'default' || uri.isEmpty) {
+      debugPrint('[ALARM AUDIO] Using device default alarm tone (user selection).');
+      return null;
+    }
+
     // Valid Flutter asset — pass through
-    if (uri.startsWith('assets/') && uri.isNotEmpty) {
-      debugPrint('[ALARM AUDIO] Using custom asset: $uri');
+    if (uri.startsWith('assets/')) {
+      debugPrint('[ALARM AUDIO] Using bundled asset: $uri');
       return uri;
     }
 
-    // content:// URI or anything else → primary fallback
+    // Absolute file path (custom ringtone copied to cache by Kotlin layer)
+    if (uri.startsWith('/')) {
+      debugPrint('[ALARM AUDIO] Using local cached ringtone: $uri');
+      return uri;
+    }
+
+    // content:// or unknown URI — warn and fall back to bundled WAV
     if (uri.startsWith('content://')) {
       debugPrint(
         '[ALARM AUDIO FALLBACK] content:// URI not supported by alarm package. '
         'Falling back to assets/audio/alarm.wav. URI was: $uri',
       );
-    } else if (uri.isNotEmpty && uri != 'default') {
+    } else {
       debugPrint(
         '[ALARM AUDIO FALLBACK] Unknown ringtone URI format: "$uri". '
         'Falling back to assets/audio/alarm.wav.',
       );
     }
 
-    // Try assets/audio/alarm.wav — if it's missing, fall back to null
-    // (device default) so the alarm is never silent.
     try {
       await rootBundle.load('assets/audio/alarm.wav');
-      debugPrint('[ALARM AUDIO] Using assets/audio/alarm.wav');
+      debugPrint('[ALARM AUDIO] Fallback: using assets/audio/alarm.wav');
       return 'assets/audio/alarm.wav';
     } catch (_) {
       debugPrint(
-        '[ALARM AUDIO FALLBACK] assets/audio/alarm.wav not found in bundle. '
+        '[SOUND FALLBACK] assets/audio/alarm.wav not found in bundle. '
         'Falling back to device default alarm (null).',
       );
-      return null; // device default alarm — last resort
+      return null;
     }
   }
 
@@ -244,23 +249,28 @@ class AlarmService {
     final alarmSettings = AlarmSettings(
       id: id,
       dateTime: dateTime,
-      assetAudioPath: audioPath, // RC-1: safe path or null (device default)
+      assetAudioPath: audioPath,
       loopAudio: true,
       vibrate: profile.vibrationEnabled,
       notificationSettings: NotificationSettings(
         title: title,
-        body: alarmPayload, // notification body also carries payload for redundancy
+        body: alarmPayload,
       ),
-      volumeSettings: VolumeSettings.fade(
-        volume: 1.0,
-        fadeDuration: const Duration(milliseconds: 3000),
-        volumeEnforced: true,
-      ),
-      androidFullScreenIntent: true,   // wake screen, show over lock screen
-      androidStopAlarmOnTermination: false, // RC-2: keep ringing even if swiped
-      warningNotificationOnKill: false, // Android doesn't need this (iOS only)
+      volumeSettings: profile.gradualVolume
+          ? VolumeSettings.fade(
+              volume: 1.0,
+              fadeDuration: Duration(seconds: profile.gradualVolumeDurationSeconds),
+              volumeEnforced: true,
+            )
+          : const VolumeSettings.fixed(
+              volume: 1.0,
+              volumeEnforced: true,
+            ),
+      androidFullScreenIntent: true,
+      androidStopAlarmOnTermination: false,
+      warningNotificationOnKill: false,
       allowAlarmOverlap: false,
-      payload: alarmPayload,           // RC-8: actual type string, not ringtoneUri
+      payload: alarmPayload,
     );
 
     await Alarm.set(alarmSettings: alarmSettings);

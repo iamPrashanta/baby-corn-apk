@@ -6,16 +6,22 @@ import 'package:flutter/foundation.dart';
 class RingtoneChannel {
   static const MethodChannel _channel = MethodChannel('com.babycorn.app/ringtone_picker');
 
-  static Future<String?> pickRingtone({
+  static Future<Map<String, String>?> pickRingtone({
     String? currentUri,
     bool isAlarm = true,
   }) async {
     try {
-      final String? result = await _channel.invokeMethod('pickRingtone', {
+      final result = await _channel.invokeMapMethod<String, dynamic>('pickRingtone', {
         'currentUri': currentUri,
         'isAlarm': isAlarm,
       });
-      return result;
+      if (result != null) {
+        return {
+          'uri': result['uri'] as String? ?? '',
+          'title': result['title'] as String? ?? 'Custom Tone',
+        };
+      }
+      return null;
     } on PlatformException catch (e) {
       debugPrint("Failed to pick ringtone: '${e.message}'.");
       return null;

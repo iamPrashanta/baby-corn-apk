@@ -1,15 +1,18 @@
 // lib/features/settings/presentation/screens/alarm_screen.dart
 
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'dart:ui';
 import '../../../../core/design/tokens/colors.dart';
+import '../../../../core/local_storage/hive_manager.dart';
 import '../../../../core/services/alarm_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/widgets/bouncing_button.dart';
+import '../../../../features/settings/domain/models/reminder_settings_model.dart';
 
 class AlarmScreen extends ConsumerStatefulWidget {
   final String
@@ -30,6 +33,7 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
   late int _notificationId = 0;
   String _title = "Reminder";
   String _emoji = "⏰";
+  String _subtitle = "Time for action!";
   Color _color = AppColors.primaryContainer;
 
   @override
@@ -44,36 +48,65 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
   }
 
   void _parsePayload() {
+    debugPrint('[ALARM SCREEN] Raw payload: "${widget.payload}"');
     final parts = widget.payload.split('|');
-    if (parts.length >= 4) {
+    debugPrint('[ALARM SCREEN] Payload parts: $parts (count=${parts.length})');
+
+    if (parts.length >= 2) {
       _type = parts[1].toLowerCase();
-
-      if (_type == 'medication') {
-        // "alarm|medication|med123|10001|time"
+      // ID is in parts[3] for most payloads, parts[3] for medication too
+      if (parts.length >= 4) {
         _notificationId = int.tryParse(parts[3]) ?? 0;
-      } else {
-        // "alarm|feeding|fallback|0"
-        _notificationId = int.tryParse(parts[3]) ?? 0;
-      }
-
-      if (_type == 'feeding') {
-        _title = "Feeding Reminder";
-        _emoji = "🍼";
-        _color = AppColors.feeding;
-      } else if (_type == 'sleep') {
-        _title = "Sleep Reminder";
-        _emoji = "😴";
-        _color = AppColors.sleep;
-      } else if (_type == 'diaper') {
-        _title = "Diaper Reminder";
-        _emoji = "🩲";
-        _color = AppColors.diaper;
-      } else if (_type == 'medication') {
-        _title = "Medication";
-        _emoji = "💊";
-        _color = AppColors.primary;
       }
     }
+
+    if (_type == 'feeding') {
+      _title = "Feeding Reminder";
+      _subtitle = "Time to feed your baby! 🍼";
+      _emoji = "🍼";
+      _color = AppColors.feeding;
+    } else if (_type == 'sleep') {
+      _title = "Sleep Reminder";
+      _subtitle = "Help baby get some rest.";
+      _emoji = "😴";
+      _color = AppColors.sleep;
+    } else if (_type == 'diaper') {
+      _title = "Diaper Reminder";
+      _subtitle = "Time for a fresh change!";
+      _emoji = "🧷";
+      _color = AppColors.diaper;
+    } else if (_type == 'medication') {
+      _title = "Medication Reminder";
+      _subtitle = "Time for baby's medicine.";
+      _emoji = "💊";
+      _color = AppColors.primary;
+      // Medication: alarm|medication|medId|alarmId|timestamp
+      if (parts.length >= 4) {
+        _notificationId = int.tryParse(parts[3]) ?? 0;
+      }
+    } else if (_type == 'vaccination') {
+      _title = "Vaccination Due";
+      _subtitle = "Check baby's vaccine schedule.";
+      _emoji = "💉";
+      _color = Colors.teal;
+    } else if (_type == 'appointment') {
+      _title = "Doctor Appointment";
+      _subtitle = "Don't miss the appointment!";
+      _emoji = "🏥";
+      _color = Colors.blue;
+    } else if (_type == 'test') {
+      _title = "Alarm Test";
+      _subtitle = "Alarm system is working! ✅";
+      _emoji = "⏱️";
+      _color = Colors.orange;
+    } else {
+      _title = "Reminder";
+      _subtitle = "Time for action!";
+      _emoji = "⏰";
+      _color = AppColors.primaryContainer;
+    }
+
+    debugPrint('[ALARM SCREEN] Parsed → type=$_type | title=$_title | id=$_notificationId');
   }
 
   void _stopAlarmSound() {
@@ -84,23 +117,9 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
     }
   }
 
-  void _handleMissedAlarm() {
-    _stopAlarmSound();
-    // Schedule a fallback quiet notification so they don't forget it entirely
-    NotificationService.scheduleNotification(
-      id: _notificationId + 9999, // offset to avoid conflict
-      title: "Missed: $_title",
-      body: "You missed a reminder. Please check the app.",
-      dateTime:
-          DateTime.now().add(const Duration(seconds: 1)), // fire immediately
-    );
-    if (mounted) {
-      context.go('/home'); // Fall back to home
-    }
-  }
-
   void _onDone() {
     _stopAlarmSound();
+    _rescheduleNext(); // RC-3: schedule next repeat cycle if applicable
     if (_type == 'feeding') {
       context.go('/feeding-entry');
     } else if (_type == 'medication') {
@@ -116,8 +135,9 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
 
   void _onSnooze(int minutes) {
     _stopAlarmSound();
+    _rescheduleNext(); // RC-3: keep the series alive even when snoozed
     NotificationService.scheduleNotification(
-      id: _notificationId + 1000, // random unique ID for snooze
+      id: _notificationId + 1000,
       title: "Snoozed: $_title",
       body: "Reminding you again in $minutes minutes",
       dateTime: DateTime.now().add(Duration(minutes: minutes)),
@@ -127,7 +147,69 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
 
   void _onSkip() {
     _stopAlarmSound();
+    _rescheduleNext(); // RC-3: keep the series alive even when skipped
     context.go('/home');
+  }
+
+  /// RC-3: Schedules the next alarm for repeat-mode reminders.
+  /// Called after every user action (Done / Snooze / Skip) so that
+  /// repeat reminders continue indefinitely without a hardcoded limit.
+  /// For exact-time and smart modes this is a no-op — they are
+  /// rescheduled by updateSchedules() on the next app startup.
+  Future<void> _rescheduleNext() async {
+    // Only repeat-mode categories need self-rescheduling.
+    const repeatTypes = {'feeding', 'sleep', 'diaper'};
+    if (!repeatTypes.contains(_type)) return;
+
+    try {
+      final box = HiveManager.getSettingsBox();
+      final jsonStr = box.get('reminder_settings_json') as String?;
+      if (jsonStr == null) return;
+
+      final settings =
+          ReminderSettingsModel.fromJson(jsonDecode(jsonStr) as Map<String, dynamic>);
+      if (!settings.isMasterEnabled) return;
+
+      ReminderCategorySettings? cat;
+      int baseId = 0;
+      String title = '';
+
+      if (_type == 'feeding' &&
+          settings.feeding.isEnabled &&
+          settings.feeding.mode == 'repeat') {
+        cat = settings.feeding;
+        baseId = 0;
+        title = 'Feeding Reminder';
+      } else if (_type == 'sleep' &&
+          settings.sleep.isEnabled &&
+          settings.sleep.mode == 'repeat') {
+        cat = settings.sleep;
+        baseId = 100;
+        title = 'Sleep Reminder';
+      } else if (_type == 'diaper' &&
+          settings.diaper.isEnabled &&
+          settings.diaper.mode == 'repeat') {
+        cat = settings.diaper;
+        baseId = 200;
+        title = 'Diaper Reminder';
+      }
+
+      if (cat != null) {
+        final nextTime =
+            DateTime.now().add(Duration(hours: cat.repeatHours));
+        await AlarmService.scheduleAlarm(
+          id: baseId,
+          dateTime: nextTime,
+          title: title,
+          profile: cat.profile,
+          payload: 'alarm|$_type|repeat|$baseId',
+        );
+        debugPrint(
+            '[REPEAT RESCHEDULE] Next $_type alarm at $nextTime (every ${cat.repeatHours}h)');
+      }
+    } catch (e) {
+      debugPrint('[REPEAT RESCHEDULE ERROR] $e');
+    }
   }
 
   @override
@@ -237,9 +319,9 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        "Time for action!",
-                        style: TextStyle(
+                      Text(
+                        _subtitle,
+                        style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 16,
                         ),

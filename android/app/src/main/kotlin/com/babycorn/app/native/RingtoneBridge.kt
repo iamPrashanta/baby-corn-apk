@@ -7,6 +7,8 @@ import android.net.Uri
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import java.io.File
+import java.io.FileOutputStream
 
 class RingtoneBridge(private val activity: Activity, messenger: BinaryMessenger) : MethodChannel.MethodCallHandler {
     private val channel = MethodChannel(messenger, "com.babycorn.app/ringtone_picker")
@@ -47,9 +49,29 @@ class RingtoneBridge(private val activity: Activity, messenger: BinaryMessenger)
             if (resultCode == Activity.RESULT_OK) {
                 val uri: Uri? = data?.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
                 if (uri != null) {
-                    pendingResult?.success(uri.toString())
+                    val ringtone = RingtoneManager.getRingtone(activity, uri)
+                    val title = ringtone?.getTitle(activity) ?: "Custom Tone"
+                    
+                    var localPath = uri.toString()
+                    try {
+                        val inputStream = activity.contentResolver.openInputStream(uri)
+                        if (inputStream != null) {
+                            val file = File(activity.cacheDir, "custom_ringtone_${System.currentTimeMillis()}.mp3")
+                            val outputStream = FileOutputStream(file)
+                            inputStream.copyTo(outputStream)
+                            inputStream.close()
+                            outputStream.close()
+                            localPath = file.absolutePath
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+
+                    val map = mapOf("uri" to localPath, "title" to title)
+                    pendingResult?.success(map)
                 } else {
-                    pendingResult?.success("silent")
+                    val map = mapOf("uri" to "silent", "title" to "Silent")
+                    pendingResult?.success(map)
                 }
             } else {
                 pendingResult?.success(null) // Cancelled

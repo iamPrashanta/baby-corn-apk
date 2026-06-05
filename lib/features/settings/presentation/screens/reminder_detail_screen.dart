@@ -98,6 +98,75 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
     return 'Reminder';
   }
 
+  void _showSoundPicker() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text('Select Alarm Sound', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  ),
+                  _buildSoundOption('Phone Default Alarm', 'default', setSheetState),
+                  _buildSoundOption('Baby Corn Soft Bell', 'assets/audio/alarm.wav', setSheetState),
+                  _buildSoundOption('Baby Corn Gentle Chime', 'assets/audio/chime.wav', setSheetState, isComingSoon: true),
+                  _buildSoundOption('Baby Corn Piano', 'assets/audio/piano.wav', setSheetState, isComingSoon: true),
+                  ListTile(
+                    title: const Text('Pick From Device'),
+                    leading: const Icon(Icons.folder_open),
+                    onTap: () async {
+                      Navigator.pop(context);
+                      final result = await RingtoneChannel.pickRingtone(
+                        currentUri: _profile.ringtoneUri,
+                        isAlarm: _profile.alarmType == 'full_alarm',
+                      );
+                      if (result != null) {
+                        setState(() {
+                          _profile = _profile.copyWith(
+                            ringtoneUri: result['uri'],
+                            ringtoneTitle: result['title'],
+                          );
+                        });
+                      }
+                    },
+                  ),
+                ],
+              ),
+            );
+          }
+        );
+      },
+    );
+  }
+
+  Widget _buildSoundOption(String title, String uri, StateSetter setSheetState, {bool isComingSoon = false}) {
+    final isSelected = _profile.ringtoneUri == uri;
+    return ListTile(
+      title: Text(title, style: TextStyle(color: isComingSoon ? Colors.grey : null)),
+      subtitle: isComingSoon ? const Text('Coming Soon') : null,
+      trailing: isSelected ? const Icon(Icons.check, color: AppColors.primary) : null,
+      onTap: isComingSoon
+          ? null
+          : () {
+              setState(() {
+                _profile = _profile.copyWith(
+                  ringtoneUri: uri,
+                  ringtoneTitle: title,
+                );
+              });
+              Navigator.pop(context);
+            },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -292,19 +361,20 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
               },
             ),
             ListTile(
-              title: const Text('Select Ringtone'),
-              subtitle: Text(_profile.ringtoneUri == 'default' ? 'Default System Ringtone' : 'Custom Ringtone Selected'),
+              title: const Text('Alarm Sound'),
+              subtitle: Text('Selected: ${_profile.ringtoneTitle}'),
               trailing: const Icon(Icons.music_note),
-              onTap: () async {
-                final uri = await RingtoneChannel.pickRingtone(
-                  currentUri: _profile.ringtoneUri,
-                  isAlarm: _profile.alarmType == 'full_alarm',
-                );
-                if (uri != null) {
-                  setState(() {
-                    _profile = _profile.copyWith(ringtoneUri: uri);
-                  });
-                }
+              onTap: _showSoundPicker,
+            ),
+            SwitchListTile(
+              title: const Text('Gradually Increase Volume'),
+              subtitle: const Text('Fade in over 30 seconds'),
+              value: _profile.gradualVolume,
+              activeColor: AppColors.primary,
+              onChanged: (val) {
+                setState(() {
+                  _profile = _profile.copyWith(gradualVolume: val);
+                });
               },
             ),
             SwitchListTile(
