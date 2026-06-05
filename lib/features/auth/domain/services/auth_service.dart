@@ -2,8 +2,10 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/services/cloud_sync_service.dart';
 
 class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -13,7 +15,7 @@ class AuthService {
 
   static Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  static Future<User?> signInWithGoogle() async {
+  static Future<User?> signInWithGoogle([BuildContext? context]) async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
@@ -37,6 +39,9 @@ class AuthService {
       await prefs.setBool('is_offline_mode', false);
       debugPrint('[OFFLINE MODE CLEARED]');
       debugPrint('[AUTH PROVIDER REFRESH]');
+      if (context != null && context.mounted) {
+        await CloudSyncService.performAutoRestoreCheck(context);
+      }
       
       return userCredential.user;
     } catch (e) {

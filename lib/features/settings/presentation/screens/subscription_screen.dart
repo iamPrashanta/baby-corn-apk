@@ -61,7 +61,7 @@ class SubscriptionScreen extends ConsumerWidget {
 
                 // Titles
                 const Text(
-                  'Baby Corn Pro',
+                  'Baby Corn Premium',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 32,
@@ -72,7 +72,7 @@ class SubscriptionScreen extends ConsumerWidget {
                 Text(
                   isPremium
                       ? 'You are already a Pro member.'
-                      : 'Unlock the ultimate parenting experience.',
+                      : 'Smarter parenting. Better tracking. Secure backup.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
@@ -85,30 +85,29 @@ class SubscriptionScreen extends ConsumerWidget {
                 // Features List
                 _buildFeatureRow(
                   icon: Icons.cloud_sync,
-                  title: 'Secure Cloud Sync',
-                  description: 'Backup your data and never lose a log again.',
+                  title: 'Unlimited Cloud Backup',
+                  description: 'Secure Google Cloud Storage.',
                   isDark: isDark,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
                 _buildFeatureRow(
-                  icon: Icons.family_restroom,
-                  title: 'Family Sharing',
-                  description:
-                      'Manage multiple babies and share across devices.',
+                  icon: Icons.devices,
+                  title: 'Cross Device Restore',
+                  description: 'Restore your baby data safely across devices.',
                   isDark: isDark,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
                 _buildFeatureRow(
                   icon: Icons.insights,
-                  title: 'Advanced Insights',
+                  title: 'Advanced Statistics & Insights',
                   description: 'Detailed charts and health reports.',
                   isDark: isDark,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
                 _buildFeatureRow(
-                  icon: Icons.child_care_rounded,
-                  title: 'Development Tracking',
-                  description: 'Capture milestones and photo moments.',
+                  icon: Icons.auto_awesome,
+                  title: 'Future AI Parenting Features',
+                  description: 'Priority feature access and AI tools.',
                   isDark: isDark,
                 ),
 
@@ -189,17 +188,7 @@ class SubscriptionScreen extends ConsumerWidget {
                                 'Manage subscriptions via Google Play Store or App Store.')),
                       );
                     } else {
-                      // MOCK PURCHASE LOGIC
-                      ref.read(premiumProvider.notifier).unlockPremium();
-
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                              '🎉 Welcome to Baby Corn Pro! Features unlocked.'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
+                      ref.read(premiumProvider.notifier).buyPremium();
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -213,16 +202,24 @@ class SubscriptionScreen extends ConsumerWidget {
                     elevation: 5,
                   ),
                   child: Text(
-                    isPremium ? 'Manage Subscription' : 'Subscribe Now',
+                    isPremium ? 'Manage Subscription' : 'Start Premium',
                     style: const TextStyle(
                         fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
                 const SizedBox(height: 16),
+                if (!isPremium)
+                  TextButton(
+                    onPressed: () {
+                      ref.read(premiumProvider.notifier).restorePurchases();
+                    },
+                    child: const Text('Restore Purchases'),
+                  ),
+                const SizedBox(height: 16),
                 Text(
                   isPremium
                       ? 'Your subscription is active.'
-                      : 'Cancel anytime. Auto-renews monthly.',
+                      : 'Your data remains yours.\nStored securely using Firebase.\nSubscriptions handled by Google Play.\nCancel anytime.',
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),

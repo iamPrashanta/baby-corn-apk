@@ -72,6 +72,7 @@ dependencies:
   googleapis_auth: ^2.3.1
   gal: ^2.3.2
   http: ^1.6.0
+  in_app_purchase: ^3.3.0
 
 dev_dependencies:
   flutter_test:

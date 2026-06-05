@@ -56,7 +56,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
 
   Future<void> _signInWithGoogle() async {
     try {
-      final user = await AuthService.signInWithGoogle();
+      final user = await AuthService.signInWithGoogle(context);
       if (user == null) return;
 
       if (mounted) {

@@ -44,7 +44,7 @@ class BackupService {
           .collection('backup')
           .doc('latest');
 
-      // 1. Check Rate Limit (12 hours)
+      // 1. Check Rate Limit (6 hours)
       final existingDoc = await latestBackupRef.get();
       if (existingDoc.exists) {
         final data = existingDoc.data()!;
@@ -52,8 +52,8 @@ class BackupService {
         if (lastBackupTimestamp != null) {
           final lastBackup = lastBackupTimestamp.toDate();
           final diff = DateTime.now().difference(lastBackup);
-          if (diff.inHours < 12) {
-             throw Exception('Backup already performed recently. Please wait 12 hours.');
+          if (diff.inHours < 6) {
+             throw Exception('Backup already performed recently. Please wait 6 hours.');
           }
         }
       }
@@ -331,6 +331,84 @@ class BackupService {
       debugPrint('[BACKUP] Single-document backup deleted successfully.');
     } catch (e) {
       debugPrint('[BACKUP ERROR] Deleting backup failed: $e');
+    }
+  }
+  static Future<void> mergeBackup() async {
+    final user = AuthService.currentUser;
+    if (user == null) {
+      debugPrint('[MERGE ERROR] User not logged in.');
+      throw Exception('User not logged in');
+    }
+
+    try {
+      debugPrint('[MERGE] Starting merge for user: ${user.uid}');
+      final latestBackupRef = _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('backup')
+          .doc('latest');
+
+      final snapshot = await latestBackupRef.get();
+      if (!snapshot.exists) {
+        throw Exception('No backup found for this account.');
+      }
+
+      final data = snapshot.data()!;
+      final backupVersion = data['backupVersion'] as int? ?? 1;
+      final supportedVersion = 1;
+      
+      if (backupVersion > supportedVersion) {
+        throw UnsupportedBackupVersionException(backupVersion);
+      }
+
+      debugPrint('[MERGE] Merging Hive databases...');
+
+      // Profile & Settings
+      final profileData = data['profile'] as Map<String, dynamic>? ?? {};
+      for (final entry in profileData.entries) {
+        if (!HiveManager.getProfileBox().containsKey(entry.key)) {
+          await HiveManager.getProfileBox().put(entry.key, entry.value);
+        }
+      }
+
+      final settingsData = data['settings'] as Map<String, dynamic>? ?? {};
+      for (final entry in settingsData.entries) {
+        if (!HiveManager.getSettingsBox().containsKey(entry.key)) {
+          await HiveManager.getSettingsBox().put(entry.key, entry.value);
+        }
+      }
+
+      Future<void> mergeList<T>(String key, dynamic box, T Function(Map<String, dynamic>) fromJson) async {
+        final list = data[key] as List<dynamic>? ?? [];
+        for (final item in list) {
+          final map = Map<String, dynamic>.from(item as Map);
+          final itemId = map['id'] ?? DateTime.now().millisecondsSinceEpoch.toString();
+          if (!box.containsKey(itemId)) {
+            await box.put(itemId, fromJson(map));
+          }
+        }
+      }
+
+      await mergeList('records', HiveManager.getRecordsBox(), RecordModel.fromJson);
+      await mergeList('sanskars', HiveManager.getSanskarsBox(), SanskarModel.fromJson);
+      await mergeList('moments', HiveManager.getMomentsBox(), MomentModel.fromJson);
+      await mergeList('medications', HiveManager.getMedicationsBox(), MedicationModel.fromJson);
+      await mergeList('medicationLogs', HiveManager.getMedicationLogsBox(), MedicationLogModel.fromJson);
+      await mergeList('familyMembers', HiveManager.getFamilyMembersBox(), FamilyMemberModel.fromJson);
+      await mergeList('foodTracker', HiveManager.getFoodTrackerBox(), FoodIntroRecord.fromJson);
+
+      debugPrint('[MERGE REBUILDING REMINDERS] Reminders recreating...');
+      await ReminderService.init();
+      final settingsJsonStr = HiveManager.getSettingsBox().get('reminder_settings_json') as String?;
+      if (settingsJsonStr != null) {
+        final settings = ReminderSettingsModel.fromJson(jsonDecode(settingsJsonStr));
+        await ReminderService.updateSchedules(settings);
+      }
+
+      debugPrint('[MERGE SUCCESS] Backup merged successfully.');
+    } catch (e) {
+      debugPrint('[MERGE FAILED] Merge failed. Error: $e');
+      throw Exception('Failed to merge backup: $e');
     }
   }
 }

@@ -9,6 +9,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/design/tokens/colors.dart';
 import '../../../../core/theme/glass_system/glass_colors.dart';
 import '../../data/repositories/baby_repository.dart';
+import '../../domain/services/auth_service.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -28,60 +29,19 @@ class _AuthScreenState extends State<AuthScreen> {
     });
 
     try {
-      final googleSignIn = GoogleSignIn();
+      final user = await AuthService.signInWithGoogle(context);
 
-      // FIX #4: signInSilently() can throw (not just return null) on some
-      // devices when there is a stale token or account conflict. Wrap it
-      // in its own try/catch so errors are logged and we fall back to
-      // interactive sign-in instead of showing "unexpected error".
-      GoogleSignInAccount? googleUser;
-      try {
-        debugPrint('🔑 [Auth] Attempting signInSilently...');
-        googleUser = await googleSignIn.signInSilently();
-        debugPrint(
-            '🔑 [Auth] signInSilently result: ${googleUser?.email ?? 'null'}');
-      } catch (silentError) {
-        debugPrint(
-            '⚠️ [Auth] signInSilently threw: $silentError — falling back to signIn()');
-        googleUser = null;
-      }
-
-      // If silent failed, show full interactive Google sign-in dialog
-      if (googleUser == null) {
-        debugPrint('🔑 [Auth] Showing interactive Google sign-in...');
-        googleUser = await googleSignIn.signIn();
-      }
-
-      if (googleUser == null) {
+      if (user == null) {
         // User cancelled the sign-in dialog
         debugPrint('🔑 [Auth] User cancelled sign-in');
-        setState(() => _isLoading = false);
+        if (mounted) setState(() => _isLoading = false);
         return;
       }
 
-      debugPrint('🔑 [Auth] Google account obtained: ${googleUser.email}');
-
-      // Obtain auth details
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-
-      // Create Firebase credential
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      // Sign in to Firebase
-      debugPrint('🔑 [Auth] Signing in to Firebase...');
-      final userCredential =
-          await FirebaseAuth.instance.signInWithCredential(credential);
       debugPrint('===== GOOGLE LOGIN AUDIT =====');
-      debugPrint('🔑 Firebase sign-in success: ${userCredential.user?.email}');
-      debugPrint('🔑 Firebase UID: ${userCredential.user?.uid}');
+      debugPrint('🔑 Firebase sign-in success: ${user.email}');
+      debugPrint('🔑 Firebase UID: ${user.uid}');
       debugPrint('==============================');
-
-      // Cloud Sync (Auto-Sync) has been replaced by Manual Backup & Restore
-      // users will be prompted to restore backups inside the app if needed.
 
       if (!mounted) return;
       setState(() => _isLoading = false);

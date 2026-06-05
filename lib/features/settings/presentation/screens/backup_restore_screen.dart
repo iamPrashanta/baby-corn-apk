@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../auth/domain/services/auth_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../providers/premium_provider.dart';
 import '../../../../core/services/backup_service.dart';
 import '../../../../core/design/tokens/colors.dart';
 import '../../../../core/design/components/cards/app_card.dart';
@@ -42,31 +43,9 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
 
   Future<void> _handleSignIn() async {
     setState(() => _isLoading = true);
-    final user = await AuthService.signInWithGoogle();
+    final user = await AuthService.signInWithGoogle(context);
     if (user != null) {
       await _fetchBackupInfo();
-      // Auto Restore Prompt logic
-      if (_lastBackupDate != null && mounted) {
-        final shouldRestore = await AppDialog.show(
-          context: context,
-          title: 'Backup Found',
-          contentText:
-              'We found an existing Baby Corn backup associated with your Google account.\n\nWould you like to restore it now?',
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Skip'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Restore'),
-            ),
-          ],
-        );
-        if (shouldRestore == true) {
-          await _handleRestore();
-        }
-      }
     }
     if (mounted) setState(() => _isLoading = false);
   }
@@ -101,65 +80,10 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
     }
   }
 
-  Future<void> _handleRestore() async {
-    final confirm = await AppDialog.show(
-      context: context,
-      title: 'Restore Backup',
-      contentText:
-          'This will replace all current data on this device with the data from your backup. This action cannot be undone. Continue?',
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: () => Navigator.pop(context, true),
-          child: const Text('Restore'),
-        ),
-      ],
-    );
-
-    if (confirm != true) return;
-
-    setState(() => _isLoading = true);
-    try {
-      await BackupService.restoreBackup();
-      if (mounted) {
-        AppDialog.show(
-          context: context,
-          title: 'Restore Successful',
-          contentText:
-              'Your backup has been restored. Please restart the app for all changes to take effect.',
-          actions: [
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        AppDialog.show(
-          context: context,
-          title: 'Restore Failed',
-          contentText: 'Could not restore backup: $e',
-          actions: [
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authStateProvider).value;
+    final isPremium = ref.watch(premiumProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -175,7 +99,7 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
                   children: [
                     _buildAccountCard(user),
                     const SizedBox(height: 16),
-                    if (user != null) _buildBackupCard(),
+                    if (user != null) _buildBackupCard(isPremium),
                     const SizedBox(height: 16),
                     _buildSafetyCard(),
                   ],
@@ -250,14 +174,22 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
     );
   }
 
-  Widget _buildBackupCard() {
+  Widget _buildBackupCard(bool isPremium) {
     return AppCard(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Cloud Backup', style: Theme.of(context).textTheme.titleLarge),
+            Row(
+              children: [
+                Text('Cloud Backup', style: Theme.of(context).textTheme.titleLarge),
+                if (!isPremium) ...[
+                  const SizedBox(width: 8),
+                  const Icon(Icons.workspace_premium, color: Colors.orange, size: 20),
+                ]
+              ],
+            ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -286,17 +218,18 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
               children: [
                 Expanded(
                   child: AppButton(
-                    text: 'Backup Now',
-                    type: AppButtonType.primary,
-                    onPressed: _handleBackup,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: AppButton(
-                    text: 'Restore Backup',
-                    type: AppButtonType.secondary,
-                    onPressed: _lastBackupDate != null ? _handleRestore : null,
+                    text: isPremium ? 'Backup Now' : 'Unlock Premium to Backup',
+                    type: isPremium ? AppButtonType.primary : AppButtonType.secondary,
+                    onPressed: () {
+                      if (isPremium) {
+                        _handleBackup();
+                      } else {
+                        // show premium paywall or snackbar
+                        ScaffoldMessenger.of(context).showSnackBar(
+                           const SnackBar(content: Text('Please upgrade to Premium to use Cloud Backup.')),
+                        );
+                      }
+                    },
                   ),
                 ),
               ],
