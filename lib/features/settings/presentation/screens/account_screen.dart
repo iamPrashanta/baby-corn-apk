@@ -218,24 +218,43 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
               leading: const Icon(Icons.info),
               title: const Text('About Baby Corn'),
               onTap: () {
-                showAboutDialog(
+                showDialog(
                   context: context,
-                  applicationName: 'Baby Corn',
-                  applicationVersion: '1.0.0',
-                  applicationIcon: Image.asset(
-                    'assets/images/logo_transparent.png', // Assuming there's a logo in assets, otherwise a generic icon
-                    width: 48,
-                    height: 48,
-                    errorBuilder: (_, __, ___) =>
-                        const Icon(Icons.child_care, size: 48),
-                  ),
-                  applicationLegalese: '© 2026 Baby Corn App',
-                  children: [
-                    const SizedBox(height: 16),
-                    const Text(
-                      "Baby Corn is an all-in-one companion app for modern parents to track and manage their baby's daily activities like feeding, sleeping, and diaper changes.",
+                  builder: (ctx) => AlertDialog(
+                    title: Row(
+                      children: [
+                        Image.asset(
+                          'assets/images/logo_transparent.png',
+                          width: 32,
+                          height: 32,
+                          errorBuilder: (_, __, ___) =>
+                              const Icon(Icons.child_care, size: 32),
+                        ),
+                        const SizedBox(width: 12),
+                        Text('Baby Corn', style: TextStyle(color: isDark ? Colors.white : Colors.black)),
+                      ],
                     ),
-                  ],
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Version 1.0.0', style: TextStyle(color: isDark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 16),
+                        Text(
+                          "Baby Corn is an all-in-one companion app for modern parents to track and manage their baby's daily activities like feeding, sleeping, and diaper changes.",
+                          style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
+                        ),
+                        const SizedBox(height: 16),
+                        Text('© 2026 Baby Corn App', style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 12)),
+                      ],
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('Close'),
+                      ),
+                    ],
+                  ),
                 );
               },
             ),
@@ -250,8 +269,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                   showDialog(
                     context: context,
                     builder: (ctx) => AlertDialog(
-                      title: const Text('Confirm Logout'),
-                      content: const Text('Are you sure you want to log out?'),
+                      title: Text('Confirm Logout', style: TextStyle(color: isDark ? Colors.white : Colors.black)),
+                      content: Text('Are you sure you want to log out?', style: TextStyle(color: isDark ? Colors.white70 : Colors.black87)),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(ctx),

@@ -10,6 +10,7 @@ import '../../../../core/services/backup_service.dart';
 import '../../../../core/design/tokens/colors.dart';
 import '../../../../core/design/components/cards/app_card.dart';
 import '../../../../core/design/components/buttons/app_button.dart';
+import '../../../../core/widgets/safe_scrollable_wrapper.dart';
 import '../../../../core/design/components/dialogs/app_dialog.dart';
 
 class BackupRestoreScreen extends ConsumerStatefulWidget {
@@ -166,17 +167,19 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildAccountCard(user),
-                  const SizedBox(height: 16),
-                  if (user != null) _buildBackupCard(),
-                  const SizedBox(height: 16),
-                  _buildSafetyCard(),
-                ],
+          : SafeScrollableWrapper(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildAccountCard(user),
+                    const SizedBox(height: 16),
+                    if (user != null) _buildBackupCard(),
+                    const SizedBox(height: 16),
+                    _buildSafetyCard(),
+                  ],
+                ),
               ),
             ),
     );

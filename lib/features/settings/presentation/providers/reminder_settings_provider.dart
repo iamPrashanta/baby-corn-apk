@@ -43,6 +43,8 @@ class ReminderSettingsNotifier extends StateNotifier<ReminderSettingsModel> {
             'feeding=${state.feeding.isEnabled}/${state.feeding.mode} '
             'sleep=${state.sleep.isEnabled}/${state.sleep.mode} '
             'diaper=${state.diaper.isEnabled}/${state.diaper.mode}');
+        debugPrint('[REMINDER SETTINGS RESTORED]');
+        debugPrint('[MASTER STATE] isMasterEnabled=${state.isMasterEnabled}');
         // RC-1: Rebuild Android AlarmManager entries after every app restart.
         if (state.isMasterEnabled) {
           _rescheduleAsync();
@@ -59,25 +61,30 @@ class ReminderSettingsNotifier extends StateNotifier<ReminderSettingsModel> {
   /// Called after app restart (RC-1 fix).
   Future<void> _rescheduleAsync() async {
     try {
+      debugPrint('[REMINDER RESCHEDULE START]');
       // Emergency Reminder Recovery
       int expectedAlarms = 0;
       if (state.feeding.isEnabled) expectedAlarms++;
       if (state.sleep.isEnabled) expectedAlarms++;
       if (state.diaper.isEnabled) expectedAlarms++;
 
-      final activeAlarms = await Alarm.getAlarms();
-      
-      if (expectedAlarms > 0 && activeAlarms.length < expectedAlarms) {
-        debugPrint('[ALARM RECOVERY] Mismatch detected: Expected $expectedAlarms but found ${activeAlarms.length}.');
-        debugPrint('[ALARM RECOVERY] Some reminders were lost. Restoring...');
-      } else {
-        debugPrint('[ALARM RECOVERY] State matches AlarmManager (${activeAlarms.length} active). Syncing next schedules...');
-      }
-
       final updatedSettings = await ReminderService.updateSchedules(state);
       state = updatedSettings;
       final box = HiveManager.getSettingsBox();
       await box.put(_settingsKey, jsonEncode(updatedSettings.toJson()));
+      
+      final activeAlarms = await Alarm.getAlarms();
+      debugPrint('[ACTIVE ALARMS COUNT] ${activeAlarms.length} active alarms found.');
+      
+      if (expectedAlarms > 0 && activeAlarms.length < expectedAlarms) {
+        debugPrint('[ALARM RECOVERY] Mismatch detected: Expected $expectedAlarms but found ${activeAlarms.length}.');
+        debugPrint('[ALARM RECOVERY] Some alarms were lost during scheduling. Retrying...');
+        // Force one more rebuild
+        await ReminderService.updateSchedules(state);
+      } else {
+        debugPrint('[ALARM RECOVERY] State matches AlarmManager (${activeAlarms.length} active). Syncing next schedules...');
+      }
+
       debugPrint('[REMINDER RESTORE] Rescheduling complete. '
           'feeding.next=${updatedSettings.feeding.nextScheduledTime} '
           'sleep.next=${updatedSettings.sleep.nextScheduledTime} '
@@ -119,8 +126,20 @@ class ReminderSettingsNotifier extends StateNotifier<ReminderSettingsModel> {
         final updated =
             await ReminderService.updateSchedules(toSave, is24Hour: toSave24h);
         state = updated;
-        await HiveManager.getSettingsBox()
-            .put(_settingsKey, jsonEncode(updated.toJson()));
+        final box = HiveManager.getSettingsBox();
+        final jsonToSave = jsonEncode(updated.toJson());
+        await box.put(_settingsKey, jsonToSave);
+        
+        // Persistence Validation
+        final readBack = box.get(_settingsKey) as String?;
+        if (readBack == jsonToSave) {
+          debugPrint('[REMINDER SAVE VERIFIED]');
+        } else {
+          debugPrint('[REMINDER SAVE ERROR] Validation failed: readback mismatch.');
+        }
+        
+        debugPrint('[MASTER STATE] isMasterEnabled=${updated.isMasterEnabled}');
+
         debugPrint('[REMINDER SAVE SUCCESS] '
             'feeding.next=${updated.feeding.nextScheduledTime} '
             'sleep.next=${updated.sleep.nextScheduledTime}');

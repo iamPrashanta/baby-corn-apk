@@ -10,6 +10,7 @@ import 'features/auth/data/repositories/baby_repository.dart';
 import 'core/local_storage/hive_manager.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'features/settings/presentation/providers/theme_provider.dart';
+import 'features/settings/presentation/providers/reminder_settings_provider.dart';
 import 'core/services/alarm_service.dart';
 import 'core/services/reminder_service.dart';
 import 'core/services/widget_service.dart';
@@ -130,6 +131,9 @@ class BabyCornApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Eagerly initialize ReminderSettingsProvider so alarms are loaded and rescheduled on startup
+    ref.watch(reminderSettingsProvider);
+    
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
