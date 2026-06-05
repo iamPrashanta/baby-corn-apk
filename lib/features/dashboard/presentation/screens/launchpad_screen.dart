@@ -1,5 +1,6 @@
 // lib/features/dashboard/presentation/screens/launchpad_screen.dart
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +12,7 @@ import '../../../records/domain/models/vaccine_schedule.dart';
 import '../../../auth/domain/models/baby_model.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
 import '../../../../core/design/tokens/colors.dart';
+import '../../../../core/utils/age_calculator.dart';
 import '../../../../core/design/components/dialogs/app_bottom_sheet.dart';
 import '../../../records/presentation/providers/active_session_provider.dart';
 import '../../../records/presentation/widgets/timeline_tile.dart';
@@ -18,6 +20,15 @@ import '../../../settings/presentation/providers/reminder_settings_provider.dart
 import '../../../settings/domain/models/reminder_settings_model.dart';
 import '../../../guide/domain/models/food_intro_record.dart';
 import '../../../guide/presentation/providers/food_tracker_provider.dart';
+
+final _launchpadAnimProvider = StateProvider<bool>((ref) => false);
+
+extension _ConditionalAnimate on Widget {
+  Widget animateIf(bool condition, Widget Function(Animate) builder) {
+    if (condition) return builder(this.animate());
+    return this;
+  }
+}
 
 class LaunchpadScreen extends ConsumerWidget {
   const LaunchpadScreen({super.key});
@@ -30,6 +41,17 @@ class LaunchpadScreen extends ConsumerWidget {
     final filterDate = ref.watch(timelineFilterDateProvider);
     final reminderSettings = ref.watch(reminderSettingsProvider);
     final foodRecords = ref.watch(foodTrackerProvider);
+    final hasAnimated = ref.watch(_launchpadAnimProvider);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!hasAnimated) {
+        Future.delayed(const Duration(milliseconds: 2000), () {
+          if (context.mounted) {
+            ref.read(_launchpadAnimProvider.notifier).state = true;
+          }
+        });
+      }
+    });
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -38,26 +60,26 @@ class LaunchpadScreen extends ConsumerWidget {
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
-            child: _buildHeader(context, ref, activeBaby, allBabies, isDark),
+            child: _buildHeader(context, ref, activeBaby, allBabies, isDark, hasAnimated),
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 const SizedBox(height: 16),
-                _buildMissedReminders(context, reminderSettings, isDark),
-                _buildSummaryCard(context, recordsAsync, isDark),
-                _buildUpcomingVaccineCard(context, recordsAsync, activeBaby, isDark),
-                _buildUpcomingAppointmentCard(context, recordsAsync, isDark),
-                _buildFoodObservationCard(context, foodRecords, isDark),
+                _buildMissedReminders(context, reminderSettings, isDark, hasAnimated),
+                _buildSummaryCard(context, recordsAsync, isDark, hasAnimated),
+                _buildUpcomingVaccineCard(context, recordsAsync, activeBaby, isDark, hasAnimated),
+                _buildUpcomingAppointmentCard(context, recordsAsync, isDark, hasAnimated),
+                _buildFoodObservationCard(context, foodRecords, isDark, hasAnimated),
                 const SizedBox(height: 32),
-                _buildTimelineHeader(context, ref, filterDate, isDark),
+                _buildTimelineHeader(context, ref, filterDate, isDark, hasAnimated),
               ]),
             ),
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
-            sliver: _buildTimelineSlivers(recordsAsync, isDark),
+            sliver: _buildTimelineSlivers(recordsAsync, isDark, hasAnimated),
           ),
           const SliverPadding(
               padding: EdgeInsets.only(bottom: 120)), // Padding for bottom nav
@@ -67,10 +89,10 @@ class LaunchpadScreen extends ConsumerWidget {
   }
 
   Widget _buildHeader(BuildContext context, WidgetRef ref,
-      BabyModel? activeBaby, List<BabyModel> allBabies, bool isDark) {
+      BabyModel? activeBaby, List<BabyModel> allBabies, bool isDark, bool hasAnimated) {
     final babyName = activeBaby?.name ?? 'Baby';
     final age =
-        activeBaby?.birthDate != null ? _formatAge(activeBaby!.birthDate) : '';
+        activeBaby?.birthDate != null ? AgeCalculator.formatAge(activeBaby!.birthDate) : '';
 
     return Container(
       padding: const EdgeInsets.only(top: 80, left: 24, right: 24, bottom: 32),
@@ -98,7 +120,7 @@ class LaunchpadScreen extends ConsumerWidget {
                     color: isDark ? Colors.white54 : AppColors.lightTextSecondary,
                     letterSpacing: 0.3,
                   ),
-                ).animate().fadeIn(duration: 600.ms),
+                ).animateIf(!hasAnimated, (a) => a.fadeIn(duration: 600.ms)),
                 const SizedBox(height: 4),
                 GestureDetector(
                   onTap: allBabies.length > 1
@@ -128,9 +150,9 @@ class LaunchpadScreen extends ConsumerWidget {
                     ],
                   ),
                 )
-                    .animate()
-                    .fadeIn(duration: 600.ms, delay: 100.ms)
-                    .slideY(begin: 0.1, end: 0),
+                    .animateIf(!hasAnimated, (a) => a
+                        .fadeIn(duration: 600.ms, delay: 100.ms)
+                        .slideY(begin: 0.1, end: 0)),
                 if (age.isNotEmpty) ...[
                   const SizedBox(height: 6),
                   Text(
@@ -140,7 +162,7 @@ class LaunchpadScreen extends ConsumerWidget {
                       fontWeight: FontWeight.w500,
                       color: isDark ? Colors.white38 : AppColors.lightTextSecondary,
                     ),
-                  ).animate().fadeIn(duration: 600.ms, delay: 200.ms),
+                  ).animateIf(!hasAnimated, (a) => a.fadeIn(duration: 600.ms, delay: 200.ms)),
                 ]
               ],
             ),
@@ -159,20 +181,29 @@ class LaunchpadScreen extends ConsumerWidget {
                 )
               ],
             ),
-            child: Center(
-              child: Text(
-                activeBaby?.avatarEmoji ?? '👶',
-                style: const TextStyle(fontSize: 32),
-              ),
+            child: ClipOval(
+              child: activeBaby?.profileImagePath != null
+                  ? Image.file(
+                      File(activeBaby!.profileImagePath!),
+                      fit: BoxFit.cover,
+                      width: 64,
+                      height: 64,
+                    )
+                  : Center(
+                      child: Text(
+                        activeBaby?.avatarEmoji ?? '👶',
+                        style: const TextStyle(fontSize: 32),
+                      ),
+                    ),
             ),
-          ).animate().scale(
-              duration: 600.ms, curve: Curves.easeOutBack, delay: 200.ms),
+          ).animateIf(!hasAnimated, (a) => a.scale(
+              duration: 600.ms, curve: Curves.easeOutBack, delay: 200.ms)),
         ],
       ),
     );
   }
 
-  Widget _buildMissedReminders(BuildContext context, ReminderSettingsModel settings, bool isDark) {
+  Widget _buildMissedReminders(BuildContext context, ReminderSettingsModel settings, bool isDark, bool hasAnimated) {
     final now = DateTime.now();
     final missed = <String>[];
 
@@ -223,7 +254,7 @@ class LaunchpadScreen extends ConsumerWidget {
   }
 
   Widget _buildSummaryCard(BuildContext context,
-      AsyncValue<List<RecordModel>> recordsAsync, bool isDark) {
+      AsyncValue<List<RecordModel>> recordsAsync, bool isDark, bool hasAnimated) {
     int sleepMinutes = 0;
     int feedsCount = 0;
     int diapersCount = 0;
@@ -342,12 +373,12 @@ class LaunchpadScreen extends ConsumerWidget {
         ],
       ),
     )
-        .animate()
-        .fadeIn(duration: 600.ms, delay: 400.ms)
-        .slideY(begin: 0.05, end: 0);
+        .animateIf(!hasAnimated, (a) => a
+            .fadeIn(duration: 600.ms, delay: 400.ms)
+            .slideY(begin: 0.05, end: 0));
   }
 
-  Widget _buildUpcomingVaccineCard(BuildContext context, AsyncValue<List<RecordModel>> recordsAsync, BabyModel? activeBaby, bool isDark) {
+  Widget _buildUpcomingVaccineCard(BuildContext context, AsyncValue<List<RecordModel>> recordsAsync, BabyModel? activeBaby, bool isDark, bool hasAnimated) {
     if (activeBaby == null) return const SizedBox.shrink();
     
     return recordsAsync.when(
@@ -452,9 +483,9 @@ class LaunchpadScreen extends ConsumerWidget {
               ],
             ),
           )
-            .animate()
+            .animateIf(!hasAnimated, (a) => a
             .fadeIn(duration: 600.ms, delay: 500.ms)
-            .slideY(begin: 0.05, end: 0),
+            .slideY(begin: 0.05, end: 0)),
         );
       },
       loading: () => const SizedBox.shrink(),
@@ -462,7 +493,7 @@ class LaunchpadScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildUpcomingAppointmentCard(BuildContext context, AsyncValue<List<RecordModel>> recordsAsync, bool isDark) {
+  Widget _buildUpcomingAppointmentCard(BuildContext context, AsyncValue<List<RecordModel>> recordsAsync, bool isDark, bool hasAnimated) {
     return recordsAsync.when(
       data: (records) {
         final now = DateTime.now();
@@ -559,9 +590,9 @@ class LaunchpadScreen extends ConsumerWidget {
               ],
             ),
           )
-            .animate()
+            .animateIf(!hasAnimated, (a) => a
             .fadeIn(duration: 600.ms, delay: 500.ms)
-            .slideY(begin: 0.05, end: 0),
+            .slideY(begin: 0.05, end: 0)),
         );
       },
       loading: () => const SizedBox.shrink(),
@@ -569,7 +600,7 @@ class LaunchpadScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildFoodObservationCard(BuildContext context, List<FoodIntroRecord> records, bool isDark) {
+  Widget _buildFoodObservationCard(BuildContext context, List<FoodIntroRecord> records, bool isDark, bool hasAnimated) {
     final activeRecords = records.where((r) => r.status == FoodIntroStatus.observing).toList();
     if (activeRecords.isEmpty) return const SizedBox.shrink();
 
@@ -690,9 +721,9 @@ class LaunchpadScreen extends ConsumerWidget {
           ],
         ),
       )
-        .animate()
+        .animateIf(!hasAnimated, (a) => a
         .fadeIn(duration: 600.ms, delay: 550.ms)
-        .slideY(begin: 0.05, end: 0),
+        .slideY(begin: 0.05, end: 0)),
     );
   }
 
@@ -754,7 +785,7 @@ class LaunchpadScreen extends ConsumerWidget {
   }
 
   Widget _buildTimelineHeader(
-      BuildContext context, WidgetRef ref, DateTime? filterDate, bool isDark) {
+      BuildContext context, WidgetRef ref, DateTime? filterDate, bool isDark, bool hasAnimated) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -800,13 +831,13 @@ class LaunchpadScreen extends ConsumerWidget {
         ),
       ],
     )
-        .animate()
+        .animateIf(!hasAnimated, (a) => a
         .fadeIn(duration: 400.ms, delay: 500.ms)
-        .slideY(begin: 0.05, end: 0);
+        .slideY(begin: 0.05, end: 0));
   }
 
   Widget _buildTimelineSlivers(
-      AsyncValue<List<RecordModel>> recordsAsync, bool isDark) {
+      AsyncValue<List<RecordModel>> recordsAsync, bool isDark, bool hasAnimated) {
     return recordsAsync.when(
       loading: () => const SliverToBoxAdapter(
           child: Center(
@@ -847,13 +878,13 @@ class LaunchpadScreen extends ConsumerWidget {
               TimelineTile(
                       record: entry.value[i],
                       isLast: i == entry.value.length - 1)
-                  .animate()
-                  .fadeIn(duration: 300.ms, delay: (i * 100).ms)
-                  .slideX(
-                      begin: -0.1,
-                      end: 0,
-                      curve: Curves.easeOutCubic,
-                      delay: (i * 100).ms),
+                  .animateIf(!hasAnimated, (a) => a
+                      .fadeIn(duration: 300.ms, delay: (i * 100).ms)
+                      .slideX(
+                          begin: -0.1,
+                          end: 0,
+                          curve: Curves.easeOutCubic,
+                          delay: (i * 100).ms)),
             );
           }
         }
@@ -872,41 +903,6 @@ class LaunchpadScreen extends ConsumerWidget {
     if (hour < 17) return 'Good afternoon';
     if (hour < 21) return 'Good evening';
     return 'Good night 🌙';
-  }
-
-  String _formatAge(DateTime birthDate) {
-    final days = DateTime.now().difference(birthDate).inDays;
-    
-    if (days <= 0) return '0 days old';
-    
-    if (days < 7) {
-      return '$days day${days > 1 ? 's' : ''} old';
-    } 
-    
-    if (days < 30) {
-      final weeks = (days / 7).floor();
-      final remainingDays = days % 7;
-      if (remainingDays == 0) {
-        return '$weeks week${weeks > 1 ? 's' : ''} old';
-      }
-      return '$weeks week${weeks > 1 ? 's' : ''} and $remainingDays day${remainingDays > 1 ? 's' : ''} old';
-    }
-    
-    final months = (days / 30.44).floor();
-    if (months < 24) {
-      final remainingDays = (days - (months * 30.44)).round();
-      if (remainingDays <= 0) {
-        return '$months month${months > 1 ? 's' : ''} old';
-      }
-      return '$months month${months > 1 ? 's' : ''} and $remainingDays day${remainingDays > 1 ? 's' : ''} old';
-    }
-    
-    final years = (months / 12).floor();
-    final remainingMonths = months % 12;
-    if (remainingMonths == 0) {
-      return '$years year${years > 1 ? 's' : ''} old';
-    }
-    return '$years year${years > 1 ? 's' : ''} and $remainingMonths month${remainingMonths > 1 ? 's' : ''} old';
   }
 
   void _showProfileSwitcherSheet(
@@ -979,40 +975,7 @@ class _ProfileSwitcherSheet extends StatelessWidget {
     required this.onSelect,
   });
 
-  String _formatAge(DateTime birthDate) {
-    final days = DateTime.now().difference(birthDate).inDays;
-    
-    if (days <= 0) return '0 days old';
-    
-    if (days < 7) {
-      return '$days day${days > 1 ? 's' : ''} old';
-    } 
-    
-    if (days < 30) {
-      final weeks = (days / 7).floor();
-      final remainingDays = days % 7;
-      if (remainingDays == 0) {
-        return '$weeks week${weeks > 1 ? 's' : ''} old';
-      }
-      return '$weeks week${weeks > 1 ? 's' : ''} and $remainingDays day${remainingDays > 1 ? 's' : ''} old';
-    }
-    
-    final months = (days / 30.44).floor();
-    if (months < 24) {
-      final remainingDays = (days - (months * 30.44)).round();
-      if (remainingDays <= 0) {
-        return '$months month${months > 1 ? 's' : ''} old';
-      }
-      return '$months month${months > 1 ? 's' : ''} and $remainingDays day${remainingDays > 1 ? 's' : ''} old';
-    }
-    
-    final years = (months / 12).floor();
-    final remainingMonths = months % 12;
-    if (remainingMonths == 0) {
-      return '$years year${years > 1 ? 's' : ''} old';
-    }
-    return '$years year${years > 1 ? 's' : ''} and $remainingMonths month${remainingMonths > 1 ? 's' : ''} old';
-  }
+  // _formatAge removed
 
   @override
   Widget build(BuildContext context) {
@@ -1061,11 +1024,20 @@ class _ProfileSwitcherSheet extends StatelessWidget {
                         color: AppColors.primary.withOpacity(0.14),
                         shape: BoxShape.circle,
                       ),
-                      child: Center(
-                        child: Text(
-                          baby.avatarEmoji,
-                          style: const TextStyle(fontSize: 28),
-                        ),
+                      child: ClipOval(
+                        child: baby.profileImagePath != null
+                            ? Image.file(
+                                File(baby.profileImagePath!),
+                                fit: BoxFit.cover,
+                                width: 52,
+                                height: 52,
+                              )
+                            : Center(
+                                child: Text(
+                                  baby.avatarEmoji,
+                                  style: const TextStyle(fontSize: 28),
+                                ),
+                              ),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -1086,7 +1058,7 @@ class _ProfileSwitcherSheet extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            _formatAge(baby.birthDate),
+                            AgeCalculator.formatAge(baby.birthDate),
                             style: TextStyle(
                               fontSize: 13,
                               color: isDark

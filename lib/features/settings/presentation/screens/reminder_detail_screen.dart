@@ -9,6 +9,7 @@ import '../../domain/models/reminder_settings_model.dart';
 import '../../../../core/design/tokens/colors.dart';
 import '../../../../core/native/alarm/ringtone_channel.dart';
 import '../../../../features/reminders/domain/models/alarm_profile_model.dart';
+import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 
 class ReminderDetailScreen extends ConsumerStatefulWidget {
   final String category; // 'feeding', 'sleep', or 'diaper'
@@ -26,6 +27,7 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
   late TimeOfDay _exactTime;
   DateTime? _nextScheduledTime;
   late AlarmProfile _profile;
+  String? _currentlyPlayingUri;
 
   @override
   void initState() {
@@ -43,6 +45,12 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
       hour: parts.isNotEmpty ? (int.tryParse(parts[0]) ?? 8) : 8,
       minute: parts.length > 1 ? (int.tryParse(parts[1]) ?? 0) : 0,
     );
+  }
+
+  @override
+  void dispose() {
+    FlutterRingtonePlayer().stop();
+    super.dispose();
   }
 
   ReminderCategorySettings _getCatSettings(ReminderSettingsModel settings) {
@@ -123,6 +131,11 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
                     title: const Text('Pick From Device'),
                     leading: const Icon(Icons.folder_open),
                     onTap: () async {
+                      FlutterRingtonePlayer().stop();
+                      if (mounted) {
+                        setState(() => _currentlyPlayingUri = null);
+                        setSheetState(() => _currentlyPlayingUri = null);
+                      }
                       Navigator.pop(context);
                       final result = await RingtoneChannel.pickRingtone(
                         currentUri: _profile.ringtoneUri,
@@ -144,15 +157,52 @@ class _ReminderDetailScreenState extends ConsumerState<ReminderDetailScreen> {
           }
         );
       },
-    );
+    ).whenComplete(() {
+      FlutterRingtonePlayer().stop();
+      if (mounted) {
+        setState(() => _currentlyPlayingUri = null);
+      }
+    });
   }
 
   Widget _buildSoundOption(String title, String uri, StateSetter setSheetState, {bool isComingSoon = false}) {
     final isSelected = _profile.ringtoneUri == uri;
+    final isPlaying = _currentlyPlayingUri == uri;
+    
     return ListTile(
       title: Text(title, style: TextStyle(color: isComingSoon ? Colors.grey : null)),
       subtitle: isComingSoon ? const Text('Coming Soon') : null,
-      trailing: isSelected ? const Icon(Icons.check, color: AppColors.primary) : null,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!isComingSoon)
+            IconButton(
+              icon: Icon(
+                isPlaying ? Icons.stop_circle : Icons.play_circle_outline,
+                color: isPlaying ? AppColors.error : AppColors.primary,
+              ),
+              onPressed: () {
+                if (isPlaying) {
+                  FlutterRingtonePlayer().stop();
+                  setSheetState(() => _currentlyPlayingUri = null);
+                  setState(() => _currentlyPlayingUri = null);
+                } else {
+                  FlutterRingtonePlayer().stop();
+                  if (uri == 'default') {
+                    FlutterRingtonePlayer().playAlarm(asAlarm: false, looping: false);
+                  } else if (uri.startsWith('assets/')) {
+                    FlutterRingtonePlayer().play(fromAsset: uri, asAlarm: false, looping: false);
+                  } else {
+                    FlutterRingtonePlayer().play(fromFile: uri, asAlarm: false, looping: false);
+                  }
+                  setSheetState(() => _currentlyPlayingUri = uri);
+                  setState(() => _currentlyPlayingUri = uri);
+                }
+              },
+            ),
+          if (isSelected) const Icon(Icons.check, color: AppColors.primary),
+        ],
+      ),
       onTap: isComingSoon
           ? null
           : () {

@@ -94,6 +94,29 @@ class _TimerFullSheetState extends ConsumerState<TimerFullSheet>
       });
     }
 
+    final session = ref.read(activeSessionProvider);
+    if (session != null && _isFeeding(session.type) && session.metadata['method'] != 'Bottle') {
+      final totalSecs = session.currentDuration.inSeconds;
+      final lastSwitchSecs = session.metadata['lastSwitchSecs'] as int? ?? 0;
+      final sideSecs = totalSecs - lastSwitchSecs;
+
+      final currentSide = session.metadata['side'] as String? ?? 'Left Breast';
+      int leftAccumulated = session.metadata['leftDurationSeconds'] as int? ?? 0;
+      int rightAccumulated = session.metadata['rightDurationSeconds'] as int? ?? 0;
+
+      if (currentSide == 'Left Breast') {
+        leftAccumulated += sideSecs;
+      } else {
+        rightAccumulated += sideSecs;
+      }
+
+      ref.read(activeSessionProvider.notifier).updateMetadata({
+        'leftDurationSeconds': leftAccumulated,
+        'rightDurationSeconds': rightAccumulated,
+        'lastSwitchSecs': totalSecs,
+      });
+    }
+
     final record =
         await ref.read(activeSessionProvider.notifier).stopAndSaveSession();
     if (record != null && mounted) {
@@ -112,8 +135,24 @@ class _TimerFullSheetState extends ConsumerState<TimerFullSheet>
     final newSide =
         currentSide == 'Left Breast' ? 'Right Breast' : 'Left Breast';
 
+    final totalSecs = session.currentDuration.inSeconds;
+    final lastSwitchSecs = session.metadata['lastSwitchSecs'] as int? ?? 0;
+    final sideSecs = totalSecs - lastSwitchSecs;
+
+    int leftAccumulated = session.metadata['leftDurationSeconds'] as int? ?? 0;
+    int rightAccumulated = session.metadata['rightDurationSeconds'] as int? ?? 0;
+
+    if (currentSide == 'Left Breast') {
+      leftAccumulated += sideSecs;
+    } else {
+      rightAccumulated += sideSecs;
+    }
+
     ref.read(activeSessionProvider.notifier).updateMetadata({
       'side': newSide,
+      'leftDurationSeconds': leftAccumulated,
+      'rightDurationSeconds': rightAccumulated,
+      'lastSwitchSecs': totalSecs,
     });
   }
 

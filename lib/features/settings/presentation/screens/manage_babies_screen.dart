@@ -1,5 +1,6 @@
 // lib/features/settings/presentation/screens/manage_babies_screen.dart
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -8,6 +9,7 @@ import '../../../auth/domain/models/baby_model.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
 import '../../../records/presentation/providers/active_session_provider.dart';
 import '../../../../core/design/tokens/colors.dart';
+import '../../../../core/utils/age_calculator.dart';
 
 class ManageBabiesScreen extends ConsumerWidget {
   const ManageBabiesScreen({super.key});
@@ -148,41 +150,6 @@ class _BabyCard extends StatelessWidget {
     required this.onDelete,
   });
 
-  String _formatAge(DateTime birthDate) {
-    final days = DateTime.now().difference(birthDate).inDays;
-    
-    if (days <= 0) return '0 days old';
-    
-    if (days < 7) {
-      return '$days day${days > 1 ? 's' : ''} old';
-    } 
-    
-    if (days < 30) {
-      final weeks = (days / 7).floor();
-      final remainingDays = days % 7;
-      if (remainingDays == 0) {
-        return '$weeks week${weeks > 1 ? 's' : ''} old';
-      }
-      return '$weeks week${weeks > 1 ? 's' : ''} and $remainingDays day${remainingDays > 1 ? 's' : ''} old';
-    }
-    
-    final months = (days / 30.44).floor();
-    if (months < 24) {
-      final remainingDays = (days - (months * 30.44)).round();
-      if (remainingDays <= 0) {
-        return '$months month${months > 1 ? 's' : ''} old';
-      }
-      return '$months month${months > 1 ? 's' : ''} and $remainingDays day${remainingDays > 1 ? 's' : ''} old';
-    }
-    
-    final years = (months / 12).floor();
-    final remainingMonths = months % 12;
-    if (remainingMonths == 0) {
-      return '$years year${years > 1 ? 's' : ''} old';
-    }
-    return '$years year${years > 1 ? 's' : ''} and $remainingMonths month${remainingMonths > 1 ? 's' : ''} old';
-  }
-
   Color _genderColor() {
     switch (baby.gender) {
       case 'Girl':
@@ -208,9 +175,11 @@ class _BabyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cardBg = Theme.of(context).cardColor;
-    final age = _formatAge(baby.birthDate);
+    final age = AgeCalculator.formatAge(baby.birthDate);
 
-    return Container(
+    return GestureDetector(
+      onTap: onEdit,
+      child: Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: cardBg,
@@ -245,11 +214,20 @@ class _BabyCard extends StatelessWidget {
                     color: AppColors.primary.withOpacity(0.14),
                     shape: BoxShape.circle,
                   ),
-                  child: Center(
-                    child: Text(
-                      baby.avatarEmoji,
-                      style: const TextStyle(fontSize: 36),
-                    ),
+                  child: ClipOval(
+                    child: baby.profileImagePath != null
+                        ? Image.file(
+                            File(baby.profileImagePath!),
+                            fit: BoxFit.cover,
+                            width: 64,
+                            height: 64,
+                          )
+                        : Center(
+                            child: Text(
+                              baby.avatarEmoji,
+                              style: const TextStyle(fontSize: 36),
+                            ),
+                          ),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -317,43 +295,7 @@ class _BabyCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Kebab menu
-                PopupMenuButton<String>(
-                  icon: Icon(
-                    Icons.more_vert_rounded,
-                    color: isDark ? Colors.white54 : Colors.black38,
-                  ),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4.0)),
-                  onSelected: (value) {
-                    if (value == 'edit') onEdit();
-                    if (value == 'delete') onDelete();
-                  },
-                  itemBuilder: (_) => [
-                    const PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit_outlined, size: 18),
-                          SizedBox(width: 10),
-                          Text('Edit'),
-                        ],
-                      ),
-                    ),
-                    if (canDelete)
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete_outline,
-                                size: 18, color: AppColors.error),
-                            SizedBox(width: 10),
-                            Text('Delete', style: TextStyle(color: AppColors.error)),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
+                // Removed Kebab menu
               ],
             ),
             const SizedBox(height: 16),
@@ -412,7 +354,7 @@ class _BabyCard extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ));
   }
 }
 

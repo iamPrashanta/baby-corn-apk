@@ -132,21 +132,39 @@ class TimelineTile extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return AlertDialog(
-          title: const Text('Delete Activity'),
-          content: const Text('Are you sure you want to delete this activity? This cannot be undone.'),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: isDark ? Theme.of(context).colorScheme.surface : Colors.white,
+          title: Text(
+            'Delete Activity',
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to delete this activity? This cannot be undone.',
+            style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
+              ),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
               onPressed: () {
                 ref.read(recordsProvider.notifier).deleteRecord(record.id);
                 Navigator.pop(context);
               },
-              child: const Text('Delete', style: TextStyle(color: Colors.white)),
+              child: const Text('Delete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ],
         );
@@ -163,11 +181,35 @@ class TimelineTile extends ConsumerWidget {
         final dur = r.metadata['durationSeconds'];
         final durMin = dur != null ? (dur as int) ~/ 60 : r.metadata['duration'];
         final amount = r.metadata['amount']?.toString() ?? '';
+        final leftSec = r.metadata['leftDurationSeconds'] as int?;
+        final rightSec = r.metadata['rightDurationSeconds'] as int?;
+        
         // Build subtitle: show amount if present, else duration
         String sub;
         if (amount.isNotEmpty) {
           final unit = (method == 'Bottle') ? 'ml' : '';
           sub = amount.contains(RegExp(r'[a-zA-Z]')) ? '$method • $amount' : '$method • $amount$unit';
+        } else if (leftSec != null || rightSec != null) {
+          final lMin = leftSec != null ? leftSec ~/ 60 : 0;
+          final rMin = rightSec != null ? rightSec ~/ 60 : 0;
+          if (lMin > 0 && rMin > 0) {
+            sub = 'L: ${lMin}m • R: ${rMin}m';
+          } else if (lMin > 0) {
+            sub = 'Left • ${lMin}m';
+          } else if (rMin > 0) {
+            sub = 'Right • ${rMin}m';
+          } else {
+            sub = '$method • <1m';
+          }
+        } else if (dur != null) {
+          final d = dur as int;
+          if (d < 60) {
+            sub = '$method • ${d}s';
+          } else {
+            final m = d ~/ 60;
+            final s = d % 60;
+            sub = s > 0 ? '$method • ${m}m ${s}s' : '$method • ${m}m';
+          }
         } else if (durMin != null && durMin > 0) {
           sub = '$method • ${durMin}m';
         } else {
@@ -177,12 +219,38 @@ class TimelineTile extends ConsumerWidget {
       case 'sleep':
         final durSec = r.metadata['durationSeconds'];
         final durMin = durSec != null ? (durSec as int) ~/ 60 : r.metadata['durationMinutes'];
-        return ('😴', 'Sleep', durMin != null && durMin > 0 ? '${durMin} mins' : 'Sleep logged', AppColors.sleep);
+        String sleepDur = 'Sleep logged';
+        if (durSec != null) {
+          final d = durSec as int;
+          if (d < 60) {
+            sleepDur = '${d}s';
+          } else {
+            final m = d ~/ 60;
+            final s = d % 60;
+            sleepDur = s > 0 ? '${m}m ${s}s' : '${m}m';
+          }
+        } else if (durMin != null && durMin > 0) {
+          sleepDur = '${durMin} mins';
+        }
+        return ('😴', 'Sleep', sleepDur, AppColors.sleep);
       case 'tummy_time':
       case 'tummy time':
         final dur = r.metadata['durationSeconds'];
         final durMin = dur != null ? (dur as int) ~/ 60 : null;
-        return ('🤸', 'Tummy Time', durMin != null && durMin > 0 ? '${durMin} mins' : '', AppColors.tertiary);
+        String ttDur = '';
+        if (dur != null) {
+          final d = dur as int;
+          if (d < 60) {
+            ttDur = '${d}s';
+          } else {
+            final m = d ~/ 60;
+            final s = d % 60;
+            ttDur = s > 0 ? '${m}m ${s}s' : '${m}m';
+          }
+        } else if (durMin != null && durMin > 0) {
+          ttDur = '${durMin} mins';
+        }
+        return ('🤸', 'Tummy Time', ttDur, AppColors.tertiary);
       case 'diaper':
         final status = r.metadata['status'] as String? ?? 'Diaper changed';
         if (status == 'Wet') {
@@ -209,6 +277,12 @@ class TimelineTile extends ConsumerWidget {
         final batch = r.metadata['batchNumber'] as String? ?? '';
         final subtitle = batch.isNotEmpty ? 'Batch: $batch' : 'Vaccine Administered';
         return ('💉', vName, subtitle, AppColors.vaccine);
+      case 'appointment':
+        final docName = r.metadata['doctorName'] as String? ?? '';
+        final spec = r.metadata['specialization'] as String? ?? '';
+        final location = r.metadata['location'] as String? ?? '';
+        final subtitleParts = [if (spec.isNotEmpty) spec, if (location.isNotEmpty) location];
+        return ('🩺', 'Doctor Appointment', docName.isNotEmpty ? [docName, ...subtitleParts].join(' • ') : subtitleParts.join(' • '), AppColors.primary);
       default:
         return ('📝', 'Activity', '', Colors.grey);
     }

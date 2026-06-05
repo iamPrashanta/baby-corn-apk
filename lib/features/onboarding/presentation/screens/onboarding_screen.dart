@@ -32,6 +32,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _nameController = TextEditingController();
   // DateTime? _birthDate;
   DateTime _birthDate = DateTime.now();
+  TimeOfDay? _birthTime;
   String _gender = 'Prefer not to say';
   double? _birthWeight;
   double? _birthHeight;
@@ -78,7 +79,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final baby = BabyModel(
       id: const Uuid().v4(),
       name: _nameController.text.trim(),
-      birthDate: _birthDate!,
+      birthDate: _birthDate,
+      birthTime: _birthTime != null ? '${_birthTime!.hour.toString().padLeft(2, '0')}:${_birthTime!.minute.toString().padLeft(2, '0')}' : null,
       feedingType: _feedingType,
       gender: _gender,
       birthWeight: _birthWeight ?? 0.0,
@@ -282,7 +284,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               );
               if (date != null) {
                 setState(() => _birthDate = date);
-                _nextPage(); // Auto advance for smooth UX
               }
             },
             borderRadius: BorderRadius.circular(4.0),
@@ -313,6 +314,68 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           ? FontWeight.normal
                           : FontWeight.bold,
                       color: _birthDate == null ? Colors.grey.shade500 : null,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Time of birth (Optional)',
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          InkWell(
+            onTap: () async {
+              final time = await showTimePicker(
+                context: context,
+                initialTime: _birthTime ?? TimeOfDay.now(),
+                builder: (context, child) {
+                  return Theme(
+                    data: Theme.of(context).copyWith(
+                      colorScheme: Theme.of(context).colorScheme.copyWith(
+                            primary: AppColors.primary,
+                          ),
+                    ),
+                    child: child!,
+                  );
+                },
+              );
+              if (time != null) {
+                setState(() => _birthTime = time);
+              }
+            },
+            borderRadius: BorderRadius.circular(4.0),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+              decoration: BoxDecoration(
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHighest
+                    .withOpacity(0.4),
+                borderRadius: BorderRadius.circular(4.0),
+                border: Border.all(
+                    color: _birthTime != null 
+                        ? AppColors.primary.withOpacity(0.5) 
+                        : Theme.of(context).colorScheme.outline.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.access_time_filled,
+                      size: 32, color: AppColors.primary),
+                  const SizedBox(width: 16),
+                  Text(
+                    _birthTime?.format(context) ?? 'Set Time',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: _birthTime == null
+                          ? FontWeight.normal
+                          : FontWeight.bold,
+                      color: _birthTime == null ? Colors.grey.shade500 : null,
                     ),
                   ),
                 ],

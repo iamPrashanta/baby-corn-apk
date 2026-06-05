@@ -1,6 +1,8 @@
 // lib/features/settings/presentation/screens/edit_baby_screen.dart
 
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -19,12 +21,14 @@ class EditBabyScreen extends ConsumerStatefulWidget {
 class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
   late final TextEditingController _nameController;
   late DateTime _birthDate;
+  TimeOfDay? _birthTime;
   late String _gender;
   late double _birthWeight;
   late double? _birthHeight;
   bool _isHeightInCm = true;
   late String _feedingType;
   late String _avatarEmoji;
+  String? _profileImagePath;
 
   bool _isSaving = false;
 
@@ -61,11 +65,22 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
     super.initState();
     _nameController = TextEditingController(text: widget.baby.name);
     _birthDate = widget.baby.birthDate;
+    
+    final btStr = widget.baby.birthTime;
+    if (btStr != null && btStr.contains(':')) {
+      final parts = btStr.split(':');
+      if (parts.length == 2) {
+        _birthTime = TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+      }
+    }
+    
     _gender = widget.baby.gender;
     _birthWeight = widget.baby.birthWeight;
     _birthHeight = widget.baby.birthHeight ?? 50.0;
+    _birthHeight = widget.baby.birthHeight ?? 50.0;
     _feedingType = widget.baby.feedingType;
     _avatarEmoji = widget.baby.avatarEmoji;
+    _profileImagePath = widget.baby.profileImagePath;
   }
 
   @override
@@ -87,11 +102,14 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
     final updated = widget.baby.copyWith(
       name: _nameController.text.trim(),
       birthDate: _birthDate,
+      birthTime: _birthTime != null ? '${_birthTime!.hour.toString().padLeft(2, '0')}:${_birthTime!.minute.toString().padLeft(2, '0')}' : null,
       gender: _gender,
       birthWeight: _birthWeight,
       birthHeight: _birthHeight,
       feedingType: _feedingType,
       avatarEmoji: _avatarEmoji,
+      profileImagePath: _profileImagePath,
+      clearProfileImage: _profileImagePath == null,
     );
 
     await ref.read(activeBabyProvider.notifier).updateBaby(updated);
@@ -162,12 +180,27 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
           ),
           const SizedBox(height: 24),
 
-          // ── Birth Date ────────────────────────────────────────
-          _buildSection(
-            context,
-            label: 'BIRTH DATE',
-            labelColor: sectionLabelColor,
-            child: _buildBirthDateTile(cardBg, isDark),
+          // ── Birth Date & Time ─────────────────────────────────
+          Row(
+            children: [
+              Expanded(
+                child: _buildSection(
+                  context,
+                  label: 'BIRTH DATE',
+                  labelColor: sectionLabelColor,
+                  child: _buildBirthDateTile(cardBg, isDark),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildSection(
+                  context,
+                  label: 'BIRTH TIME',
+                  labelColor: sectionLabelColor,
+                  child: _buildBirthTimeTile(cardBg, isDark),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 24),
 
@@ -263,46 +296,127 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
       child: Column(
         children: [
           // Current avatar preview / input
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: TextField(
-                textAlign: TextAlign.center,
-                maxLength: 2,
-                style: const TextStyle(fontSize: 40),
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  counterText: "",
-                  contentPadding: EdgeInsets.zero,
+          Stack(
+            children: [
+              Container(
+                width: 90,
+                height: 90,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.15),
+                  shape: BoxShape.circle,
                 ),
-                controller: TextEditingController(text: _avatarEmoji)
-                  ..selection = TextSelection.fromPosition(
-                    TextPosition(offset: _avatarEmoji.length),
-                  ),
-                onChanged: (val) {
-                  if (val.isNotEmpty) {
-                    _avatarEmoji = val;
-                  }
-                },
+                child: ClipOval(
+                  child: _profileImagePath != null
+                      ? Image.file(
+                          File(_profileImagePath!),
+                          fit: BoxFit.cover,
+                          width: 90,
+                          height: 90,
+                        )
+                      : Center(
+                          child: TextField(
+                            textAlign: TextAlign.center,
+                            maxLength: 2,
+                            style: const TextStyle(fontSize: 40),
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              counterText: "",
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                            controller: TextEditingController(text: _avatarEmoji)
+                              ..selection = TextSelection.fromPosition(
+                                TextPosition(offset: _avatarEmoji.length),
+                              ),
+                            onChanged: (val) {
+                              if (val.isNotEmpty) {
+                                _avatarEmoji = val;
+                              }
+                            },
+                          ),
+                        ),
+                ),
               ),
-            ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: GestureDetector(
+                  onTap: _pickImage,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: const BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
-          Text(
-            'Tap the emoji above to pick your own!',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: isDark ? Colors.white54 : Colors.black54,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Tap the camera to add a photo.',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: isDark ? Colors.white54 : Colors.black54,
+                ),
+              ),
+              if (_profileImagePath != null) ...[
+                const SizedBox(width: 8),
+                TextButton(
+                  onPressed: () => setState(() => _profileImagePath = null),
+                  child: const Text('Clear', style: TextStyle(color: AppColors.error)),
+                ),
+              ],
+            ],
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _pickImage() async {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          margin: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Take a Photo'),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  final picker = ImagePicker();
+                  final picked = await picker.pickImage(source: ImageSource.camera);
+                  if (picked != null) setState(() => _profileImagePath = picked.path);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Choose from Gallery'),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  final picker = ImagePicker();
+                  final picked = await picker.pickImage(source: ImageSource.gallery);
+                  if (picked != null) setState(() => _profileImagePath = picked.path);
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -371,6 +485,52 @@ class _EditBabyScreenState extends ConsumerState<EditBabyScreen> {
               Icons.edit_calendar_outlined,
               size: 20,
               color: isDark ? Colors.white38 : Colors.black26,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── Birth time tile ──────────────────────────────────────────────────────
+
+  Widget _buildBirthTimeTile(Color cardBg, bool isDark) {
+    return GestureDetector(
+      onTap: () async {
+        final picked = await showTimePicker(
+          context: context,
+          initialTime: _birthTime ?? TimeOfDay.now(),
+          builder: (context, child) => Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: Theme.of(context).colorScheme.copyWith(
+                    primary: AppColors.primary,
+                  ),
+            ),
+            child: child!,
+          ),
+        );
+        if (picked != null) setState(() => _birthTime = picked);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        decoration: BoxDecoration(
+          color: cardBg,
+          borderRadius: BorderRadius.circular(4.0),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.access_time_rounded, color: AppColors.secondary, size: 24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                _birthTime?.format(context) ?? 'Time',
+                style: TextStyle(
+                  fontSize: 18, 
+                  fontWeight: FontWeight.w700,
+                  color: _birthTime == null ? (isDark ? Colors.white30 : Colors.black26) : null,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
