@@ -139,7 +139,7 @@ class GuideMainScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : AppColors.surfaceHighlight,
+                          color: isDark ? Colors.white : AppColors.lightTextPrimary,
                         ),
                       ),
                       const SizedBox(height: 6),

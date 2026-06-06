@@ -234,19 +234,47 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                         Text('Baby Corn', style: TextStyle(color: isDark ? Colors.white : Colors.black)),
                       ],
                     ),
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Version 1.0.0', style: TextStyle(color: isDark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 16),
-                        Text(
-                          "Baby Corn is an all-in-one companion app for modern parents to track and manage their baby's daily activities like feeding, sleeping, and diaper changes.",
-                          style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
-                        ),
-                        const SizedBox(height: 16),
-                        Text('© 2026 Baby Corn App', style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 12)),
-                      ],
+                    content: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Version 1.0.0', style: TextStyle(color: isDark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 16),
+                          Text(
+                            "Baby Corn is an all-in-one companion app for modern parents to track and manage their baby's daily activities like feeding, sleeping, and diaper changes.",
+                            style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            "Key Features:",
+                            style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "• Track feedings (nursing, bottle, solids)\n"
+                            "• Log sleep patterns and naps\n"
+                            "• Monitor diaper changes\n"
+                            "• Backup and restore data securely\n"
+                            "• Manage multiple babies",
+                            style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            "Built for privacy and simplicity to help parents focus on what matters most.",
+                            style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
+                          ),
+                          const SizedBox(height: 16),
+                          Text('© 2026 Baby Corn App', style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 12)),
+                          const SizedBox(height: 24),
+                          Center(
+                            child: Text(
+                              'Made with ❤️ by Prashanta',
+                              style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontStyle: FontStyle.italic),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     actions: [
                       TextButton(

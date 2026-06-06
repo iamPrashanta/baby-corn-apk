@@ -479,7 +479,7 @@ class LaunchpadScreen extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : AppColors.surfaceHighlight,
+                          color: isDark ? Colors.white : AppColors.lightTextPrimary,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -586,7 +586,7 @@ class LaunchpadScreen extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : AppColors.surfaceHighlight,
+                          color: isDark ? Colors.white : AppColors.lightTextPrimary,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -689,7 +689,7 @@ class LaunchpadScreen extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : AppColors.surfaceHighlight,
+                          color: isDark ? Colors.white : AppColors.lightTextPrimary,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -814,7 +814,7 @@ class LaunchpadScreen extends ConsumerWidget {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w800,
-            color: isDark ? Colors.white : AppColors.surfaceHighlight,
+            color: isDark ? Colors.white : AppColors.lightTextPrimary,
             letterSpacing: -0.3,
           ),
         ),

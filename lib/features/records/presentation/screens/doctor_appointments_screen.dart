@@ -101,7 +101,7 @@ class DoctorAppointmentsScreen extends ConsumerWidget {
         style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          color: isDark ? Colors.white : AppColors.surfaceHighlight,
+          color: isDark ? Colors.white : AppColors.lightTextPrimary,
         ),
       ),
     );
@@ -190,7 +190,7 @@ class DoctorAppointmentsScreen extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : AppColors.surfaceHighlight,
+                          color: isDark ? Colors.white : AppColors.lightTextPrimary,
                         ),
                       ),
                     ),

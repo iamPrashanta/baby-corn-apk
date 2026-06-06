@@ -58,6 +58,7 @@ class _MainScaffoldState extends State<MainScaffold> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (context) => const AddRecordModal(),
     );
