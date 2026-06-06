@@ -178,6 +178,10 @@ class BackupService {
       try {
         debugPrint('[RESTORE WIPING HIVE] Wiping local Hive databases...');
         
+        // Preserve locally logged vaccines to prevent them from being wiped by the restore
+        final localRecords = HiveManager.getRecordsBox().values.toList();
+        final localVaccines = localRecords.where((r) => r.type == 'vaccine').toList();
+
         // 2. Clear all local boxes
         await HiveManager.getProfileBox().clear();
         await HiveManager.getSettingsBox().clear();
@@ -216,6 +220,18 @@ class BackupService {
       await restoreList('medications', HiveManager.getMedicationsBox(), MedicationModel.fromJson);
       await restoreList('familyMembers', HiveManager.getFamilyMembersBox(), FamilyMemberModel.fromJson);
       await restoreList('foodTracker', HiveManager.getFoodTrackerBox(), FoodIntroRecord.fromJson);
+      
+      // Re-insert preserved vaccines if they are not already present
+      final recordsBox = HiveManager.getRecordsBox();
+      for (final v in localVaccines) {
+         // Match by vaccine name to avoid duplicating the same completed vaccine
+         final vaccineName = v.metadata['vaccineName'];
+         final existsInCloud = recordsBox.values.any((r) => r.type == 'vaccine' && r.metadata['vaccineName'] == vaccineName);
+         if (!existsInCloud) {
+           await recordsBox.put(v.id, v);
+           debugPrint('[VACCINE PRESERVED] Kept local completed vaccine: $vaccineName');
+         }
+      }
 
       debugPrint('[RESTORE REBUILDING REMINDERS] Reminders recreating...');
       

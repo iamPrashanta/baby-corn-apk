@@ -280,6 +280,7 @@ Firebase provides:
 ## 🛠 Tech Stack
 
 ### Frontend
+
 - **Flutter** (SDK `>=3.2.0`)
 - **Material 3** design system
 - **Google Fonts** (`Outfit` family) for premium typography
@@ -288,12 +289,15 @@ Firebase provides:
 - **flutter_svg** for scalable vector icons
 
 ### State Management
+
 - **Riverpod** (`flutter_riverpod ^2.4.9`) — feature-scoped providers
 
 ### Routing
+
 - **GoRouter** (`^17.2.3`) — declarative navigation with deep linking
 
 ### Backend (Optional)
+
 - **Firebase Core** — platform initialization
 - **Firebase Auth** — Google Sign-In
 - **Cloud Firestore** — cloud record storage
@@ -303,18 +307,22 @@ Firebase provides:
 - **Firebase App Check** — Play Integrity (production) / Debug (development)
 
 ### Local Storage
+
 - **Hive** (`^2.2.3`) — fast local NoSQL database for records and sessions
 - **flutter_secure_storage** — encrypted storage for PIN, tokens, and settings
 
 ### Security & Biometrics
+
 - **local_auth** — fingerprint / face biometric unlock
 - **flutter_windowmanager_plus** — screen capture prevention
 
 ### Notifications
+
 - **flutter_local_notifications** — local push notifications and reminders
 - **alarm** — reliable alarm scheduling that survives app kill
 
 ### Utilities
+
 - **connectivity_plus** — network state detection for sync engine
 - **geolocator** — location permissions (reserved for future features)
 - **image_picker** — baby photo support
@@ -622,6 +630,7 @@ Handles user authentication and baby profile management.
 The core feature. Stores every baby activity.
 
 Includes logging for:
+
 - Feeding (breast left/right, bottle, duration)
 - Sleep (start/end time, duration)
 - Diaper (wet, dirty, mixed)
@@ -913,7 +922,7 @@ Dashboard (Home)
 └── Reminders        # Notification scheduling
 
 Settings
-├── Theme            # Dark / Light / System
+├── Theme             # Dark / Light / System
 ├── Language          # 6 Indian languages
 ├── App Lock          # Biometric + timeout
 ├── Family Sharing    # SMS sharing
@@ -1049,7 +1058,8 @@ flutter build apk --release --split-per-abi --obfuscate --split-debug-info=./deb
 ```
 
 **Which APK should you use?**
-The `--split-per-abi` flag will generate multiple APKs in `build/app/outputs/flutter-apk/`. 
+The `--split-per-abi` flag will generate multiple APKs in `build/app/outputs/flutter-apk/`.
+
 - **`app-arm64-v8a-release.apk`**: Use this for 99% of modern Android phones.
 - **`app-armeabi-v7a-release.apk`**: Use this for older, 32-bit Android phones.
 - **`app-x86_64-release.apk`**: Use this for Android emulators on PC.
@@ -1061,6 +1071,7 @@ The `--split-per-abi` flag will generate multiple APKs in `build/app/outputs/flu
 To build a release archive for iOS, there are strict prerequisites mandated by Apple.
 
 **Prerequisites to build for iOS:**
+
 1. **A Mac Computer**: Apple strictly requires macOS to compile iOS apps. You cannot build an iOS app on Windows or Linux natively.
 2. **Xcode**: Download and install Xcode from the Mac App Store.
 3. **Apple Developer Account**: To install the app on a physical iPhone or distribute it, you need an Apple Developer account (a free account allows testing on your own device; a $99/year paid account is required for App Store/TestFlight distribution).
@@ -1073,7 +1084,7 @@ Once you are on a Mac and have opened the `ios/Runner.xcworkspace` in Xcode at l
 flutter build ipa --obfuscate --split-debug-info=./debug_info
 ```
 
-This generates an `.xcarchive` and an `.ipa` file located in `build/ios/ipa/`, which you can distribute via TestFlight or upload to the App Store.
+This generates an `.xcarchive` and an `.ipa` file located in `build/ios/ipa/`, which you can distribute via TestFlight or upload to the App Store
 ---
 
 ## 🔑 Permissions (Android)

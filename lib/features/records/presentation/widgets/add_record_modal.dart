@@ -20,6 +20,7 @@ class AddRecordModal extends ConsumerWidget {
 
     return AppBottomSheet(
       useGlass: true,
+      isScrollable: false,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -20,6 +20,16 @@ class BabyRepository {
     final settingsBox = HiveManager.getSettingsBox();
     final profileBox = HiveManager.getProfileBox();
 
+    const int currentSchemaVersion = 3;
+    final int storedVersion = settingsBox.get('migrationVersion', defaultValue: 0) as int;
+
+    if (storedVersion >= currentSchemaVersion) {
+      debugPrint("✅ [Migration] Up to date (v$storedVersion). Skipping.");
+      return;
+    }
+
+    debugPrint("🔄 [Migration] Running migration from v$storedVersion to v$currentSchemaVersion...");
+
     // 1. Migrate legacy version 1 (individual keys) to babies_list in profileBox
     final name = settingsBox.get('baby_name');
     final birthDateStr = settingsBox.get('baby_birthdate');
@@ -63,7 +73,10 @@ class BabyRepository {
       await settingsBox.delete('active_baby_id');
     }
     
-    debugPrint("✅ [Migration] Completed");
+    // Save updated migration version
+    await settingsBox.put('migrationVersion', currentSchemaVersion);
+    
+    debugPrint("✅ [Migration] Completed successfully");
   }
 
   List<BabyModel> getBabies() {

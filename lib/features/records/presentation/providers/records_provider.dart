@@ -16,6 +16,31 @@ final recordsProvider = StateNotifierProvider<RecordsNotifier, AsyncValue<List<R
   return RecordsNotifier(repository, activeBaby?.id, filterDate);
 });
 
+final vaccineRecordsProvider = Provider<AsyncValue<List<RecordModel>>>((ref) {
+  final repository = ref.watch(localRecordRepositoryProvider);
+  final activeBabyId = ref.watch(activeBabyProvider)?.id;
+  
+  // Watch recordsProvider so this updates when a new vaccine is logged
+  ref.watch(recordsProvider);
+  
+  try {
+    final allRecords = repository.getAllRecords();
+    final vaccines = allRecords.where((r) {
+      if (r.type != 'vaccine') return false;
+      final rBabyId = r.metadata['babyId'] as String?;
+      if (rBabyId == activeBabyId) return true;
+      // Backward compatibility: if record has no babyId, assume it belongs to active baby
+      if (rBabyId == null) return true;
+      return false;
+    }).toList();
+    
+    vaccines.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    return AsyncValue.data(vaccines);
+  } catch (e, st) {
+    return AsyncValue.error(e, st);
+  }
+});
+
 class RecordsNotifier extends StateNotifier<AsyncValue<List<RecordModel>>> {
   final LocalRecordRepository _repository;
   final String? _activeBabyId;

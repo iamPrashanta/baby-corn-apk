@@ -49,7 +49,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activeBaby = ref.watch(activeBabyProvider);
-    final recordsAsync = ref.watch(recordsProvider);
+    final recordsAsync = ref.watch(vaccineRecordsProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (activeBaby == null) {
@@ -80,7 +80,7 @@ class VaccinationTrackerScreen extends ConsumerWidget {
       body: recordsAsync.when(
         data: (records) {
           // Filter to all vaccine records
-          final vaccineRecords = records.where((r) => r.type == 'vaccine').toList();
+          final vaccineRecords = records;
           
           final List<VaccineDisplayItem> allItems = [];
 

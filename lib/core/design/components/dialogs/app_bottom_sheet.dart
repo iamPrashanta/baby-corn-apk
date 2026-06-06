@@ -13,6 +13,7 @@ class AppBottomSheet extends StatelessWidget {
   final Color? solidColorDark;
   final Color? borderColor;
   final EdgeInsetsGeometry padding;
+  final bool isScrollable;
 
   const AppBottomSheet({
     super.key,
@@ -25,6 +26,7 @@ class AppBottomSheet extends StatelessWidget {
     this.solidColorDark,
     this.borderColor,
     this.padding = const EdgeInsets.only(left: 24, right: 24, top: 16),
+    this.isScrollable = true,
   });
 
   @override
@@ -62,6 +64,41 @@ class AppBottomSheet extends StatelessWidget {
           24,
     );
 
+    final innerContent = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Drag handle
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onVerticalDragUpdate: (details) {
+            if (details.primaryDelta! > 2) {
+              Navigator.of(context).pop();
+            }
+          },
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(bottom: 24, top: 8),
+            child: Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white.withOpacity(0.15)
+                      : Colors.black.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(2.0),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Material(
+          type: MaterialType.transparency,
+          child: child,
+        ),
+      ],
+    );
+
     Widget content = Container(
       decoration: BoxDecoration(
         color: bgColor,
@@ -69,43 +106,12 @@ class AppBottomSheet extends StatelessWidget {
         border: border,
       ),
       padding: mergedPadding,
-      child: SingleChildScrollView(
-        physics: const ClampingScrollPhysics(),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Drag handle
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onVerticalDragUpdate: (details) {
-                if (details.primaryDelta! > 2) {
-                  Navigator.of(context).pop();
-                }
-              },
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.only(bottom: 24, top: 8),
-                child: Center(
-                  child: Container(
-                    width: 36,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? Colors.white.withOpacity(0.15)
-                          : Colors.black.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(2.0),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Material(
-              type: MaterialType.transparency,
-              child: child,
-            ),
-          ],
-        ),
-      ),
+      child: isScrollable
+          ? SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: innerContent,
+            )
+          : innerContent,
     );
 
     if (useGlass) {
