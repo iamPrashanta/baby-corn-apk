@@ -60,6 +60,24 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
   }
 
   Future<void> _handleBackup() async {
+    if (_lastBackupDate != null) {
+      final difference = DateTime.now().difference(_lastBackupDate!);
+      if (difference.inHours < 6) {
+        final hoursLeft = 5 - difference.inHours;
+        final minsLeft = 60 - (difference.inMinutes % 60);
+        final timeMsg = hoursLeft > 0 
+            ? '$hoursLeft hours and $minsLeft minutes' 
+            : '$minsLeft minutes';
+            
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Backup is on cooldown. Please try again in $timeMsg.')),
+          );
+        }
+        return;
+      }
+    }
+
     setState(() => _isLoading = true);
     try {
       await BackupService.backupNow();
