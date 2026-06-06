@@ -36,6 +36,12 @@ class RecordsNotifier extends StateNotifier<AsyncValue<List<RecordModel>>> {
               r.timestamp.day != _filterDate.day) {
             return false;
           }
+        } else {
+          // Limit default history to last 3 days
+          final threeDaysAgo = DateTime.now().subtract(const Duration(days: 3));
+          if (r.timestamp.isBefore(threeDaysAgo)) {
+            return false;
+          }
         }
 
         final rBabyId = r.metadata['babyId'] as String?;

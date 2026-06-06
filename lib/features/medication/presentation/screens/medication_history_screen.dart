@@ -5,7 +5,7 @@ import '../../../../core/widgets/liquid_background.dart';
 import '../../../../core/widgets/safe_scrollable_wrapper.dart';
 import '../../../../core/local_storage/hive_manager.dart';
 import '../../domain/models/medication_model.dart';
-import '../../domain/models/medication_log_model.dart';
+import '../../../records/domain/models/record_model.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
 import '../../../../core/design/tokens/colors.dart';
 
@@ -29,7 +29,7 @@ class _MedicationHistoryScreenState
 
     // Fetch and combine data
     final medBox = HiveManager.getMedicationsBox();
-    final logBox = HiveManager.getMedicationLogsBox();
+    final logBox = HiveManager.getRecordsBox();
 
     // 1. Get all medications for this baby
     final babyMeds =
@@ -38,7 +38,7 @@ class _MedicationHistoryScreenState
 
     // 2. Get all logs for those medications
     var logs = logBox.values
-        .where((log) => babyMedIds.contains(log.medicationId))
+        .where((log) => log.type == 'medication' && babyMedIds.contains(log.metadata['medicationId']))
         .toList();
 
     // 3. Apply Filter
@@ -46,21 +46,21 @@ class _MedicationHistoryScreenState
     if (_selectedFilter == 'Today') {
       final startOfDay = DateTime(now.year, now.month, now.day);
       final endOfDay = startOfDay.add(const Duration(days: 1));
-      logs = logs.where((l) => l.scheduledTime.isAfter(startOfDay.subtract(const Duration(milliseconds: 1))) && l.scheduledTime.isBefore(endOfDay)).toList();
+      logs = logs.where((l) => l.timestamp.isAfter(startOfDay.subtract(const Duration(milliseconds: 1))) && l.timestamp.isBefore(endOfDay)).toList();
     } else if (_selectedFilter == '7 Days') {
       final cutoff = now.subtract(const Duration(days: 7));
-      logs = logs.where((l) => l.scheduledTime.isAfter(cutoff)).toList();
+      logs = logs.where((l) => l.timestamp.isAfter(cutoff)).toList();
     } else if (_selectedFilter == '30 Days') {
       final cutoff = now.subtract(const Duration(days: 30));
-      logs = logs.where((l) => l.scheduledTime.isAfter(cutoff)).toList();
+      logs = logs.where((l) => l.timestamp.isAfter(cutoff)).toList();
     } else if (_selectedFilter == 'Custom' && _customDateRange != null) {
       final start = _customDateRange!.start;
       final end = _customDateRange!.end.add(const Duration(days: 1)); // Include end day
-      logs = logs.where((l) => l.scheduledTime.isAfter(start) && l.scheduledTime.isBefore(end)).toList();
+      logs = logs.where((l) => l.timestamp.isAfter(start) && l.timestamp.isBefore(end)).toList();
     }
 
     // 4. Sort descending by scheduled time
-    logs.sort((a, b) => b.scheduledTime.compareTo(a.scheduledTime));
+    logs.sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -142,7 +142,7 @@ class _MedicationHistoryScreenState
                     itemBuilder: (context, index) {
                       final log = logs[index];
                       final med =
-                          babyMeds.firstWhere((m) => m.id == log.medicationId);
+                          babyMeds.firstWhere((m) => m.id == log.metadata['medicationId']);
                       return _HistoryCard(log: log, medication: med);
                     },
                   ),
@@ -158,7 +158,7 @@ class _MedicationHistoryScreenState
 }
 
 class _HistoryCard extends StatelessWidget {
-  final MedicationLogModel log;
+  final RecordModel log;
   final MedicationModel medication;
 
   const _HistoryCard({required this.log, required this.medication});
@@ -167,14 +167,15 @@ class _HistoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     Color statusColor = Colors.grey;
     IconData statusIcon = Icons.help_outline;
+    final status = log.metadata['status'] as String? ?? 'unknown';
 
-    if (log.status == 'taken') {
+    if (status == 'taken') {
       statusColor = Colors.green;
       statusIcon = Icons.check_circle;
-    } else if (log.status == 'skipped') {
+    } else if (status == 'skipped') {
       statusColor = AppColors.primary;
       statusIcon = Icons.next_plan;
-    } else if (log.status == 'missed') {
+    } else if (status == 'missed') {
       statusColor = Colors.redAccent;
       statusIcon = Icons.cancel;
     }
@@ -212,7 +213,7 @@ class _HistoryCard extends StatelessWidget {
                           ),
                     ),
                     Text(
-                      DateFormat('MMM d').format(log.scheduledTime),
+                      DateFormat('MMM d').format(log.timestamp),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -221,25 +222,25 @@ class _HistoryCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${DateFormat('hh:mm a').format(log.scheduledTime)} • ${medication.doseAmount} ${medication.doseUnit}',
+                  '${DateFormat('hh:mm a').format(log.timestamp)} • ${medication.doseAmount} ${medication.doseUnit}',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                 ),
-                if (log.status == 'taken' && log.takenBy.isNotEmpty) ...[
+                if (status == 'taken' && log.metadata['takenBy'] != null) ...[
                   const SizedBox(height: 6),
                   Text(
-                    'Given by ${log.takenBy}',
+                    'Given by ${log.metadata['takenBy']}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                           fontStyle: FontStyle.italic,
                         ),
                   ),
                 ],
-                if (log.note.isNotEmpty) ...[
+                if (log.metadata['note'] != null) ...[
                   const SizedBox(height: 4),
                   Text(
-                    log.note,
+                    log.metadata['note'],
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.error,
                         ),

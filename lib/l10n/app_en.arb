@@ -62,4 +62,15 @@
   "subscription": "Subscription",
   "doctorAppointments": "Doctor Appointments",
   "medicationHistory": "Medication History"
+,
+  "firstLaugh": "First Laugh",
+  "firstSit": "First Sit",
+  "firstStand": "First Stand",
+  "firstTooth": "First Tooth",
+  "firstWord": "First Word",
+  "firstClap": "First Clap",
+  "firstWave": "First Wave",
+  "firstSolidFood": "First Solid Food",
+  "firstHaircut": "First Haircut",
+  "firstBirthday": "First Birthday"
 }

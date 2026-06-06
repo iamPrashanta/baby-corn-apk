@@ -6,7 +6,6 @@ import '../../features/records/domain/models/active_session_model.dart';
 import '../../features/guide/domain/models/sanskar_model.dart';
 import '../../features/development/domain/models/moment_model.dart';
 import '../../features/medication/domain/models/medication_model.dart';
-import '../../features/medication/domain/models/medication_log_model.dart';
 import '../../features/settings/domain/models/family_member_model.dart';
 import '../../features/guide/domain/models/food_intro_record.dart';
 
@@ -21,9 +20,9 @@ class HiveManager {
   static const String sanskarsBox = 'sanskars';
   static const String momentsBox = 'moments';
   static const String medicationsBox = 'medications';
-  static const String medicationLogsBox = 'medication_logs';
   static const String familyMembersBox = 'family_members';
   static const String foodTrackerBox = 'food_tracker';
+  static const String scheduledNotificationKeysBox = 'scheduled_notification_keys';
 
   static Future<void> init() async {
     await Hive.initFlutter();
@@ -50,9 +49,6 @@ class HiveManager {
     if (!Hive.isAdapterRegistered(30)) {
       Hive.registerAdapter(MedicationModelAdapter());
     }
-    if (!Hive.isAdapterRegistered(31)) {
-      Hive.registerAdapter(MedicationLogModelAdapter());
-    }
     if (!Hive.isAdapterRegistered(40)) {
       Hive.registerAdapter(FamilyMemberModelAdapter());
     }
@@ -75,9 +71,9 @@ class HiveManager {
       Hive.openBox<SanskarModel>(sanskarsBox),
       Hive.openBox<MomentModel>(momentsBox),
       Hive.openBox<MedicationModel>(medicationsBox),
-      Hive.openBox<MedicationLogModel>(medicationLogsBox),
       Hive.openBox<FamilyMemberModel>(familyMembersBox),
       Hive.openBox<FoodIntroRecord>(foodTrackerBox),
+      Hive.openBox<String>(scheduledNotificationKeysBox),
     ]);
   }
 
@@ -86,9 +82,9 @@ class HiveManager {
   static Box<SanskarModel> getSanskarsBox() => Hive.box<SanskarModel>(sanskarsBox);
   static Box<MomentModel> getMomentsBox() => Hive.box<MomentModel>(momentsBox);
   static Box<MedicationModel> getMedicationsBox() => Hive.box<MedicationModel>(medicationsBox);
-  static Box<MedicationLogModel> getMedicationLogsBox() => Hive.box<MedicationLogModel>(medicationLogsBox);
   static Box<FamilyMemberModel> getFamilyMembersBox() => Hive.box<FamilyMemberModel>(familyMembersBox);
   static Box<FoodIntroRecord> getFoodTrackerBox() => Hive.box<FoodIntroRecord>(foodTrackerBox);
+  static Box<String> getScheduledNotificationKeysBox() => Hive.box<String>(scheduledNotificationKeysBox);
   static Box getSyncQueueBox() => Hive.box(syncQueueBox);
   static Box getSettingsBox() => Hive.box(settingsBox);
   static Box getProfileBox() => Hive.box(babyProfileBox);

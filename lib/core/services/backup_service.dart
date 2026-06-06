@@ -222,7 +222,6 @@ class BackupService {
       await restoreList('sanskars', HiveManager.getSanskarsBox(), SanskarModel.fromJson);
       await restoreList('moments', HiveManager.getMomentsBox(), MomentModel.fromJson);
       await restoreList('medications', HiveManager.getMedicationsBox(), MedicationModel.fromJson);
-      await restoreList('medicationLogs', HiveManager.getMedicationLogsBox(), MedicationLogModel.fromJson);
       await restoreList('familyMembers', HiveManager.getFamilyMembersBox(), FamilyMemberModel.fromJson);
       await restoreList('foodTracker', HiveManager.getFoodTrackerBox(), FoodIntroRecord.fromJson);
 
@@ -389,7 +388,6 @@ class BackupService {
       await mergeList('sanskars', HiveManager.getSanskarsBox(), SanskarModel.fromJson);
       await mergeList('moments', HiveManager.getMomentsBox(), MomentModel.fromJson);
       await mergeList('medications', HiveManager.getMedicationsBox(), MedicationModel.fromJson);
-      await mergeList('medicationLogs', HiveManager.getMedicationLogsBox(), MedicationLogModel.fromJson);
       await mergeList('familyMembers', HiveManager.getFamilyMembersBox(), FamilyMemberModel.fromJson);
       await mergeList('foodTracker', HiveManager.getFoodTrackerBox(), FoodIntroRecord.fromJson);
 

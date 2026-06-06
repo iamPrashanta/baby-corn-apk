@@ -12,68 +12,68 @@ class AppLocalizationsBn extends AppLocalizations {
   String get appTitle => 'Baby Corn';
 
   @override
-  String get launchpad => 'লঞ্চপ্যাড';
+  String get launchpad => 'Launchpad';
 
   @override
-  String get records => 'রেকর্ড';
+  String get records => 'Records';
 
   @override
-  String get statistics => 'পরিসংখ্যান';
+  String get statistics => 'Statistics';
 
   @override
-  String get development => 'উন্নয়ন';
+  String get development => 'Development';
 
   @override
-  String get account => 'অ্যাকাউন্ট';
+  String get account => 'Account';
 
   @override
-  String get feeding => 'খাওয়ানো';
+  String get feeding => 'Feeding';
 
   @override
-  String get sleep => 'ঘুম';
+  String get sleep => 'Sleep';
 
   @override
-  String get urination => 'প্রস্রাব';
+  String get urination => 'Urination';
 
   @override
-  String get stool => 'মল';
+  String get stool => 'Stool';
 
   @override
-  String get diaper => 'ডায়াপার';
+  String get diaper => 'Diaper';
 
   @override
-  String get language => 'ভাষা';
+  String get language => 'Language';
 
   @override
-  String get selectLanguage => 'ভাষা নির্বাচন করুন';
+  String get selectLanguage => 'Select Language';
 
   @override
-  String get signOut => 'সাইন আউট করুন';
+  String get signOut => 'Sign Out';
 
   @override
-  String get signInWithGoogle => 'Google এর সাথে সাইন ইন করুন';
+  String get signInWithGoogle => 'Sign In with Google';
 
   @override
-  String get offlineMode => 'অফলাইন মোড';
+  String get offlineMode => 'Offline Mode';
 
   @override
-  String get syncData => 'ডেটা সিঙ্ক করুন';
+  String get syncData => 'Sync Data';
 
   @override
-  String get guides => 'গাইড';
+  String get guides => 'Guides';
 
   @override
-  String get spiritualJourney => 'আধ্যাত্মিক যাত্রা';
+  String get spiritualJourney => 'Spiritual Journey';
 
   @override
-  String get cryLanguage => 'কান্নার ভাষা';
+  String get cryLanguage => 'Cry Language';
 
   @override
-  String get babyRashes => 'শিশুর ফুসকুড়ি';
+  String get babyRashes => 'Baby Rashes';
 
   @override
   String get spiritualJourneyDesc =>
-      'ঐতিহ্যবাহী মাইলফলকের একটি সুন্দর পথ। জীবনের ১৮টি সংস্কার নেভিগেট করুন।';
+      'A beautiful path of traditional milestones. Navigate the 18 Sanskars of life.';
 
   @override
   String get moments => 'Moments';
@@ -91,17 +91,17 @@ class AppLocalizationsBn extends AppLocalizations {
   String get comingSoon => 'Coming Soon';
 
   @override
-  String get completedStatus => 'সম্পন্ন';
+  String get completedStatus => 'Completed';
 
   @override
-  String get pastDueStatus => 'সময় পেরিয়ে গেছে';
+  String get pastDueStatus => 'Past due';
 
   @override
-  String get todayStatus => 'আজ!';
+  String get todayStatus => 'Today!';
 
   @override
   String inDaysStatus(String days) {
-    return '$days দিনের মধ্যে';
+    return 'In $days days';
   }
 
   @override
@@ -178,4 +178,34 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get medicationHistory => 'Medication History';
+
+  @override
+  String get firstLaugh => 'First Laugh';
+
+  @override
+  String get firstSit => 'First Sit';
+
+  @override
+  String get firstStand => 'First Stand';
+
+  @override
+  String get firstTooth => 'First Tooth';
+
+  @override
+  String get firstWord => 'First Word';
+
+  @override
+  String get firstClap => 'First Clap';
+
+  @override
+  String get firstWave => 'First Wave';
+
+  @override
+  String get firstSolidFood => 'First Solid Food';
+
+  @override
+  String get firstHaircut => 'First Haircut';
+
+  @override
+  String get firstBirthday => 'First Birthday';
 }

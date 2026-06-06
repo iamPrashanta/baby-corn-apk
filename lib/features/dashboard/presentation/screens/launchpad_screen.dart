@@ -134,12 +134,16 @@ class LaunchpadScreen extends ConsumerWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        babyName,
-                        style: const TextStyle(
-                          fontSize: 36,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.5,
+                      Flexible(
+                        child: Text(
+                          babyName.length > 15 ? '${babyName.substring(0, 15)}...' : babyName,
+                          style: const TextStyle(
+                            fontSize: 36,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.5,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       if (allBabies.length > 1) ...[
@@ -796,6 +800,12 @@ class LaunchpadScreen extends ConsumerWidget {
 
   Widget _buildTimelineHeader(
       BuildContext context, WidgetRef ref, DateTime? filterDate, bool isDark, bool hasAnimated) {
+    final now = DateTime.now();
+    final isToday = filterDate != null &&
+        filterDate.year == now.year &&
+        filterDate.month == now.month &&
+        filterDate.day == now.day;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -808,40 +818,88 @@ class LaunchpadScreen extends ConsumerWidget {
             letterSpacing: -0.3,
           ),
         ),
-        TextButton.icon(
-          onPressed: () async {
-            if (filterDate != null) {
-              ref.read(timelineFilterDateProvider.notifier).state = null;
-              return;
-            }
-
-            final picked = await showDatePicker(
-              context: context,
-              initialDate: DateTime.now(),
-              firstDate: DateTime(2020),
-              lastDate: DateTime.now(),
-            );
-            if (picked != null) {
-              ref.read(timelineFilterDateProvider.notifier).state = picked;
-            }
-          },
-          icon: Icon(
-              filterDate != null
-                  ? Icons.close_rounded
-                  : Icons.filter_list_rounded,
-              size: 20),
-          label: Text(filterDate != null
-              ? DateFormat('MMM d').format(filterDate)
-              : 'Filter Date'),
-          style: TextButton.styleFrom(
-            foregroundColor: AppColors.primary,
-            backgroundColor:
-                filterDate != null ? AppColors.primary.withOpacity(0.1) : null,
-          ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              onPressed: () {
+                if (filterDate == null) {
+                  ref.read(timelineFilterDateProvider.notifier).state = DateTime.now().subtract(const Duration(days: 3));
+                } else {
+                  ref.read(timelineFilterDateProvider.notifier).state = filterDate.subtract(const Duration(days: 1));
+                }
+              },
+              icon: const Icon(Icons.chevron_left, size: 24),
+              color: AppColors.primary,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+            const SizedBox(width: 8),
+            TextButton.icon(
+              onPressed: () async {
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: filterDate ?? DateTime.now(),
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime.now(),
+                );
+                if (picked != null) {
+                  ref.read(timelineFilterDateProvider.notifier).state = picked;
+                }
+              },
+              icon: const Icon(Icons.calendar_today, size: 16),
+              label: Text(
+                filterDate != null
+                    ? DateFormat('MMM d').format(filterDate)
+                    : 'Last 3 Days',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                backgroundColor: filterDate != null
+                    ? AppColors.primary.withOpacity(0.1)
+                    : null,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              onPressed: filterDate == null || isToday
+                  ? null
+                  : () {
+                      if (filterDate != null) {
+                        final next = filterDate.add(const Duration(days: 1));
+                        if (next.year == now.year && next.month == now.month && next.day == now.day) {
+                           ref.read(timelineFilterDateProvider.notifier).state = null;
+                        } else {
+                           ref.read(timelineFilterDateProvider.notifier).state = next;
+                        }
+                      }
+                    },
+              icon: const Icon(Icons.chevron_right, size: 24),
+              color: filterDate == null || isToday
+                  ? Colors.grey
+                  : AppColors.primary,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+            if (filterDate != null) ...[
+              const SizedBox(width: 4),
+              IconButton(
+                onPressed: () {
+                  ref.read(timelineFilterDateProvider.notifier).state = null;
+                },
+                icon: const Icon(Icons.close_rounded, size: 20),
+                color: Colors.redAccent,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                tooltip: 'Reset to Last 3 Days',
+              ),
+            ],
+          ],
         ),
       ],
-    )
-        .animateIf(!hasAnimated, (a) => a
+    ).animateIf(!hasAnimated, (a) => a
         .fadeIn(duration: 400.ms, delay: 500.ms)
         .slideY(begin: 0.05, end: 0));
   }

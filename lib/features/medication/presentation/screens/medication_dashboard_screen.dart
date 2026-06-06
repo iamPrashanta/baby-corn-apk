@@ -11,6 +11,7 @@ import 'add_medication_screen.dart';
 import '../../domain/models/medication_model.dart';
 import '../../../../core/local_storage/hive_manager.dart';
 import '../../../../core/design/tokens/colors.dart';
+import '../../../../core/services/reminder_service.dart';
 
 class MedicationDashboardScreen extends ConsumerWidget {
   const MedicationDashboardScreen({super.key});
@@ -128,14 +129,18 @@ class MedicationDashboardScreen extends ConsumerWidget {
                         .toList();
 
                     // Check for Missed Doses Today across all logs
-                    final allLogs = HiveManager.getMedicationLogsBox().values;
+                    final allLogs = HiveManager.getRecordsBox().values.where((r) => r.type == 'medication');
                     final today = DateTime.now();
                     final missedCount = allLogs
-                        .where((log) =>
-                            log.status == 'missed' &&
-                            log.scheduledTime.year == today.year &&
-                            log.scheduledTime.month == today.month &&
-                            log.scheduledTime.day == today.day)
+                        .where((log) {
+                            if (log.metadata['status'] != 'missed') return false;
+                            final stStr = log.metadata['scheduledTime'];
+                            if (stStr == null) return false;
+                            final st = DateTime.parse(stStr);
+                            return st.year == today.year &&
+                                   st.month == today.month &&
+                                   st.day == today.day;
+                        })
                         .length;
 
                     return Column(
@@ -192,8 +197,17 @@ class MedicationDashboardScreen extends ConsumerWidget {
                                 onTakeDose: () {
                                   _handleTakeDose(context, ref, med);
                                 },
-                                onDuplicate: () {
-                                  _handleDuplicate(context, med);
+                                onMissDose: () {
+                                  _handleMissDose(context, ref, med);
+                                },
+                                onEdit: () {
+                                  _handleEdit(context, med);
+                                },
+                                onDelete: () {
+                                  _handleDelete(context, ref, med);
+                                },
+                                onViewHistory: () {
+                                  context.push('/medicine/history');
                                 },
                               );
                             },
@@ -353,19 +367,25 @@ class MedicationDashboardScreen extends ConsumerWidget {
         }
 
         // Check if taken/missed by looking at logs
-        final logs = HiveManager.getMedicationLogsBox().values.where((log) =>
-            log.medicationId == med.id &&
-            log.scheduledTime.year == now.year &&
-            log.scheduledTime.month == now.month &&
-            log.scheduledTime.day == now.day &&
-            log.scheduledTime.hour == hour &&
-            log.scheduledTime.minute == minute);
+        final logs = HiveManager.getRecordsBox().values.where((log) {
+            if (log.type != 'medication') return false;
+            if (log.metadata['medicationId'] != med.id) return false;
+            final stStr = log.metadata['scheduledTime'];
+            if (stStr == null) return false;
+            final st = DateTime.parse(stStr);
+            return st.year == now.year &&
+                   st.month == now.month &&
+                   st.day == now.day &&
+                   st.hour == hour &&
+                   st.minute == minute;
+        });
 
         String status = 'Pending';
         if (logs.isNotEmpty) {
-          status = logs.first.status == 'taken'
+          final logStatus = logs.first.metadata['status'];
+          status = logStatus == 'taken'
               ? 'Taken'
-              : logs.first.status == 'skipped'
+              : logStatus == 'skipped'
                   ? 'Skipped'
                   : 'Missed';
         } else if (now.hour > hour ||
@@ -530,16 +550,60 @@ class MedicationDashboardScreen extends ConsumerWidget {
     );
   }
 
-  void _handleDuplicate(BuildContext context, MedicationModel med) {
-    // Navigate to AddMedicationScreen, ideally passing the med data via state/args
-    // Since we don't have a structured duplicate route setup, we will just push it manually
-    // For now we'll push empty Add screen. In a full implementation we'd pass the `med` object.
+  void _handleMissDose(BuildContext context, WidgetRef ref, MedicationModel med) {
+    ref.read(medicationsProvider.notifier).missDose(med);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Dose recorded as missed.'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _handleEdit(BuildContext context, MedicationModel med) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       routeSettings: RouteSettings(arguments: med),
       builder: (context) => const AddMedicationScreen(),
+    );
+  }
+
+  void _handleDelete(BuildContext context, WidgetRef ref, MedicationModel med) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Medication?'),
+        content: const Text('This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => context.pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              await ReminderService.cancelMedication(med);
+              debugPrint('[SCHEDULES REMOVED] Cancelled all reminders for med ${med.id}');
+              
+              ref.read(medicationsProvider.notifier).deleteMedication(med.id);
+              debugPrint('[MEDICATION DELETED] Deleted med ${med.id}');
+              
+              if (context.mounted) {
+                context.pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Medication deleted.'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
   }
 

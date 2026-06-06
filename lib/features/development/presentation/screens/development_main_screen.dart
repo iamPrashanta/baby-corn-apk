@@ -135,9 +135,19 @@ class _MomentsGallery extends ConsumerWidget {
 
     final standardMilestones = [
       {'emoji': '😊', 'title': l10n.firstSmile, 'subtitle': 'A heartwarming moment'},
+      {'emoji': '😄', 'title': l10n.firstLaugh, 'subtitle': 'A joyful sound'},
       {'emoji': '🔄', 'title': l10n.firstRoll, 'subtitle': 'Tummy to back'},
+      {'emoji': '🪑', 'title': l10n.firstSit, 'subtitle': 'Sitting up strong'},
       {'emoji': '🚼', 'title': l10n.firstCrawl, 'subtitle': 'On the move!'},
+      {'emoji': '🧍', 'title': l10n.firstStand, 'subtitle': 'Standing tall'},
       {'emoji': '👣', 'title': l10n.firstSteps, 'subtitle': 'Walking into a new world'},
+      {'emoji': '🦷', 'title': l10n.firstTooth, 'subtitle': 'A little bite'},
+      {'emoji': '🗣️', 'title': l10n.firstWord, 'subtitle': 'First words spoken'},
+      {'emoji': '👏', 'title': l10n.firstClap, 'subtitle': 'Clapping hands'},
+      {'emoji': '👋', 'title': l10n.firstWave, 'subtitle': 'Saying hello'},
+      {'emoji': '🥣', 'title': l10n.firstSolidFood, 'subtitle': 'First bites'},
+      {'emoji': '✂️', 'title': l10n.firstHaircut, 'subtitle': 'A fresh look'},
+      {'emoji': '🎂', 'title': l10n.firstBirthday, 'subtitle': 'Happy Birthday!'},
     ];
 
     return momentsAsync.when(

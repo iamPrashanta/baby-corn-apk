@@ -38,8 +38,16 @@ class ReminderService {
 
   static Future<ReminderSettingsModel> updateSchedules(ReminderSettingsModel settings, {bool is24Hour = false}) async {
     debugPrint('[SCHEDULE] updateSchedules called. master=${settings.isMasterEnabled}');
-    await cancelAll();
-    debugPrint('[CANCEL] All existing alarms cancelled.');
+    
+    // Selectively cancel non-medication alarms
+    await NotificationService.cancelAll();
+    final activeAlarms = await AlarmService.getActiveAlarms();
+    for (final alarm in activeAlarms) {
+      if (alarm.payload?.contains('medication') != true) {
+        await AlarmService.stopAlarm(alarm.id);
+      }
+    }
+    debugPrint('[CANCEL] Existing category alarms cancelled.');
 
     if (!settings.isMasterEnabled) {
       debugPrint('[SCHEDULE] Master is disabled. No alarms scheduled.');
@@ -52,8 +60,70 @@ class ReminderService {
 
     try {
       final box = HiveManager.getMedicationsBox();
+      final keysBox = HiveManager.getScheduledNotificationKeysBox();
+      final nowMs = DateTime.now().millisecondsSinceEpoch;
+
+      // Cleanup old fingerprints
+      final keysToRemove = <String>[];
+      for (final key in keysBox.keys) {
+        final parts = key.toString().split('_');
+        if (parts.length >= 2) {
+          final timeMs = int.tryParse(parts[1]) ?? 0;
+          if (timeMs < nowMs) {
+            keysToRemove.add(key.toString());
+          }
+        }
+      }
+      for (final k in keysToRemove) {
+        await keysBox.delete(k);
+      }
+
+      int expectedCount = 0;
+      final activeMeds = <MedicationModel>[];
+      final expectedFingerprints = <String>{};
+      
       for (final med in box.values) {
         if (med.isActive) {
+          activeMeds.add(med);
+          
+          final now = DateTime.now();
+          for (final timeStr in med.times) {
+            final parts = timeStr.split(' ');
+            if (parts.length != 2) continue;
+            final timeParts = parts[0].split(':');
+            int hour = int.tryParse(timeParts[0]) ?? 8;
+            final minute = int.tryParse(timeParts[1]) ?? 0;
+
+            if (parts[1].toUpperCase() == 'PM' && hour != 12) hour += 12;
+            if (parts[1].toUpperCase() == 'AM' && hour == 12) hour = 0;
+
+            DateTime scheduledDate = DateTime(now.year, now.month, now.day, hour, minute);
+            if (scheduledDate.isBefore(now)) {
+              scheduledDate = scheduledDate.add(const Duration(days: 1));
+            }
+            
+            final fingerprint = '${med.id}_${scheduledDate.millisecondsSinceEpoch}_${med.doseAmount}';
+            expectedFingerprints.add(fingerprint);
+            expectedCount++;
+          }
+        }
+      }
+
+      bool needsRebuild = false;
+      for (final fp in expectedFingerprints) {
+        if (!keysBox.containsKey(fp)) {
+          needsRebuild = true;
+          break;
+        }
+      }
+
+      debugPrint('[MEDICATION RESTORE CHECK] expectedCount=$expectedCount, expectedFingerprints=${expectedFingerprints.length}');
+
+      if (!needsRebuild && expectedCount > 0) {
+        debugPrint('[MEDICATION RESTORE SKIPPED] All medications already scheduled.');
+      } else {
+        debugPrint('[MEDICATION RESTORE REBUILD] Scheduling missing medication alarms.');
+        for (final med in activeMeds) {
           await scheduleMedication(med, is24Hour: is24Hour);
         }
       }
@@ -204,6 +274,14 @@ class ReminderService {
       }
 
       final uniqueId = 10000 + (med.id.hashCode.abs() % 10000) + i;
+      final fingerprint = '${med.id}_${scheduledDate.millisecondsSinceEpoch}_${med.doseAmount}';
+      final keysBox = HiveManager.getScheduledNotificationKeysBox();
+      
+      if (keysBox.containsKey(fingerprint)) {
+        debugPrint('[MEDICATION DUPLICATE BLOCKED] Skipping duplicate scheduling for med ${med.id} at $scheduledDate');
+        continue;
+      }
+
       final payload = 'alarm|medication|${med.id}|$uniqueId|${scheduledDate.millisecondsSinceEpoch}';
 
       // RC-6: Use AlarmService instead of NotificationService so medication
@@ -216,6 +294,8 @@ class ReminderService {
         payload: payload,
       );
 
+      await keysBox.put(fingerprint, fingerprint);
+
       hasScheduled = true;
       if (firstScheduled == null || scheduledDate.isBefore(firstScheduled)) {
         firstScheduled = scheduledDate;
@@ -223,13 +303,7 @@ class ReminderService {
       debugPrint('[REMINDER SCHEDULED] Medication ${med.name} | Time: $scheduledDate | ID: $uniqueId');
     }
 
-    if (hasScheduled && firstScheduled != null) {
-      final timeFmt = is24Hour ? DateFormat('HH:mm').format(firstScheduled) : DateFormat('h:mm a').format(firstScheduled);
-      NotificationService.showConfirmationNotification(
-        title: 'Reminder Scheduled',
-        body: 'Medication reminder scheduled for $timeFmt',
-      );
-    }
+    // Confirmation notification removed to prevent spam
   }
 
   static Future<void> cancelMedication(MedicationModel med) async {

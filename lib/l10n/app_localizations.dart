@@ -441,6 +441,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Medication History'**
   String get medicationHistory;
+
+  /// No description provided for @firstLaugh.
+  ///
+  /// In en, this message translates to:
+  /// **'First Laugh'**
+  String get firstLaugh;
+
+  /// No description provided for @firstSit.
+  ///
+  /// In en, this message translates to:
+  /// **'First Sit'**
+  String get firstSit;
+
+  /// No description provided for @firstStand.
+  ///
+  /// In en, this message translates to:
+  /// **'First Stand'**
+  String get firstStand;
+
+  /// No description provided for @firstTooth.
+  ///
+  /// In en, this message translates to:
+  /// **'First Tooth'**
+  String get firstTooth;
+
+  /// No description provided for @firstWord.
+  ///
+  /// In en, this message translates to:
+  /// **'First Word'**
+  String get firstWord;
+
+  /// No description provided for @firstClap.
+  ///
+  /// In en, this message translates to:
+  /// **'First Clap'**
+  String get firstClap;
+
+  /// No description provided for @firstWave.
+  ///
+  /// In en, this message translates to:
+  /// **'First Wave'**
+  String get firstWave;
+
+  /// No description provided for @firstSolidFood.
+  ///
+  /// In en, this message translates to:
+  /// **'First Solid Food'**
+  String get firstSolidFood;
+
+  /// No description provided for @firstHaircut.
+  ///
+  /// In en, this message translates to:
+  /// **'First Haircut'**
+  String get firstHaircut;
+
+  /// No description provided for @firstBirthday.
+  ///
+  /// In en, this message translates to:
+  /// **'First Birthday'**
+  String get firstBirthday;
 }
 
 class _AppLocalizationsDelegate

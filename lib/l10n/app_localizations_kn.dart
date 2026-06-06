@@ -178,4 +178,34 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get medicationHistory => 'Medication History';
+
+  @override
+  String get firstLaugh => 'First Laugh';
+
+  @override
+  String get firstSit => 'First Sit';
+
+  @override
+  String get firstStand => 'First Stand';
+
+  @override
+  String get firstTooth => 'First Tooth';
+
+  @override
+  String get firstWord => 'First Word';
+
+  @override
+  String get firstClap => 'First Clap';
+
+  @override
+  String get firstWave => 'First Wave';
+
+  @override
+  String get firstSolidFood => 'First Solid Food';
+
+  @override
+  String get firstHaircut => 'First Haircut';
+
+  @override
+  String get firstBirthday => 'First Birthday';
 }

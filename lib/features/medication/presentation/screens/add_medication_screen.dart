@@ -139,6 +139,10 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen> {
     ref.read(medicationsProvider.notifier).addMedication(medication);
     ReminderService.scheduleMedication(medication);
 
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Medicine Saved Successfully')),
+    );
+
     if (mounted) {
       context.pop();
     }

@@ -2,7 +2,6 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/medication_model.dart';
-import '../../domain/models/medication_log_model.dart';
 import '../../../../core/local_storage/hive_manager.dart';
 
 final medicationRepositoryProvider = Provider<MedicationRepository>((ref) {
@@ -29,32 +28,6 @@ class MedicationRepository {
   List<MedicationModel> getAllMedications() {
     final box = HiveManager.getMedicationsBox();
     return box.values.toList();
-  }
-
-  // Medication Logs
-  Future<void> saveMedicationLog(MedicationLogModel log) async {
-    final box = HiveManager.getMedicationLogsBox();
-    await box.put(log.id, log);
-  }
-
-  Future<void> updateMedicationLog(MedicationLogModel log) async {
-    final box = HiveManager.getMedicationLogsBox();
-    await box.put(log.id, log);
-  }
-
-  Future<void> deleteMedicationLog(String id) async {
-    final box = HiveManager.getMedicationLogsBox();
-    await box.delete(id);
-  }
-
-  List<MedicationLogModel> getAllMedicationLogs() {
-    final box = HiveManager.getMedicationLogsBox();
-    return box.values.toList();
-  }
-
-  List<MedicationLogModel> getLogsForMedication(String medicationId) {
-    final box = HiveManager.getMedicationLogsBox();
-    return box.values.where((log) => log.medicationId == medicationId).toList();
   }
 
   // PDF Export Ready (Stubs)

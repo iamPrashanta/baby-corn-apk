@@ -70,23 +70,35 @@ class AppBottomSheet extends StatelessWidget {
       ),
       padding: mergedPadding,
       child: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Drag handle
-            Center(
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onVerticalDragUpdate: (details) {
+                if (details.primaryDelta! > 2) {
+                  Navigator.of(context).pop();
+                }
+              },
               child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? Colors.white.withOpacity(0.15)
-                      : Colors.black.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(2.0),
+                width: double.infinity,
+                padding: const EdgeInsets.only(bottom: 24, top: 8),
+                child: Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.white.withOpacity(0.15)
+                          : Colors.black.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(2.0),
+                    ),
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 24),
             Material(
               type: MaterialType.transparency,
               child: child,

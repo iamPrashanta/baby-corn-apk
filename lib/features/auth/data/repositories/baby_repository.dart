@@ -127,7 +127,6 @@ class BabyRepository {
       await HiveManager.getActiveSessionBox().clear();
       await HiveManager.getMomentsBox().clear();
       await HiveManager.getMedicationsBox().clear();
-      await HiveManager.getMedicationLogsBox().clear();
       await HiveManager.getFoodTrackerBox().clear();
       // Leave sanskars and family members as they might be app-level, but records are gone.
       debugPrint('🗑️ [BabyRepository] All babies deleted. Wiped all associated records.');
