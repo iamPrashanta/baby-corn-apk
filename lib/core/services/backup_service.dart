@@ -11,7 +11,6 @@ import '../../features/records/domain/models/record_model.dart';
 import '../../features/guide/domain/models/sanskar_model.dart';
 import '../../features/development/domain/models/moment_model.dart';
 import '../../features/medication/domain/models/medication_model.dart';
-import '../../features/medication/domain/models/medication_log_model.dart';
 import '../../features/settings/domain/models/family_member_model.dart';
 import '../../features/guide/domain/models/food_intro_record.dart';
 
@@ -100,10 +99,6 @@ class BackupService {
       final medications = medicationsBox.values.map((e) => e.toJson()).toList();
       totalRecords += medications.length;
 
-      final medicationLogsBox = HiveManager.getMedicationLogsBox();
-      final medicationLogs = medicationLogsBox.values.map((e) => e.toJson()).toList();
-      totalRecords += medicationLogs.length;
-
       final familyMembersBox = HiveManager.getFamilyMembersBox();
       final familyMembers = familyMembersBox.values.map((e) => e.toJson()).toList();
       totalRecords += familyMembers.length;
@@ -124,7 +119,6 @@ class BackupService {
         'sanskars': sanskars,
         'moments': moments,
         'medications': medications,
-        'medicationLogs': medicationLogs,
         'familyMembers': familyMembers,
         'foodTracker': foodTracker,
       };
@@ -178,7 +172,6 @@ class BackupService {
       final sanskarsSnapshot = HiveManager.getSanskarsBox().toMap();
       final momentsSnapshot = HiveManager.getMomentsBox().toMap();
       final medicationsSnapshot = HiveManager.getMedicationsBox().toMap();
-      final medicationLogsSnapshot = HiveManager.getMedicationLogsBox().toMap();
       final familyMembersSnapshot = HiveManager.getFamilyMembersBox().toMap();
       final foodTrackerSnapshot = HiveManager.getFoodTrackerBox().toMap();
 
@@ -192,7 +185,6 @@ class BackupService {
         await HiveManager.getSanskarsBox().clear();
         await HiveManager.getMomentsBox().clear();
         await HiveManager.getMedicationsBox().clear();
-        await HiveManager.getMedicationLogsBox().clear();
         await HiveManager.getFamilyMembersBox().clear();
         await HiveManager.getFoodTrackerBox().clear();
 
@@ -251,8 +243,6 @@ class BackupService {
           await HiveManager.getMomentsBox().putAll(momentsSnapshot);
           await HiveManager.getMedicationsBox().clear();
           await HiveManager.getMedicationsBox().putAll(medicationsSnapshot);
-          await HiveManager.getMedicationLogsBox().clear();
-          await HiveManager.getMedicationLogsBox().putAll(medicationLogsSnapshot);
           await HiveManager.getFamilyMembersBox().clear();
           await HiveManager.getFamilyMembersBox().putAll(familyMembersSnapshot);
           await HiveManager.getFoodTrackerBox().clear();
