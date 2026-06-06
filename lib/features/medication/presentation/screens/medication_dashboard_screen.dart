@@ -12,6 +12,8 @@ import '../../domain/models/medication_model.dart';
 import '../../../../core/local_storage/hive_manager.dart';
 import '../../../../core/design/tokens/colors.dart';
 import '../../../../core/services/reminder_service.dart';
+import '../../../../core/services/notification_service.dart';
+import 'package:intl/intl.dart';
 
 class MedicationDashboardScreen extends ConsumerWidget {
   const MedicationDashboardScreen({super.key});
@@ -36,19 +38,23 @@ class MedicationDashboardScreen extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            backgroundColor: Colors.transparent,
-            isScrollControlled: true,
-            builder: (context) => const AddMedicationScreen(),
-          );
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('Add Medicine'),
+      floatingActionButton: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 16.0),
+          child: FloatingActionButton.extended(
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                backgroundColor: Colors.transparent,
+                isScrollControlled: true,
+                builder: (context) => const AddMedicationScreen(),
+              );
+            },
+            icon: const Icon(Icons.add),
+            label: const Text('Add Medicine'),
+          ),
+        ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: LiquidBackground(
         child: SafeScrollableWrapper(
           applySafeArea: false,
@@ -99,21 +105,6 @@ class MedicationDashboardScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        backgroundColor: Colors.transparent,
-                        isScrollControlled: true,
-                        builder: (context) => const AddMedicationScreen(),
-                      );
-                    },
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add Medicine'),
-                  ),
-                ),
                 const SizedBox(height: 24),
 
                 medicationsAsync.when(
@@ -162,7 +153,7 @@ class MedicationDashboardScreen extends ConsumerWidget {
                                   ),
                         ),
                         const SizedBox(height: 16),
-                        _buildTimeline(context, activeMeds),
+                        _buildTimeline(context, ref, activeMeds),
                         const SizedBox(height: 32),
                         Text(
                           'Active Medications',
@@ -193,12 +184,6 @@ class MedicationDashboardScreen extends ConsumerWidget {
                                 medication: med,
                                 onTap: () {
                                   // TODO: Navigate to detail screen
-                                },
-                                onTakeDose: () {
-                                  _handleTakeDose(context, ref, med);
-                                },
-                                onMissDose: () {
-                                  _handleMissDose(context, ref, med);
                                 },
                                 onEdit: () {
                                   _handleEdit(context, med);
@@ -337,12 +322,15 @@ class MedicationDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTimeline(BuildContext context, List<MedicationModel> meds) {
+  Widget _buildTimeline(
+      BuildContext context, WidgetRef ref, List<MedicationModel> meds) {
     // Generate a list of all doses for today
     final List<Map<String, dynamic>> todayDoses = [];
     final now = DateTime.now();
 
     for (final med in meds) {
+      final List<Map<String, dynamic>> pendingForMed = [];
+      
       for (final timeStr in med.times) {
         final parts = timeStr.split(' ');
         if (parts.length != 2) {
@@ -390,17 +378,29 @@ class MedicationDashboardScreen extends ConsumerWidget {
                   : 'Missed';
         } else if (now.hour > hour ||
             (now.hour == hour && now.minute > minute + 30)) {
-          status = 'Missed'; // Safety fallback visually
+          status = 'Missed'; // Visually indicate it's late
         }
 
-        todayDoses.add({
-          'med': med,
-          'timeStr': timeStr,
-          'hour': hour,
-          'minute': minute,
-          'period': period,
-          'status': status,
+        if (status == 'Pending' || status == 'Missed') {
+          pendingForMed.add({
+            'med': med,
+            'timeStr': timeStr,
+            'hour': hour,
+            'minute': minute,
+            'period': period,
+            'status': status,
+          });
+        }
+      }
+
+      // Add only the next pending dose to the timeline
+      if (pendingForMed.isNotEmpty) {
+        pendingForMed.sort((a, b) {
+          int cmp = (a['hour'] as int).compareTo(b['hour'] as int);
+          if (cmp == 0) cmp = (a['minute'] as int).compareTo(b['minute'] as int);
+          return cmp;
         });
+        todayDoses.add(pendingForMed.first);
       }
     }
 
@@ -430,13 +430,13 @@ class MedicationDashboardScreen extends ConsumerWidget {
 
     return Column(
       children: grouped.entries.where((e) => e.value.isNotEmpty).map((entry) {
-        return _buildTimelinePeriod(context, entry.key, entry.value);
+        return _buildTimelinePeriod(context, ref, entry.key, entry.value);
       }).toList(),
     );
   }
 
   Widget _buildTimelinePeriod(
-      BuildContext context, String period, List<Map<String, dynamic>> doses) {
+      BuildContext context, WidgetRef ref, String period, List<Map<String, dynamic>> doses) {
     IconData periodIcon = Icons.nightlight_round;
     Color periodColor = Colors.indigo;
     if (period == 'Morning') {
@@ -504,9 +504,27 @@ class MedicationDashboardScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          med.name,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        Row(
+                          children: [
+                            Text(
+                              med.name,
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            if (status == 'Missed') ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.redAccent.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(4.0),
+                                ),
+                                child: const Text(
+                                  'Late',
+                                  style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                         Text(
                           '${dose['timeStr']} • ${med.doseAmount} ${med.doseUnit}',
@@ -520,26 +538,24 @@ class MedicationDashboardScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4.0),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(statusIcon, color: statusColor, size: 14),
-                        const SizedBox(width: 4),
-                        Text(
-                          status,
-                          style: TextStyle(
-                              color: statusColor,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.check_circle_outline, color: Colors.green),
+                        onPressed: () {
+                           _handleTakeDose(context, ref, med);
+                        },
+                        tooltip: 'Mark Taken',
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.cancel_outlined, color: Colors.red),
+                        onPressed: () {
+                           _handleMissDose(context, ref, med);
+                        },
+                        tooltip: 'Mark Missed',
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -607,16 +623,60 @@ class MedicationDashboardScreen extends ConsumerWidget {
     );
   }
 
-  void _handleTakeDose(
-      BuildContext context, WidgetRef ref, MedicationModel med) {
+  Future<void> _handleTakeDose(
+      BuildContext context, WidgetRef ref, MedicationModel med) async {
     // We delegate the heavy lifting to the provider which logs it and reduces stock
-    ref.read(medicationsProvider.notifier).takeDose(med);
+    await ref.read(medicationsProvider.notifier).takeDose(med);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Dose recorded as taken!'),
-        behavior: SnackBarBehavior.floating,
-      ),
+    if (!context.mounted) return;
+
+    // Calculate next pending dose for notification
+    final now = DateTime.now();
+    DateTime? nextDose;
+    List<DateTime> todayDoses = [];
+    for (final timeStr in med.times) {
+      final parts = timeStr.split(' ');
+      if (parts.length == 2) {
+        final timeParts = parts[0].split(':');
+        int hour = int.tryParse(timeParts[0]) ?? 8;
+        int minute = int.tryParse(timeParts[1]) ?? 0;
+        if (parts[1].toUpperCase() == 'PM' && hour != 12) hour += 12;
+        if (parts[1].toUpperCase() == 'AM' && hour == 12) hour = 0;
+        todayDoses.add(DateTime(now.year, now.month, now.day, hour, minute));
+      }
+    }
+    todayDoses.sort();
+
+    final logs = HiveManager.getRecordsBox().values.where((r) => r.type == 'medication' && r.metadata['medicationId'] == med.id).toList();
+
+    for (final doseTime in todayDoses) {
+      final hasLog = logs.any((l) {
+          final stStr = l.metadata['scheduledTime'];
+          if (stStr == null) return false;
+          final st = DateTime.parse(stStr);
+          return st.year == doseTime.year &&
+                 st.month == doseTime.month &&
+                 st.day == doseTime.day &&
+                 st.hour == doseTime.hour &&
+                 st.minute == doseTime.minute &&
+                 (l.metadata['status'] == 'taken' || l.metadata['status'] == 'missed' || l.metadata['status'] == 'skipped');
+      });
+
+      if (!hasLog) {
+         nextDose = doseTime;
+         break;
+      }
+    }
+
+    String notifBody = 'All doses completed for today!';
+    if (nextDose != null) {
+      final timeFormatted = DateFormat('h:mm a').format(nextDose);
+      notifBody = 'Next dose is scheduled for $timeFormatted';
+    }
+
+    NotificationService.showConfirmationNotification(
+      title: '${med.name} Taken',
+      body: notifBody,
     );
   }
 }

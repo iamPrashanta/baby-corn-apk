@@ -258,7 +258,7 @@ class _MomentsGallery extends ConsumerWidget {
                     );
                   }
                 },
-              ).animate().fadeIn(delay: (index * 100).ms).slideX(begin: 0.1, end: 0);
+              );
             },
           ),
         ),

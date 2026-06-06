@@ -7,8 +7,6 @@ import '../../../../core/local_storage/hive_manager.dart';
 class MedicationCard extends StatelessWidget {
   final MedicationModel medication;
   final VoidCallback onTap;
-  final VoidCallback onTakeDose;
-  final VoidCallback onMissDose;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onViewHistory;
@@ -17,8 +15,6 @@ class MedicationCard extends StatelessWidget {
     super.key,
     required this.medication,
     required this.onTap,
-    required this.onTakeDose,
-    required this.onMissDose,
     required this.onEdit,
     required this.onDelete,
     required this.onViewHistory,
@@ -122,16 +118,6 @@ class MedicationCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    TextButton.icon(
-                      onPressed: onTakeDose,
-                      icon: const Icon(Icons.check_circle_outline, color: Colors.green),
-                      label: const Text('Taken', style: TextStyle(color: Colors.green)),
-                    ),
-                    TextButton.icon(
-                      onPressed: onMissDose,
-                      icon: const Icon(Icons.cancel_outlined, color: Colors.red),
-                      label: const Text('Missed', style: TextStyle(color: Colors.red)),
-                    ),
                     PopupMenuButton<String>(
                       onSelected: (value) {
                         if (value == 'edit') onEdit();
