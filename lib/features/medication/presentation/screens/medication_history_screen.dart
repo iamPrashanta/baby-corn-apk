@@ -8,6 +8,7 @@ import '../../domain/models/medication_model.dart';
 import '../../../records/domain/models/record_model.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
 import '../../../../core/design/tokens/colors.dart';
+import '../../../records/presentation/providers/records_provider.dart';
 
 class MedicationHistoryScreen extends ConsumerStatefulWidget {
   const MedicationHistoryScreen({super.key});
@@ -38,7 +39,9 @@ class _MedicationHistoryScreenState
 
     // 2. Get all logs for those medications
     var logs = logBox.values
-        .where((log) => log.type == 'medication' && babyMedIds.contains(log.metadata['medicationId']))
+        .where((log) =>
+            log.type == 'medication' &&
+            babyMedIds.contains(log.metadata['medicationId']))
         .toList();
 
     // 3. Apply Filter
@@ -46,7 +49,12 @@ class _MedicationHistoryScreenState
     if (_selectedFilter == 'Today') {
       final startOfDay = DateTime(now.year, now.month, now.day);
       final endOfDay = startOfDay.add(const Duration(days: 1));
-      logs = logs.where((l) => l.timestamp.isAfter(startOfDay.subtract(const Duration(milliseconds: 1))) && l.timestamp.isBefore(endOfDay)).toList();
+      logs = logs
+          .where((l) =>
+              l.timestamp.isAfter(
+                  startOfDay.subtract(const Duration(milliseconds: 1))) &&
+              l.timestamp.isBefore(endOfDay))
+          .toList();
     } else if (_selectedFilter == '7 Days') {
       final cutoff = now.subtract(const Duration(days: 7));
       logs = logs.where((l) => l.timestamp.isAfter(cutoff)).toList();
@@ -55,8 +63,11 @@ class _MedicationHistoryScreenState
       logs = logs.where((l) => l.timestamp.isAfter(cutoff)).toList();
     } else if (_selectedFilter == 'Custom' && _customDateRange != null) {
       final start = _customDateRange!.start;
-      final end = _customDateRange!.end.add(const Duration(days: 1)); // Include end day
-      logs = logs.where((l) => l.timestamp.isAfter(start) && l.timestamp.isBefore(end)).toList();
+      final end =
+          _customDateRange!.end.add(const Duration(days: 1)); // Include end day
+      logs = logs
+          .where((l) => l.timestamp.isAfter(start) && l.timestamp.isBefore(end))
+          .toList();
     }
 
     // 4. Sort descending by scheduled time
@@ -69,6 +80,16 @@ class _MedicationHistoryScreenState
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
+      floatingActionButton: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 16.0),
+          child: FloatingActionButton.extended(
+            onPressed: () => _showAddPastLogModal(context, babyMeds),
+            icon: const Icon(Icons.add),
+            label: const Text('Add Past Log'),
+          ),
+        ),
+      ),
       body: LiquidBackground(
         child: SafeScrollableWrapper(
           useIntrinsicHeight: false,
@@ -77,7 +98,10 @@ class _MedicationHistoryScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: MediaQuery.of(context).padding.top + kToolbarHeight + 16),
+                SizedBox(
+                    height: MediaQuery.of(context).padding.top +
+                        kToolbarHeight +
+                        16),
 
                 // Filter Chips
                 SingleChildScrollView(
@@ -89,7 +113,9 @@ class _MedicationHistoryScreenState
                         padding: const EdgeInsets.only(right: 8.0),
                         child: FilterChip(
                           label: Text(
-                            filter == 'Custom' && _customDateRange != null && _selectedFilter == 'Custom'
+                            filter == 'Custom' &&
+                                    _customDateRange != null &&
+                                    _selectedFilter == 'Custom'
                                 ? '${DateFormat('MMM d').format(_customDateRange!.start)} - ${DateFormat('MMM d').format(_customDateRange!.end)}'
                                 : filter,
                           ),
@@ -141,9 +167,30 @@ class _MedicationHistoryScreenState
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       final log = logs[index];
-                      final med =
-                          babyMeds.firstWhere((m) => m.id == log.metadata['medicationId']);
-                      return _HistoryCard(log: log, medication: med);
+                      final med = babyMeds.firstWhere(
+                          (m) => m.id == log.metadata['medicationId']);
+                      return Dismissible(
+                        key: Key(log.id),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 20),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(4.0),
+                          ),
+                          child: const Icon(Icons.delete, color: Colors.white),
+                        ),
+                        onDismissed: (direction) {
+                          ref
+                              .read(recordsProvider.notifier)
+                              .deleteRecord(log.id);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Log deleted')),
+                          );
+                        },
+                        child: _HistoryCard(log: log, medication: med),
+                      );
                     },
                   ),
 
@@ -152,6 +199,200 @@ class _MedicationHistoryScreenState
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _showAddPastLogModal(BuildContext context, List<MedicationModel> meds) {
+    if (meds.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('No medications available. Add one first.')),
+      );
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _AddPastLogSheet(meds: meds),
+    );
+  }
+}
+
+class _AddPastLogSheet extends ConsumerStatefulWidget {
+  final List<MedicationModel> meds;
+  const _AddPastLogSheet({required this.meds});
+  @override
+  ConsumerState<_AddPastLogSheet> createState() => _AddPastLogSheetState();
+}
+
+class _AddPastLogSheetState extends ConsumerState<_AddPastLogSheet> {
+  late MedicationModel _selectedMed;
+  DateTime _selectedDate = DateTime.now();
+  TimeOfDay _selectedTime = TimeOfDay.now();
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedMed = widget.meds.first;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        top: 24,
+        left: 24,
+        right: 24,
+      ),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+          const Text('Log Past Dose',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center),
+          const SizedBox(height: 24),
+          const Text('Medication:', style: TextStyle(color: Colors.grey)),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<MedicationModel>(
+            value: _selectedMed,
+            decoration: InputDecoration(
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+            items: widget.meds
+                .map((m) => DropdownMenuItem(value: m, child: Text(m.name)))
+                .toList(),
+            onChanged: (val) {
+              if (val != null) setState(() => _selectedMed = val);
+            },
+          ),
+          const SizedBox(height: 16),
+          const Text('Date & Time:', style: TextStyle(color: Colors.grey)),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: () async {
+                    final date = await showDatePicker(
+                      context: context,
+                      initialDate: _selectedDate,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now(),
+                    );
+                    if (date != null) setState(() => _selectedDate = date);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 16, horizontal: 16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(DateFormat('MMM d, yyyy').format(_selectedDate)),
+                        const Icon(Icons.calendar_today, size: 20),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: InkWell(
+                  onTap: () async {
+                    final time = await showTimePicker(
+                      context: context,
+                      initialTime: _selectedTime,
+                    );
+                    if (time != null) setState(() => _selectedTime = time);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 16, horizontal: 16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(_selectedTime.format(context)),
+                        const Icon(Icons.access_time, size: 20),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 32),
+          FilledButton(
+            onPressed: () {
+              final actualTime = DateTime(
+                  _selectedDate.year,
+                  _selectedDate.month,
+                  _selectedDate.day,
+                  _selectedTime.hour,
+                  _selectedTime.minute);
+
+              final activeBaby = ref.read(activeBabyProvider);
+
+              final log = RecordModel(
+                id: DateTime.now().millisecondsSinceEpoch.toString(),
+                type: 'medication',
+                timestamp: actualTime,
+                metadata: {
+                  'babyId': activeBaby?.id,
+                  'medicationId': _selectedMed.id,
+                  'medicationName': _selectedMed.name,
+                  'scheduledTime': actualTime.toIso8601String(),
+                  'takenTime': actualTime.toIso8601String(),
+                  'status': 'taken',
+                  'takenBy': 'Caregiver (Manual)',
+                  'note': 'Manually added past log',
+                },
+              );
+
+              ref.read(recordsProvider.notifier).addRecord(log);
+
+              // Decrease stock
+              final medBox = HiveManager.getMedicationsBox();
+              final med = medBox.get(_selectedMed.id);
+              if (med != null) {
+                double newStock = med.remainingQuantity - med.doseAmount;
+                if (newStock < 0) newStock = 0;
+                medBox.put(med.id, med.copyWith(remainingQuantity: newStock));
+              }
+
+              Navigator.pop(context);
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Past log added successfully')),
+              );
+
+              // Force rebuild in parent by triggering a state change if needed,
+              // but recordsProvider watch should rebuild it automatically.
+            },
+            child: const Text('Save Past Log'),
+          ),
+        ],
+      ),
       ),
     );
   }
@@ -221,7 +462,8 @@ class _HistoryCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 4),
-                if (log.metadata['scheduledTime'] != null && log.metadata['takenTime'] != null) ...[
+                if (log.metadata['scheduledTime'] != null &&
+                    log.metadata['takenTime'] != null) ...[
                   Text(
                     'Scheduled: ${DateFormat('hh:mm a').format(DateTime.parse(log.metadata['scheduledTime']))}',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(

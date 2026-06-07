@@ -21,7 +21,7 @@ class RecordModelAdapter extends TypeAdapter<RecordModel> {
       type: fields[1] as String,
       timestamp: fields[2] as DateTime,
       metadata: (fields[3] as Map).cast<String, dynamic>(),
-      isSynced: fields[4] as bool,
+      isSynced: fields[4] == null ? false : fields[4] as bool,
     );
   }
 

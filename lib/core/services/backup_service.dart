@@ -82,6 +82,11 @@ class BackupService {
       final recordsBox = HiveManager.getRecordsBox();
       final records = recordsBox.values.map((e) => e.toJson()).toList();
       totalRecords += records.length;
+      
+      final vaccineCount = recordsBox.values.where((e) => e.type == 'vaccine').length;
+      if (vaccineCount > 0) {
+        debugPrint('[VACCINATION BACKUP] Including $vaccineCount vaccines in backup payload');
+      }
 
       final sanskarsBox = HiveManager.getSanskarsBox();
       final sanskars = sanskarsBox.values.map((e) => e.toJson()).toList();
@@ -99,6 +104,9 @@ class BackupService {
       final medicationsBox = HiveManager.getMedicationsBox();
       final medications = medicationsBox.values.map((e) => e.toJson()).toList();
       totalRecords += medications.length;
+      if (medications.isNotEmpty) {
+        debugPrint('[MEDICATION BACKUP] Including ${medications.length} medications in backup payload');
+      }
 
       final familyMembersBox = HiveManager.getFamilyMembersBox();
       final familyMembers = familyMembersBox.values.map((e) => e.toJson()).toList();
@@ -234,6 +242,12 @@ class BackupService {
            debugPrint('[VACCINE PRESERVED] Kept local completed vaccine: $vaccineName');
          }
       }
+      final totalVaccines = recordsBox.values.where((r) => r.type == 'vaccine').length;
+      debugPrint('[VACCINATION RESTORE] Total vaccines after restore/merge: $totalVaccines');
+
+      final medicationsBox = HiveManager.getMedicationsBox();
+      final totalMedications = medicationsBox.values.length;
+      debugPrint('[MEDICATION RESTORE] Total medications after restore/merge: $totalMedications');
 
       debugPrint('[RESTORE REBUILDING REMINDERS] Reminders recreating...');
       

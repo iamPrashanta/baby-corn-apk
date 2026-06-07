@@ -284,6 +284,7 @@ class TimelineTile extends ConsumerWidget {
         final subtitleParts = [if (spec.isNotEmpty) spec, if (location.isNotEmpty) location];
         return ('🩺', 'Doctor Appointment', docName.isNotEmpty ? [docName, ...subtitleParts].join(' • ') : subtitleParts.join(' • '), AppColors.primary);
       case 'medication':
+      case 'medicine':
         final mName = r.metadata['medicationName'] ?? r.metadata['name'] ?? 'Medication';
         final status = r.metadata['status'] ?? 'taken';
         

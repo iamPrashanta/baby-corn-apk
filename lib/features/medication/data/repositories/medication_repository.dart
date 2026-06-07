@@ -3,6 +3,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/medication_model.dart';
 import '../../../../core/local_storage/hive_manager.dart';
+import 'package:flutter/foundation.dart';
 
 final medicationRepositoryProvider = Provider<MedicationRepository>((ref) {
   return MedicationRepository();
@@ -13,11 +14,13 @@ class MedicationRepository {
   Future<void> saveMedication(MedicationModel medication) async {
     final box = HiveManager.getMedicationsBox();
     await box.put(medication.id, medication);
+    debugPrint('[MEDICATION SAVE] Saved locally: ${medication.name}');
   }
 
   Future<void> updateMedication(MedicationModel medication) async {
     final box = HiveManager.getMedicationsBox();
     await box.put(medication.id, medication);
+    debugPrint('[MEDICATION SAVE] Updated locally: ${medication.name}');
   }
 
   Future<void> deleteMedication(String id) async {
@@ -27,7 +30,12 @@ class MedicationRepository {
 
   List<MedicationModel> getAllMedications() {
     final box = HiveManager.getMedicationsBox();
-    return box.values.toList();
+    final meds = box.values.toList();
+    if (meds.isNotEmpty) {
+      debugPrint(
+          '[MEDICATION LOAD] Loaded ${meds.length} medications from local storage');
+    }
+    return meds;
   }
 
   // PDF Export Ready (Stubs)

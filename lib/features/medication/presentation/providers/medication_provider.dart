@@ -105,7 +105,7 @@ class MedicationsNotifier extends StateNotifier<AsyncValue<List<MedicationModel>
     }
   }
 
-  Future<void> takeDose(MedicationModel medication, {String takenBy = 'Caregiver', DateTime? actualTime}) async {
+  Future<String?> takeDose(MedicationModel medication, {String takenBy = 'Caregiver', DateTime? actualTime}) async {
     try {
       final now = DateTime.now();
 
@@ -134,9 +134,10 @@ class MedicationsNotifier extends StateNotifier<AsyncValue<List<MedicationModel>
       }
 
       final doseTime = actualTime ?? now;
+      final logId = now.millisecondsSinceEpoch.toString();
 
       final log = RecordModel(
-        id: now.millisecondsSinceEpoch.toString(),
+        id: logId,
         type: 'medication',
         timestamp: doseTime,
         metadata: {
@@ -160,6 +161,25 @@ class MedicationsNotifier extends StateNotifier<AsyncValue<List<MedicationModel>
                 : 0,
       );
       await _repository.updateMedication(updatedMed);
+
+      loadMedications();
+      return logId;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return null;
+    }
+  }
+
+  Future<void> undoDose(MedicationModel medication, String logId) async {
+    try {
+      // 1. Delete the log
+      await _recordRepository.deleteRecord(logId);
+
+      // 2. Restore stock
+      final restoredMed = medication.copyWith(
+        remainingQuantity: medication.remainingQuantity + medication.doseAmount,
+      );
+      await _repository.updateMedication(restoredMed);
 
       loadMedications();
     } catch (e, st) {

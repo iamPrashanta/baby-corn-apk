@@ -22,191 +22,174 @@ class MedicationDashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final medicationsAsync = ref.watch(medicationsProvider);
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: const Text('Medications'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.history),
-            onPressed: () {
-              context.push('/medicine/history');
-            },
-            tooltip: 'Medication History',
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          title: const Text('Medications'),
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.85),
+          elevation: 0,
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'Pending'),
+              Tab(text: 'Active'),
+            ],
           ),
-        ],
-      ),
-      floatingActionButton: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 16.0),
-          child: FloatingActionButton.extended(
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                backgroundColor: Colors.transparent,
-                isScrollControlled: true,
-                builder: (context) => const AddMedicationScreen(),
-              );
-            },
-            icon: const Icon(Icons.add),
-            label: const Text('Add Medicine'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.history),
+              onPressed: () {
+                context.push('/medicine/history');
+              },
+              tooltip: 'Medication History',
+            ),
+          ],
+        ),
+        floatingActionButton: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: FloatingActionButton.extended(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  backgroundColor: Colors.transparent,
+                  isScrollControlled: true,
+                  builder: (context) => const AddMedicationScreen(),
+                );
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Add Medicine'),
+            ),
           ),
         ),
-      ),
-      body: LiquidBackground(
-        child: SafeScrollableWrapper(
-          applySafeArea: false,
-          useIntrinsicHeight: false,
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: 20.0,
-              right: 20.0,
-              // top SafeArea handled manually below via SizedBox
-              // bottom: system nav bar + FAB clearance handled at end of list
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: MediaQuery.of(context).padding.top + 72),
+        body: LiquidBackground(
+          child: medicationsAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, stack) => Center(child: Text('Error: $err')),
+            data: (medications) {
+              final activeMeds = medications.where((m) => m.isActive).toList();
+              final lowStockMeds = activeMeds
+                  .where((m) => m.remainingQuantity <= m.lowStockThreshold)
+                  .toList();
 
-                // Summary Section
-                Row(
-                  children: [
-                    Expanded(
-                      child: _SummaryCard(
-                        title: 'Active',
-                        value: medicationsAsync.maybeWhen(
-                          data: (meds) =>
-                              meds.where((m) => m.isActive).length.toString(),
-                          orElse: () => '-',
-                        ),
-                        icon: Icons.medication,
-                        color: Colors.blueAccent,
+              // Check for Missed Doses Today across all logs
+              final allLogs = HiveManager.getRecordsBox().values.where((r) => r.type == 'medication');
+              final today = DateTime.now();
+              final missedCount = allLogs.where((log) {
+                if (log.metadata['status'] != 'missed') return false;
+                final stStr = log.metadata['scheduledTime'];
+                if (stStr == null) return false;
+                final st = DateTime.parse(stStr);
+                return st.year == today.year &&
+                    st.month == today.month &&
+                    st.day == today.day;
+              }).length;
+
+              final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight + 48 + 24;
+              final bottomPadding = MediaQuery.of(context).padding.bottom + 100;
+
+              return TabBarView(
+                children: [
+                  // TAB 1: Pending Doses
+                  SafeScrollableWrapper(
+                    applySafeArea: false,
+                    useIntrinsicHeight: false,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: topPadding),
+                          if (missedCount > 0) ...[
+                            _buildMissedDosesBanner(context, missedCount),
+                            const SizedBox(height: 24),
+                          ],
+                          _buildTimeline(context, ref, activeMeds),
+                          SizedBox(height: bottomPadding),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _SummaryCard(
-                        title: 'Low Stock',
-                        value: medicationsAsync.maybeWhen(
-                          data: (meds) => meds
-                              .where((m) =>
-                                  m.isActive &&
-                                  m.remainingQuantity <= m.lowStockThreshold)
-                              .length
-                              .toString(),
-                          orElse: () => '-',
-                        ),
-                        icon: Icons.warning_amber_rounded,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
+                  ),
 
-                medicationsAsync.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (err, stack) => Center(child: Text('Error: $err')),
-                  data: (medications) {
-                    final activeMeds =
-                        medications.where((m) => m.isActive).toList();
-                    final lowStockMeds = activeMeds
-                        .where(
-                            (m) => m.remainingQuantity <= m.lowStockThreshold)
-                        .toList();
-
-                    // Check for Missed Doses Today across all logs
-                    final allLogs = HiveManager.getRecordsBox().values.where((r) => r.type == 'medication');
-                    final today = DateTime.now();
-                    final missedCount = allLogs
-                        .where((log) {
-                            if (log.metadata['status'] != 'missed') return false;
-                            final stStr = log.metadata['scheduledTime'];
-                            if (stStr == null) return false;
-                            final st = DateTime.parse(stStr);
-                            return st.year == today.year &&
-                                   st.month == today.month &&
-                                   st.day == today.day;
-                        })
-                        .length;
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (missedCount > 0) ...[
-                          _buildMissedDosesBanner(context, missedCount),
-                          const SizedBox(height: 24),
-                        ],
-                        if (lowStockMeds.isNotEmpty) ...[
-                          _buildLowStockSection(context, lowStockMeds),
-                          const SizedBox(height: 24),
-                        ],
-                        Text(
-                          "Pending Doses",
-                          style:
-                              Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                        ),
-                        const SizedBox(height: 16),
-                        _buildTimeline(context, ref, activeMeds),
-                        const SizedBox(height: 32),
-                        Text(
-                          'Active Medications',
-                          style:
-                              Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                        ),
-                        const SizedBox(height: 16),
-                        if (activeMeds.isEmpty)
-                          const Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(32.0),
-                              child: Text('No active medications.'),
-                            ),
-                          )
-                        else
-                          ListView.separated(
-                            padding: EdgeInsets.zero,
-                            physics: const NeverScrollableScrollPhysics(),
-                            shrinkWrap: true,
-                            itemCount: activeMeds.length,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(height: 16),
-                            itemBuilder: (context, index) {
-                              final med = activeMeds[index];
-                              return MedicationCard(
-                                medication: med,
-                                onTap: () {
-                                  // TODO: Navigate to detail screen
-                                },
-                                onEdit: () {
-                                  _handleEdit(context, med);
-                                },
-                                onDelete: () {
-                                  _handleDelete(context, ref, med);
-                                },
-                                onViewHistory: () {
-                                  context.push('/medicine/history');
-                                },
-                              );
-                            },
+                  // TAB 2: Active Medications & Summary
+                  SafeScrollableWrapper(
+                    applySafeArea: false,
+                    useIntrinsicHeight: false,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: topPadding),
+                          // Summary Section
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _SummaryCard(
+                                  title: 'Active',
+                                  value: activeMeds.length.toString(),
+                                  icon: Icons.medication,
+                                  color: Colors.blueAccent,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _SummaryCard(
+                                  title: 'Low Stock',
+                                  value: lowStockMeds.length.toString(),
+                                  icon: Icons.warning_amber_rounded,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
                           ),
-                      ],
-                    );
-                  },
-                ),
-
-                SizedBox(
-                  height: MediaQuery.of(context).padding.bottom + 260,
-                ),
-              ],
-            ),
+                          const SizedBox(height: 24),
+                          if (lowStockMeds.isNotEmpty) ...[
+                            _buildLowStockSection(context, lowStockMeds),
+                            const SizedBox(height: 24),
+                          ],
+                          if (activeMeds.isEmpty)
+                            const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(32.0),
+                                child: Text('No active medications.'),
+                              ),
+                            )
+                          else
+                            ListView.separated(
+                              padding: EdgeInsets.zero,
+                              physics: const NeverScrollableScrollPhysics(),
+                              shrinkWrap: true,
+                              itemCount: activeMeds.length,
+                              separatorBuilder: (_, __) => const SizedBox(height: 16),
+                              itemBuilder: (context, index) {
+                                final med = activeMeds[index];
+                                return MedicationCard(
+                                  medication: med,
+                                  onTap: () {
+                                    // Navigate to detail screen
+                                  },
+                                  onEdit: () {
+                                    _handleEdit(context, med);
+                                  },
+                                  onDelete: () {
+                                    _handleDelete(context, ref, med);
+                                  },
+                                  onViewHistory: () {
+                                    context.push('/medicine/history');
+                                  },
+                                );
+                              },
+                            ),
+                          SizedBox(height: bottomPadding),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -549,6 +532,13 @@ class MedicationDashboardScreen extends ConsumerWidget {
                         tooltip: 'Mark Taken',
                       ),
                       IconButton(
+                        icon: const Icon(Icons.snooze, color: Colors.orange),
+                        onPressed: () {
+                           _handleSnooze(context, med, dose);
+                        },
+                        tooltip: 'Snooze 10 min',
+                      ),
+                      IconButton(
                         icon: const Icon(Icons.cancel_outlined, color: Colors.red),
                         onPressed: () {
                            _handleMissDose(context, ref, med);
@@ -562,6 +552,23 @@ class MedicationDashboardScreen extends ConsumerWidget {
             );
           }),
         ],
+      ),
+    );
+  }
+
+  void _handleSnooze(BuildContext context, MedicationModel med, Map<String, dynamic> dose) {
+    final notificationId = Object.hash(med.id, 'snooze', DateTime.now().millisecondsSinceEpoch) & 0x7FFFFFFF;
+    ReminderService.scheduleReminder(
+      id: notificationId,
+      title: 'Snoozed: ${med.name}',
+      body: 'Time to take your snoozed medication.',
+      delay: const Duration(minutes: 10),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${med.name} snoozed for 10 minutes.'),
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -638,7 +645,7 @@ class MedicationDashboardScreen extends ConsumerWidget {
             final isDark = Theme.of(ctx).brightness == Brightness.dark;
             return Container(
               padding: EdgeInsets.only(
-                bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
                 top: 24,
                 left: 24,
                 right: 24,
@@ -647,10 +654,11 @@ class MedicationDashboardScreen extends ConsumerWidget {
                 color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
+              child: SafeArea(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
                   const Text(
                     'Dose Taken',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -706,6 +714,7 @@ class MedicationDashboardScreen extends ConsumerWidget {
                   ),
                 ],
               ),
+              ),
             );
           }
         );
@@ -718,9 +727,25 @@ class MedicationDashboardScreen extends ConsumerWidget {
     final actualDateTime = DateTime(now.year, now.month, now.day, selectedTime.hour, selectedTime.minute);
 
     // We delegate the heavy lifting to the provider which logs it and reduces stock
-    await ref.read(medicationsProvider.notifier).takeDose(med, actualTime: actualDateTime);
+    final logId = await ref.read(medicationsProvider.notifier).takeDose(med, actualTime: actualDateTime);
 
     if (!context.mounted) return;
+
+    if (logId != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Dose recorded as taken.'),
+          duration: const Duration(seconds: 10),
+          action: SnackBarAction(
+            label: 'UNDO',
+            onPressed: () {
+              ref.read(medicationsProvider.notifier).undoDose(med, logId);
+            },
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
 
     // Calculate next pending dose for notification
     DateTime? nextDose;

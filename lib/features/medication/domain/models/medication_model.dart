@@ -49,7 +49,7 @@ class MedicationModel extends HiveObject {
   @HiveField(14)
   final String notes;
 
-  @HiveField(15)
+  @HiveField(15, defaultValue: true)
   final bool isActive;
   
   @HiveField(16)
@@ -58,7 +58,7 @@ class MedicationModel extends HiveObject {
   @HiveField(17)
   final String? reason;
 
-  @HiveField(18)
+  @HiveField(18, defaultValue: 5)
   final int notifyBeforeMinutes;
 
   MedicationModel({

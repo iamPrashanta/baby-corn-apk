@@ -32,10 +32,10 @@ class MedicationModelAdapter extends TypeAdapter<MedicationModel> {
       startDate: fields[12] as DateTime,
       endDate: fields[13] as DateTime?,
       notes: fields[14] as String,
-      isActive: fields[15] as bool,
+      isActive: fields[15] == null ? true : fields[15] as bool,
       doctorName: fields[16] as String?,
       reason: fields[17] as String?,
-      notifyBeforeMinutes: fields[18] as int,
+      notifyBeforeMinutes: fields[18] == null ? 5 : fields[18] as int,
     );
   }
 

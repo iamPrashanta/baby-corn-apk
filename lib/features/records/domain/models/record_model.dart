@@ -18,7 +18,7 @@ class RecordModel extends HiveObject {
   @HiveField(3)
   final Map<String, dynamic> metadata; // Dynamic data for specific types (e.g., feedingType: 'left')
   
-  @HiveField(4)
+  @HiveField(4, defaultValue: false)
   final bool isSynced; // Flag for background sync engine
   
   RecordModel({

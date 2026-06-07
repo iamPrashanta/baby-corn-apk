@@ -275,42 +275,52 @@ class ReminderService {
       // If the notification time has already passed (but dose time hasn't), we missed the notification window.
       // Do not trigger immediately, schedule for tomorrow.
       if (notifyTime.isBefore(now)) {
+        debugPrint('[MEDICATION NOTIFICATION SKIPPED] reason=trigger_time_in_past');
         notifyTime = notifyTime.add(const Duration(days: 1));
       }
 
-      final uniqueId = 10000 + (med.id.hashCode.abs() % 10000) + i;
-      final fingerprint = '${med.id}_${notifyTime.millisecondsSinceEpoch}_${med.doseAmount}';
-      final keysBox = HiveManager.getScheduledNotificationKeysBox();
+      final notificationId = Object.hash(med.id, scheduledDate.year, scheduledDate.month, scheduledDate.day, scheduledDate.hour, scheduledDate.minute) & 0x7FFFFFFF;
       
-      if (keysBox.containsKey(fingerprint)) {
-        debugPrint('[MEDICATION DUPLICATE BLOCKED] Skipping duplicate scheduling for med ${med.id} at $notifyTime');
-        continue;
-      }
+      await NotificationService.cancel(notificationId);
+      debugPrint('[MEDICATION NOTIFICATION CANCELLED] ID: $notificationId for ${med.id}');
 
-      final payload = 'notification|medication|${med.id}|$uniqueId|${notifyTime.millisecondsSinceEpoch}';
+      final payload = 'notification|medication|${med.id}|$notificationId|${notifyTime.millisecondsSinceEpoch}';
 
       final bodyText = med.notifyBeforeMinutes > 0 
           ? '${med.name} is due in ${med.notifyBeforeMinutes} minutes.' 
           : '${med.name} is due now.';
 
       await NotificationService.scheduleNotification(
-        id: uniqueId,
+        id: notificationId,
         dateTime: notifyTime,
         title: 'Medicine Reminder',
         body: bodyText,
         payload: payload,
       );
 
-      await keysBox.put(fingerprint, fingerprint);
-
-      debugPrint('[REMINDER SCHEDULED] Medication ${med.name} | Time: $notifyTime | ID: $uniqueId');
+      debugPrint('[MEDICATION NOTIFICATION RESCHEDULED] Medication ${med.name} | Time: $notifyTime | ID: $notificationId');
     }
   }
 
   static Future<void> cancelMedication(MedicationModel med) async {
-    for (int i = 0; i < med.times.length; i++) {
-      final uniqueId = 10000 + (med.id.hashCode.abs() % 10000) + i;
-      await cancelReminder(uniqueId);
+    final now = DateTime.now();
+    for (int dayOffset = 0; dayOffset <= 1; dayOffset++) {
+      final date = now.add(Duration(days: dayOffset));
+      for (int i = 0; i < med.times.length; i++) {
+        final timeStr = med.times[i];
+        final parts = timeStr.split(' ');
+        if (parts.length != 2) continue;
+        final timeParts = parts[0].split(':');
+        if (timeParts.length != 2) continue;
+
+        int hour = int.tryParse(timeParts[0]) ?? 8;
+        final minute = int.tryParse(timeParts[1]) ?? 0;
+        if (parts[1].toUpperCase() == 'PM' && hour != 12) hour += 12;
+        if (parts[1].toUpperCase() == 'AM' && hour == 12) hour = 0;
+
+        final notificationId = Object.hash(med.id, date.year, date.month, date.day, hour, minute) & 0x7FFFFFFF;
+        await cancelReminder(notificationId);
+      }
     }
   }
 }
