@@ -80,7 +80,12 @@ class BackupService {
       settingsData.remove('is_premium');
 
       final recordsBox = HiveManager.getRecordsBox();
-      final records = recordsBox.values.map((e) => e.toJson()).toList();
+      final records = recordsBox.values.map((e) {
+        if (e.metadata['babyId'] == null) {
+          throw Exception('Backup Failed: Record (id: ${e.id}, type: ${e.type}) is missing babyId in metadata.');
+        }
+        return e.toJson();
+      }).toList();
       totalRecords += records.length;
       
       final vaccineCount = recordsBox.values.where((e) => e.type == 'vaccine').length;
@@ -128,19 +133,19 @@ class BackupService {
       // 3. Compile Single Payload (Flattened v2)
       final Map<String, dynamic> backupPayload = {
         'v': 2,
-        'ts': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        't': DateTime.now().millisecondsSinceEpoch ~/ 1000,
         'app': '1.0.0',
-        'babies': _compressJson(babiesList),
-        'settings': _compressJson(settingsData),
-        'records': _compressJson(records),
-        'meds': _compressJson(medications),
-        'moments': _compressJson(moments),
-        'sanskars': _compressJson(sanskars),
-        'family': _compressJson(familyMembers),
-        'foodTracker': _compressJson(foodTracker),
+        'b': _compressJson(babiesList),
+        's': _compressJson(settingsData),
+        'r': _compressJson(records),
+        'm': _compressJson(medications),
+        'mo': _compressJson(moments),
+        'sk': _compressJson(sanskars),
+        'f': _compressJson(familyMembers),
+        'ft': _compressJson(foodTracker),
         'meta': {
-          'recordCount': totalRecords,
-          'device': Platform.operatingSystem,
+          'c': totalRecords,
+          'dev': Platform.operatingSystem,
         }
       };
 
@@ -216,8 +221,8 @@ class BackupService {
         debugPrint('[RESTORE] Rebuilding Hive from single payload...');
 
       // 3. Restore Key-Value Stores
-      if (version >= 2 && data.containsKey('babies')) {
-        final babiesList = _decompressJson(data['babies']) as List<dynamic>? ?? [];
+      if (version >= 2 && data.containsKey('b')) {
+        final babiesList = _decompressJson(data['b']) as List<dynamic>? ?? [];
         await HiveManager.getProfileBox().put('babies_list', jsonEncode(babiesList));
       } else {
         final profileDataRaw = data['profile'] as Map<String, dynamic>? ?? {};
@@ -227,48 +232,51 @@ class BackupService {
         }
       }
 
-      final settingsDataRaw = data['settings'] as Map<String, dynamic>? ?? {};
+      final settingsDataRaw = data.containsKey('s') ? data['s'] : (data['settings'] as Map<String, dynamic>? ?? {});
       final settingsData = _decompressJson(settingsDataRaw) as Map<String, dynamic>;
       settingsData.remove('is_premium');
       for (final entry in settingsData.entries) {
         await HiveManager.getSettingsBox().put(entry.key, entry.value);
       }
 
-      // 4. Restore List Stores
-      Future<void> restoreList<T>(String key, String v2Key, dynamic box, T Function(Map<String, dynamic>) fromJson) async {
+      Future<void> restoreList<T>(String key, String v2Key, dynamic box, T Function(Map<String, dynamic>) fromJson, String modelName) async {
         final rawList = data.containsKey(v2Key) ? data[v2Key] : data[key];
         final list = (rawList != null) ? _decompressJson(rawList) as List<dynamic> : [];
         for (final item in list) {
           final map = Map<String, dynamic>.from(item as Map);
-          await box.put(map['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(), fromJson(map));
+          try {
+             // debugPrint('[RESTORE MODEL PARSE] model=$modelName payload=$map');
+             final model = fromJson(map);
+             await box.put(map['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(), model);
+          } catch (e) {
+             debugPrint('[RESTORE MODEL FAILED] model=$modelName exception=$e payload=$map');
+             // Re-throw or skip. The user wants to find the exact field returning null.
+             // We won't re-throw to allow partial restore, but we will print clearly.
+          }
         }
       }
 
-      await restoreList('records', 'records', HiveManager.getRecordsBox(), RecordModel.fromJson);
-      await restoreList('sanskars', 'sanskars', HiveManager.getSanskarsBox(), SanskarModel.fromJson);
-      await restoreList('moments', 'moments', HiveManager.getMomentsBox(), MomentModel.fromJson);
-      await restoreList('medications', 'meds', HiveManager.getMedicationsBox(), MedicationModel.fromJson);
-      await restoreList('familyMembers', 'family', HiveManager.getFamilyMembersBox(), FamilyMemberModel.fromJson);
-      await restoreList('foodTracker', 'foodTracker', HiveManager.getFoodTrackerBox(), FoodIntroRecord.fromJson);
+      await restoreList('records', 'r', HiveManager.getRecordsBox(), RecordModel.fromJson, 'RecordModel');
+      await restoreList('sanskars', 'sk', HiveManager.getSanskarsBox(), SanskarModel.fromJson, 'SanskarModel');
+      await restoreList('moments', 'mo', HiveManager.getMomentsBox(), MomentModel.fromJson, 'MomentModel');
+      await restoreList('medications', 'm', HiveManager.getMedicationsBox(), MedicationModel.fromJson, 'MedicationModel');
+      await restoreList('familyMembers', 'f', HiveManager.getFamilyMembersBox(), FamilyMemberModel.fromJson, 'FamilyMemberModel');
+      await restoreList('foodTracker', 'ft', HiveManager.getFoodTrackerBox(), FoodIntroRecord.fromJson, 'FoodIntroRecord');
       
       // Re-insert preserved vaccines if they are not already present
       final recordsBox = HiveManager.getRecordsBox();
       for (final v in localVaccines) {
          final vaccineName = v.metadata['vaccineName'];
          final babyId = v.metadata['babyId'];
-         final isCustom = v.metadata['isCustom'] == true;
          final dueDate = v.metadata['dueDate'];
          
          final existsInCloud = recordsBox.values.any((r) {
            if (r.type != 'vaccine') return false;
            final sameName = r.metadata['vaccineName'] == vaccineName;
            final sameBaby = r.metadata['babyId'] == babyId;
+           final sameDate = r.metadata['dueDate'] == dueDate;
            
-           if (isCustom) {
-             final sameDate = r.metadata['dueDate'] == dueDate;
-             return sameName && sameBaby && sameDate;
-           }
-           return sameName && sameBaby;
+           return sameName && sameBaby && sameDate;
          });
          if (!existsInCloud) {
            await recordsBox.put(v.id, v);
@@ -414,8 +422,8 @@ class BackupService {
       debugPrint('[MERGE] Merging Hive databases (version $version)...');
 
       // Profile & Settings
-      if (version >= 2 && data.containsKey('babies')) {
-        final babiesList = _decompressJson(data['babies']) as List<dynamic>? ?? [];
+      if (version >= 2 && data.containsKey('b')) {
+        final babiesList = _decompressJson(data['b']) as List<dynamic>? ?? [];
         // Only merge if not exists
         final existingBabiesStr = HiveManager.getProfileBox().get('babies_list') as String?;
         if (existingBabiesStr == null) {
@@ -433,7 +441,7 @@ class BackupService {
         }
       }
 
-      final settingsDataRaw = data['settings'] as Map<String, dynamic>? ?? {};
+      final settingsDataRaw = data.containsKey('s') ? data['s'] : (data['settings'] as Map<String, dynamic>? ?? {});
       final settingsData = _decompressJson(settingsDataRaw) as Map<String, dynamic>;
       settingsData.remove('is_premium');
       for (final entry in settingsData.entries) {
@@ -442,24 +450,30 @@ class BackupService {
         }
       }
 
-      Future<void> mergeList<T>(String key, String v2Key, dynamic box, T Function(Map<String, dynamic>) fromJson) async {
+      Future<void> mergeList<T>(String key, String v2Key, dynamic box, T Function(Map<String, dynamic>) fromJson, String modelName) async {
         final rawList = data.containsKey(v2Key) ? data[v2Key] : data[key];
         final list = (rawList != null) ? _decompressJson(rawList) as List<dynamic> : [];
         for (final item in list) {
           final map = Map<String, dynamic>.from(item as Map);
           final itemId = map['id'] ?? DateTime.now().millisecondsSinceEpoch.toString();
           if (!box.containsKey(itemId)) {
-            await box.put(itemId, fromJson(map));
+             try {
+                // debugPrint('[MERGE MODEL PARSE] model=$modelName payload=$map');
+                final model = fromJson(map);
+                await box.put(itemId, model);
+             } catch (e) {
+                debugPrint('[MERGE MODEL FAILED] model=$modelName exception=$e payload=$map');
+             }
           }
         }
       }
 
-      await mergeList('records', 'records', HiveManager.getRecordsBox(), RecordModel.fromJson);
-      await mergeList('sanskars', 'sanskars', HiveManager.getSanskarsBox(), SanskarModel.fromJson);
-      await mergeList('moments', 'moments', HiveManager.getMomentsBox(), MomentModel.fromJson);
-      await mergeList('medications', 'meds', HiveManager.getMedicationsBox(), MedicationModel.fromJson);
-      await mergeList('familyMembers', 'family', HiveManager.getFamilyMembersBox(), FamilyMemberModel.fromJson);
-      await mergeList('foodTracker', 'foodTracker', HiveManager.getFoodTrackerBox(), FoodIntroRecord.fromJson);
+      await mergeList('records', 'r', HiveManager.getRecordsBox(), RecordModel.fromJson, 'RecordModel');
+      await mergeList('sanskars', 'sk', HiveManager.getSanskarsBox(), SanskarModel.fromJson, 'SanskarModel');
+      await mergeList('moments', 'mo', HiveManager.getMomentsBox(), MomentModel.fromJson, 'MomentModel');
+      await mergeList('medications', 'm', HiveManager.getMedicationsBox(), MedicationModel.fromJson, 'MedicationModel');
+      await mergeList('familyMembers', 'f', HiveManager.getFamilyMembersBox(), FamilyMemberModel.fromJson, 'FamilyMemberModel');
+      await mergeList('foodTracker', 'ft', HiveManager.getFoodTrackerBox(), FoodIntroRecord.fromJson, 'FoodIntroRecord');
 
       debugPrint('[MERGE REBUILDING REMINDERS] Reminders recreating...');
       await ReminderService.init();
@@ -478,7 +492,7 @@ class BackupService {
 
   static const Map<String, String> _shortKeys = {
     'type': 'ty',
-    'timestamp': 'ts',
+    'timestamp': 't',
     'metadata': 'md',
     'babyId': 'bid',
     'medicationId': 'mid',

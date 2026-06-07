@@ -63,14 +63,14 @@ class FamilyMemberModel extends HiveObject {
 
   factory FamilyMemberModel.fromJson(Map<String, dynamic> json) {
     return FamilyMemberModel(
-      id: json['id'] as String,
-      babyId: json['babyId'] as String,
-      name: json['name'] as String,
-      phoneNumber: json['phoneNumber'] as String,
-      email: json['email'] as String? ?? '',
-      role: json['role'] as String? ?? 'Family Member',
-      status: json['status'] as String? ?? 'Pending',
-      invitedAt: json['invitedAt'] != null ? DateTime.parse(json['invitedAt'] as String) : DateTime.now(),
+      id: json['id']?.toString() ?? '',
+      babyId: json['babyId']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      phoneNumber: json['phoneNumber']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      role: json['role']?.toString() ?? 'Family Member',
+      status: json['status']?.toString() ?? 'Pending',
+      invitedAt: json['invitedAt'] != null ? DateTime.tryParse(json['invitedAt'].toString()) : DateTime.now(),
     );
   }
 

@@ -35,12 +35,12 @@ class SanskarRule extends HiveObject {
 
   factory SanskarRule.fromJson(Map<String, dynamic> json) {
     return SanskarRule(
-      offset: json['offset'] as int,
+      offset: json['offset'] as int? ?? 0,
       unit: SanskarOffsetUnit.values.firstWhere(
-        (e) => e.toString().split('.').last == json['unit'],
+        (e) => e.toString().split('.').last == json['unit']?.toString(),
         orElse: () => SanskarOffsetUnit.days,
       ),
-      traditionalTimingText: json['traditionalTimingText'] as String,
+      traditionalTimingText: json['traditionalTimingText']?.toString() ?? '',
     );
   }
 
@@ -155,18 +155,18 @@ class SanskarModel extends HiveObject {
 
   factory SanskarModel.fromJson(Map<String, dynamic> json) {
     return SanskarModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      sanskritName: json['sanskritName'] as String,
-      description: json['description'] as String,
-      category: json['category'] as String,
-      emojiIcon: json['emojiIcon'] as String,
-      defaultRule: SanskarRule.fromJson(Map<String, dynamic>.from(json['defaultRule'])),
-      customDate: json['customDate'] != null ? DateTime.parse(json['customDate'] as String) : null,
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      sanskritName: json['sanskritName']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      category: json['category']?.toString() ?? '',
+      emojiIcon: json['emojiIcon']?.toString() ?? '',
+      defaultRule: SanskarRule.fromJson(Map<String, dynamic>.from(json['defaultRule'] ?? {})),
+      customDate: json['customDate'] != null ? DateTime.tryParse(json['customDate'].toString()) : null,
       isCompleted: json['isCompleted'] as bool? ?? false,
-      notes: json['notes'] as String? ?? '',
+      notes: json['notes']?.toString() ?? '',
       reminderEnabled: json['reminderEnabled'] as bool? ?? true,
-      babyId: json['babyId'] as String? ?? '',
+      babyId: json['babyId']?.toString() ?? '',
     );
   }
 }

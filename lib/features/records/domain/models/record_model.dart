@@ -57,9 +57,9 @@ class RecordModel extends HiveObject {
 
   factory RecordModel.fromJson(Map<String, dynamic> json) {
     return RecordModel(
-      id: json['id'] as String,
-      type: json['type'] as String,
-      timestamp: DateTime.parse(json['timestamp'] as String),
+      id: json['id']?.toString() ?? '',
+      type: json['type']?.toString() ?? 'unknown',
+      timestamp: DateTime.tryParse(json['timestamp']?.toString() ?? '') ?? DateTime.now(),
       metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),
       isSynced: json['isSynced'] as bool? ?? false,
     );
@@ -76,9 +76,9 @@ class RecordModel extends HiveObject {
 
   factory RecordModel.fromFirestore(Map<String, dynamic> json) {
     return RecordModel(
-      id: json['id'] as String,
-      type: json['type'] as String,
-      timestamp: DateTime.parse(json['timestamp'] as String),
+      id: json['id']?.toString() ?? '',
+      type: json['type']?.toString() ?? 'unknown',
+      timestamp: DateTime.tryParse(json['timestamp']?.toString() ?? '') ?? DateTime.now(),
       metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),
       isSynced: true,
     );

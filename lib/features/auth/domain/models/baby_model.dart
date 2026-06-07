@@ -45,16 +45,16 @@ class BabyModel {
 
   factory BabyModel.fromJson(Map<dynamic, dynamic> json) {
     return BabyModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      birthDate: DateTime.parse(json['birthDate'] as String),
-      birthTime: json['birthTime'] as String?,
-      feedingType: json['feedingType'] as String? ?? 'Mixed',
-      gender: json['gender'] as String? ?? 'Prefer not to say',
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      birthDate: DateTime.tryParse(json['birthDate']?.toString() ?? '') ?? DateTime.now(),
+      birthTime: json['birthTime']?.toString(),
+      feedingType: json['feedingType']?.toString() ?? 'Mixed',
+      gender: json['gender']?.toString() ?? 'Prefer not to say',
       birthWeight: (json['birthWeight'] as num?)?.toDouble() ?? 3.2,
       birthHeight: (json['birthHeight'] as num?)?.toDouble(),
-      avatarEmoji: json['avatarEmoji'] as String? ?? '👶',
-      profileImagePath: json['profileImagePath'] as String?,
+      avatarEmoji: json['avatarEmoji']?.toString() ?? '👶',
+      profileImagePath: json['profileImagePath']?.toString(),
     );
   }
 
