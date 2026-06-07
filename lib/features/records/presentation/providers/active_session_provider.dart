@@ -9,6 +9,7 @@ import '../../domain/models/record_model.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
 
 import '../../../../core/services/haptic_service.dart';
+import '../../../../core/services/notification_service.dart';
 import 'records_provider.dart';
 
 final activeSessionProvider =
@@ -30,6 +31,40 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
       if (box.isNotEmpty) {
         final session = box.getAt(0);
         if (session != null) {
+          if (session.metadata['needsFinalization'] == true) {
+             final finalEndTimeStr = session.metadata['finalEndTime'];
+             final finalEndTime = finalEndTimeStr != null ? DateTime.parse(finalEndTimeStr) : DateTime.now();
+             
+             // Calculate final duration securely
+             Duration duration = finalEndTime.difference(session.startTime) - Duration(seconds: session.totalPausedDurationSeconds);
+             if (duration.isNegative) duration = Duration.zero;
+             
+             final metadata = Map<String, dynamic>.from(session.metadata);
+             metadata.remove('needsFinalization');
+             metadata.remove('finalEndTime');
+             metadata['durationSeconds'] = duration.inSeconds;
+             metadata['durationMinutes'] = duration.inMinutes;
+             
+             final normalizedType = _normalizeType(session.type);
+             if (normalizedType != session.type) {
+               metadata['originalType'] = session.type;
+             }
+             
+             final record = RecordModel(
+               id: session.id,
+               type: normalizedType,
+               timestamp: session.startTime,
+               metadata: metadata,
+             );
+             
+             HiveManager.getRecordsBox().put(record.id, record);
+             box.clear();
+             state = null;
+             _ref.invalidate(recordsProvider);
+             NotificationService.showConfirmationNotification(title: 'Timer Saved', body: 'Background session was successfully saved.');
+             return;
+          }
+
           // Validate session integrity
           if (session.startTime.isAfter(DateTime.now())) {
             // Corrupted session — start time in the future, discard
@@ -39,6 +74,21 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
           state = session;
           if (session.isRunning) {
             _startTick();
+            
+            // Show recovery banner/notification to assure user
+            int hour = session.startTime.hour;
+            final period = hour >= 12 ? 'PM' : 'AM';
+            hour = hour % 12;
+            if (hour == 0) hour = 12;
+            final minute = session.startTime.minute.toString().padLeft(2, '0');
+            final timeStr = "$hour:$minute $period";
+            
+            NotificationService.showConfirmationNotification(
+               title: '[TIMER RECOVERY]',
+               body: 'Found active ${session.type} session started at $timeStr'
+            );
+          } else {
+            NotificationService.showOngoingSessionNotification(session);
           }
         }
       }
@@ -66,6 +116,7 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
     );
     state = session;
     _saveSession(session);
+    NotificationService.showOngoingSessionNotification(session);
     _startTick();
     HapticService.vibrate();
   }
@@ -79,6 +130,7 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
       );
       state = updated;
       _saveSession(updated);
+      NotificationService.showOngoingSessionNotification(updated);
       HapticService.lightImpact();
     }
   }
@@ -94,6 +146,7 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
       );
       state = updated;
       _saveSession(updated);
+      NotificationService.showOngoingSessionNotification(updated);
       _startTick();
       HapticService.lightImpact();
     }
@@ -150,6 +203,8 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
 
       // Refresh records provider so dashboard and timeline update immediately
       _ref.invalidate(recordsProvider);
+      
+      NotificationService.cancel(NotificationService.timerNotificationId);
 
       // Haptic success
       HapticService.vibrate();
@@ -169,6 +224,7 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
     state = null;
     final box = HiveManager.getActiveSessionBox();
     await box.clear();
+      NotificationService.cancel(NotificationService.timerNotificationId);
   }
 
   /// Pauses the ticker (call when app goes to background)
@@ -193,6 +249,11 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
         // Re-assign to trigger UI update — the model's currentDuration 
         // uses DateTime.now() so it's always accurate
         state = state!.copyWith();
+        
+        // Update notification every 30 seconds to save battery
+        if (state!.currentDuration.inSeconds % 30 == 0) {
+          NotificationService.showOngoingSessionNotification(state!);
+        }
       }
     });
   }

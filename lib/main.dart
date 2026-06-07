@@ -20,6 +20,9 @@ import 'core/widgets/app_lifecycle_wrapper.dart';
 import 'core/design/layouts/floating_timer_overlay.dart';
 import 'core/providers/locale_provider.dart';
 import 'l10n/app_localizations.dart';
+import 'features/records/presentation/providers/active_session_provider.dart';
+import 'dart:ui';
+import 'dart:isolate';
 
 // Firebase imports — conditionally used based on AppConfig flags
 import 'package:firebase_core/firebase_core.dart';
@@ -126,11 +129,46 @@ void main() async {
   }
 }
 
-class BabyCornApp extends ConsumerWidget {
+class BabyCornApp extends ConsumerStatefulWidget {
   const BabyCornApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BabyCornApp> createState() => _BabyCornAppState();
+}
+
+class _BabyCornAppState extends ConsumerState<BabyCornApp> {
+  ReceivePort? _port;
+
+  @override
+  void initState() {
+    super.initState();
+    _setupTimerActionPort();
+  }
+
+  void _setupTimerActionPort() {
+    _port = ReceivePort();
+    IsolateNameServer.removePortNameMapping('timer_action_port');
+    IsolateNameServer.registerPortWithName(_port!.sendPort, 'timer_action_port');
+    _port!.listen((message) {
+      if (message == 'pause') {
+        ref.read(activeSessionProvider.notifier).pauseSession();
+      } else if (message == 'resume') {
+        ref.read(activeSessionProvider.notifier).resumeSession();
+      } else if (message == 'stop') {
+        ref.read(activeSessionProvider.notifier).stopAndSaveSession();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    IsolateNameServer.removePortNameMapping('timer_action_port');
+    _port?.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // Eagerly initialize ReminderSettingsProvider so alarms are loaded and rescheduled on startup
     ref.watch(reminderSettingsProvider);
     
