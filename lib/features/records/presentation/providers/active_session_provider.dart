@@ -1,6 +1,7 @@
 // features/records/presentation/providers/active_session_provider.dart
 
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/local_storage/hive_manager.dart';
@@ -11,6 +12,9 @@ import '../../../auth/presentation/providers/baby_provider.dart';
 import '../../../../core/services/haptic_service.dart';
 import '../../../../core/services/notification_service.dart';
 import 'records_provider.dart';
+
+final timerSheetOpenProvider = StateProvider<bool>((ref) => false);
+final recoveredSessionProvider = StateProvider<ActiveSessionModel?>((ref) => null);
 
 final activeSessionProvider =
     StateNotifierProvider<ActiveSessionNotifier, ActiveSessionModel?>((ref) {
@@ -31,37 +35,29 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
       if (box.isNotEmpty) {
         final session = box.getAt(0);
         if (session != null) {
-          if (session.metadata['needsFinalization'] == true) {
+          final isCrashed = session.isRunning && 
+                            session.lastHeartbeat != null && 
+                            DateTime.now().difference(session.lastHeartbeat!).inMinutes >= 3;
+
+          if (session.metadata['needsFinalization'] == true || isCrashed) {
              final finalEndTimeStr = session.metadata['finalEndTime'];
-             final finalEndTime = finalEndTimeStr != null ? DateTime.parse(finalEndTimeStr) : DateTime.now();
+             final finalEndTime = finalEndTimeStr != null ? DateTime.parse(finalEndTimeStr) : (session.lastHeartbeat ?? DateTime.now());
              
-             // Calculate final duration securely
-             Duration duration = finalEndTime.difference(session.startTime) - Duration(seconds: session.totalPausedDurationSeconds);
-             if (duration.isNegative) duration = Duration.zero;
+             final updatedMetadata = Map<String, dynamic>.from(session.metadata);
+             updatedMetadata['finalEndTime'] = finalEndTime.toIso8601String();
+             updatedMetadata['needsFinalization'] = true;
              
-             final metadata = Map<String, dynamic>.from(session.metadata);
-             metadata.remove('needsFinalization');
-             metadata.remove('finalEndTime');
-             metadata['durationSeconds'] = duration.inSeconds;
-             metadata['durationMinutes'] = duration.inMinutes;
-             
-             final normalizedType = _normalizeType(session.type);
-             if (normalizedType != session.type) {
-               metadata['originalType'] = session.type;
-             }
-             
-             final record = RecordModel(
-               id: session.id,
-               type: normalizedType,
-               timestamp: session.startTime,
-               metadata: metadata,
+             final updatedSession = session.copyWith(
+               metadata: updatedMetadata,
+               isRunning: false,
              );
              
-             HiveManager.getRecordsBox().put(record.id, record);
-             box.clear();
+             // Hand off to recovery UI instead of auto-saving silently
+             WidgetsBinding.instance.addPostFrameCallback((_) {
+               _ref.read(recoveredSessionProvider.notifier).state = updatedSession;
+             });
+             
              state = null;
-             _ref.invalidate(recordsProvider);
-             NotificationService.showConfirmationNotification(title: 'Timer Saved', body: 'Background session was successfully saved.');
              return;
           }
 
@@ -96,6 +92,41 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
       // If loading fails, start clean
       state = null;
     }
+  }
+
+  Future<void> finalizeRecoveredSession(ActiveSessionModel session) async {
+      final finalEndTimeStr = session.metadata['finalEndTime'];
+      final finalEndTime = finalEndTimeStr != null ? DateTime.parse(finalEndTimeStr) : DateTime.now();
+      
+      Duration duration = finalEndTime.difference(session.startTime) - Duration(seconds: session.totalPausedDurationSeconds);
+      if (duration.isNegative) duration = Duration.zero;
+      
+      final metadata = Map<String, dynamic>.from(session.metadata);
+      metadata.remove('needsFinalization');
+      metadata.remove('finalEndTime');
+      metadata['durationSeconds'] = duration.inSeconds;
+      metadata['durationMinutes'] = duration.inMinutes;
+      
+      final normalizedType = _normalizeType(session.type);
+      if (normalizedType != session.type) {
+        metadata['originalType'] = session.type;
+      }
+      
+      final record = RecordModel(
+        id: session.id,
+        type: normalizedType,
+        timestamp: session.startTime,
+        metadata: metadata,
+      );
+      
+      await HiveManager.getRecordsBox().put(record.id, record);
+      
+      final box = HiveManager.getActiveSessionBox();
+      if (box.isNotEmpty && box.getAt(0)?.id == session.id) {
+         await box.clear();
+      }
+      _ref.invalidate(recordsProvider);
+      _ref.read(recoveredSessionProvider.notifier).state = null;
   }
 
   void startSession(String type,
@@ -250,8 +281,10 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
         // uses DateTime.now() so it's always accurate
         state = state!.copyWith();
         
-        // Update notification every 30 seconds to save battery
+        // Update heartbeat and notification every 30 seconds
         if (state!.currentDuration.inSeconds % 30 == 0) {
+          state = state!.copyWith(lastHeartbeat: DateTime.now());
+          _saveSession(state!);
           NotificationService.showOngoingSessionNotification(state!);
         }
       }

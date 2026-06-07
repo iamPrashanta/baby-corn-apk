@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../features/records/presentation/providers/active_session_provider.dart';
+import '../../../features/records/domain/models/active_session_model.dart';
+import '../../../core/local_storage/hive_manager.dart';
 import '../tokens/colors.dart';
 import '../../../core/services/haptic_service.dart';
 import '../components/dialogs/timer_full_sheet.dart';
@@ -54,9 +56,17 @@ class _FloatingTimerOverlayState extends ConsumerState<FloatingTimerOverlay>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final size = MediaQuery.of(context).size;
+      final box = HiveManager.getSettingsBox();
+      final double? x = box.get('floating_timer_x');
+      final double? y = box.get('floating_timer_y');
+
       setState(() {
-        // Default position: bottom right above nav bar
-        _position = Offset(size.width - 120, size.height - 150);
+        if (x != null && y != null) {
+          _position = Offset(x, y);
+        } else {
+          // Default position: bottom right above nav bar
+          _position = Offset(size.width - 120, size.height - 150);
+        }
       });
     });
   }
@@ -132,6 +142,21 @@ class _FloatingTimerOverlayState extends ConsumerState<FloatingTimerOverlay>
     if (_showSuccess) {
       return const SaveSuccessOverlay();
     }
+
+    final recoveredSession = ref.watch(recoveredSessionProvider);
+    if (recoveredSession != null) {
+       return _TimerRecoveryOverlay(session: recoveredSession);
+    }
+
+    // Listen for open action from notifications
+    ref.listen(timerSheetOpenProvider, (previous, next) {
+      if (next == true) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ref.read(timerSheetOpenProvider.notifier).state = false;
+        });
+        _openFullSheet();
+      }
+    });
 
     if (activeSession == null) {
       _lastSessionId = null;
@@ -338,6 +363,10 @@ class _FloatingTimerOverlayState extends ConsumerState<FloatingTimerOverlay>
           setState(() {
             _position = Offset(_position.dx, newY);
           });
+          
+          final box = HiveManager.getSettingsBox();
+          box.put('floating_timer_x', _position.dx);
+          box.put('floating_timer_y', _position.dy);
         },
         onTap: _openFullSheet,
         child: AnimatedContainer(
@@ -403,3 +432,68 @@ class _FloatingTimerOverlayState extends ConsumerState<FloatingTimerOverlay>
     );
   }
 }
+
+class _TimerRecoveryOverlay extends ConsumerStatefulWidget {
+  final ActiveSessionModel session;
+  const _TimerRecoveryOverlay({required this.session});
+  
+  @override
+  ConsumerState<_TimerRecoveryOverlay> createState() => _TimerRecoveryOverlayState();
+}
+
+class _TimerRecoveryOverlayState extends ConsumerState<_TimerRecoveryOverlay> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        ref.read(activeSessionProvider.notifier).finalizeRecoveredSession(widget.session);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      final startTimeStr = "${widget.session.startTime.hour % 12 == 0 ? 12 : widget.session.startTime.hour % 12}:${widget.session.startTime.minute.toString().padLeft(2, '0')} ${widget.session.startTime.hour >= 12 ? 'PM' : 'AM'}";
+      
+      final finalEndTimeStr = widget.session.metadata['finalEndTime'];
+      final endTime = finalEndTimeStr != null ? DateTime.parse(finalEndTimeStr) : DateTime.now();
+      final endTimeStr = "${endTime.hour % 12 == 0 ? 12 : endTime.hour % 12}:${endTime.minute.toString().padLeft(2, '0')} ${endTime.hour >= 12 ? 'PM' : 'AM'}";
+      
+      final duration = endTime.difference(widget.session.startTime) - Duration(seconds: widget.session.totalPausedDurationSeconds);
+      final durationStr = "${duration.inMinutes}m";
+
+      return Positioned(
+         top: MediaQuery.of(context).padding.top + 8,
+         left: 16,
+         right: 16,
+         child: Container(
+           padding: const EdgeInsets.all(16),
+           decoration: BoxDecoration(
+             color: isDark ? Colors.black87 : Colors.white,
+             borderRadius: BorderRadius.circular(12),
+             border: Border.all(color: Colors.greenAccent, width: 2),
+             boxShadow: [
+               BoxShadow(color: Colors.greenAccent.withOpacity(0.3), blurRadius: 20),
+             ],
+           ),
+           child: Column(
+             mainAxisSize: MainAxisSize.min,
+             children: [
+               const Icon(Icons.cloud_done_rounded, color: Colors.greenAccent, size: 32),
+               const SizedBox(height: 8),
+               Text('${widget.session.type} Session Recovered', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black87)),
+               const SizedBox(height: 4),
+               Text('Started: $startTimeStr | Stopped: $endTimeStr\nDuration: $durationStr', 
+                 textAlign: TextAlign.center,
+                 style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, height: 1.4)),
+               const SizedBox(height: 8),
+               Text('[Auto-saving in 3s...]', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
+             ],
+           )
+         ).animate().slideY(begin: -1.0, curve: Curves.easeOutBack).fadeIn()
+      );
+  }
+}
+

@@ -30,6 +30,9 @@ class ActiveSessionModel extends HiveObject {
   @HiveField(7)
   final String? notes;
 
+  @HiveField(8)
+  final DateTime? lastHeartbeat;
+
   ActiveSessionModel({
     required this.id,
     required this.type,
@@ -39,6 +42,7 @@ class ActiveSessionModel extends HiveObject {
     this.isRunning = true,
     this.metadata = const {},
     this.notes,
+    this.lastHeartbeat,
   });
 
   ActiveSessionModel copyWith({
@@ -50,6 +54,7 @@ class ActiveSessionModel extends HiveObject {
     bool? isRunning,
     Map<String, dynamic>? metadata,
     String? notes,
+    DateTime? lastHeartbeat,
   }) {
     return ActiveSessionModel(
       id: id ?? this.id,
@@ -63,6 +68,7 @@ class ActiveSessionModel extends HiveObject {
       isRunning: isRunning ?? this.isRunning,
       metadata: metadata ?? this.metadata,
       notes: notes ?? this.notes,
+      lastHeartbeat: lastHeartbeat ?? this.lastHeartbeat,
     );
   }
 
@@ -75,6 +81,7 @@ class ActiveSessionModel extends HiveObject {
     bool? isRunning,
     Map<String, dynamic>? metadata,
     String? notes,
+    DateTime? lastHeartbeat,
   }) {
      return ActiveSessionModel(
       id: id ?? this.id,
@@ -85,6 +92,7 @@ class ActiveSessionModel extends HiveObject {
       isRunning: isRunning ?? this.isRunning,
       metadata: metadata ?? this.metadata,
       notes: notes ?? this.notes,
+      lastHeartbeat: lastHeartbeat ?? this.lastHeartbeat,
     );
   }
 

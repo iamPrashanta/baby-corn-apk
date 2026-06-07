@@ -156,6 +156,8 @@ class _BabyCornAppState extends ConsumerState<BabyCornApp> {
         ref.read(activeSessionProvider.notifier).resumeSession();
       } else if (message == 'stop') {
         ref.read(activeSessionProvider.notifier).stopAndSaveSession();
+      } else if (message == 'open') {
+        ref.read(timerSheetOpenProvider.notifier).state = true;
       }
     });
   }
