@@ -232,6 +232,7 @@ class ReminderService {
 
     final now = DateTime.now();
 
+    final List<DateTime> expectedDoses = [];
     for (int i = 0; i < med.times.length; i++) {
       final timeStr = med.times[i];
       final parts = timeStr.split(' ');
@@ -249,43 +250,55 @@ class ReminderService {
         hour = 0;
       }
 
-      DateTime scheduledDate = DateTime(now.year, now.month, now.day, hour, minute);
+      expectedDoses.add(DateTime(now.year, now.month, now.day, hour, minute));
+    }
+    
+    expectedDoses.sort();
 
-      // Check if a log already exists for this exact dose
-      final recordsBox = HiveManager.getRecordsBox();
-      final hasLog = recordsBox.values.any((r) {
-        if (r.type != 'medication' || r.metadata['medicationId'] != med.id) return false;
-        final stStr = r.metadata['scheduledTime'];
-        if (stStr == null) return false;
-        final st = DateTime.parse(stStr);
-        return st.year == scheduledDate.year &&
-            st.month == scheduledDate.month &&
-            st.day == scheduledDate.day &&
-            st.hour == scheduledDate.hour &&
-            st.minute == scheduledDate.minute;
-      });
+    final recordsBox = HiveManager.getRecordsBox();
+    final logs = recordsBox.values.where((r) {
+      if (r.type != 'medication' || r.metadata['medicationId'] != med.id) return false;
+      final ts = r.timestamp;
+      return ts.year == now.year && ts.month == now.month && ts.day == now.day &&
+             (r.metadata['status'] == 'taken' || r.metadata['status'] == 'skipped' || r.metadata['status'] == 'missed');
+    }).toList();
+    
+    logs.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
-      // If a log exists for today's dose, schedule for tomorrow
+    final fulfilledDoses = <DateTime>{};
+    int takenCount = 0;
+    for (var log in logs) {
+      if (takenCount < expectedDoses.length) {
+        fulfilledDoses.add(expectedDoses[takenCount]);
+        takenCount++;
+      }
+    }
+
+    for (final expectedDose in expectedDoses) {
+      DateTime scheduledDate = expectedDose;
+      bool hasLog = fulfilledDoses.contains(scheduledDate);
+
+      // If a log exists for today's dose or it has already passed, schedule for tomorrow
       if (hasLog || scheduledDate.isBefore(now)) {
         scheduledDate = scheduledDate.add(const Duration(days: 1));
       }
 
       DateTime notifyTime = scheduledDate.subtract(Duration(minutes: med.notifyBeforeMinutes));
       
-      // If the notification time has already passed (but dose time hasn't), we missed the notification window.
-      // Do not trigger immediately, schedule for tomorrow.
+      // If the notification time has already passed, we missed the window. Schedule for tomorrow.
       if (notifyTime.isBefore(now)) {
-        debugPrint('[MEDICATION NOTIFICATION SKIPPED] reason=trigger_time_in_past');
+        debugPrint('[MEDICATION NOTIFICATION SKIPPED] reason=trigger_time_in_past for ${med.name}');
         notifyTime = notifyTime.add(const Duration(days: 1));
+        scheduledDate = scheduledDate.add(const Duration(days: 1));
       }
 
-      final notificationId = Object.hash(med.id, scheduledDate.year, scheduledDate.month, scheduledDate.day, scheduledDate.hour, scheduledDate.minute) & 0x7FFFFFFF;
+      debugPrint('[MEDICATION NEXT DOSE] ${med.name} scheduled for dose at $scheduledDate');
+
+      final notificationId = Object.hash(med.id, expectedDose.hour, expectedDose.minute) & 0x7FFFFFFF;
       
       await NotificationService.cancel(notificationId);
-      debugPrint('[MEDICATION NOTIFICATION CANCELLED] ID: $notificationId for ${med.id}');
 
       final payload = 'notification|medication|${med.id}|$notificationId|${notifyTime.millisecondsSinceEpoch}';
-
       final bodyText = med.notifyBeforeMinutes > 0 
           ? '${med.name} is due in ${med.notifyBeforeMinutes} minutes.' 
           : '${med.name} is due now.';
@@ -298,7 +311,7 @@ class ReminderService {
         payload: payload,
       );
 
-      debugPrint('[MEDICATION NOTIFICATION RESCHEDULED] Medication ${med.name} | Time: $notifyTime | ID: $notificationId');
+      debugPrint('[MEDICATION NOTIFICATION SCHEDULED] Medication ${med.name} | Time: $notifyTime | ID: $notificationId');
     }
   }
 

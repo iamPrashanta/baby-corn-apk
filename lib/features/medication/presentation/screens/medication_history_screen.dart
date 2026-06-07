@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/widgets/liquid_background.dart';
 import '../../../../core/widgets/safe_scrollable_wrapper.dart';
 import '../../../../core/local_storage/hive_manager.dart';
+import '../../../../core/services/reminder_service.dart';
 import '../../domain/models/medication_model.dart';
 import '../../../records/domain/models/record_model.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
@@ -181,13 +182,16 @@ class _MedicationHistoryScreenState
                           ),
                           child: const Icon(Icons.delete, color: Colors.white),
                         ),
-                        onDismissed: (direction) {
-                          ref
+                        onDismissed: (direction) async {
+                          await ref
                               .read(recordsProvider.notifier)
                               .deleteRecord(log.id);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Log deleted')),
-                          );
+                          await ReminderService.scheduleMedication(med);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Log deleted')),
+                            );
+                          }
                         },
                         child: _HistoryCard(log: log, medication: med),
                       );
@@ -343,7 +347,7 @@ class _AddPastLogSheetState extends ConsumerState<_AddPastLogSheet> {
           ),
           const SizedBox(height: 32),
           FilledButton(
-            onPressed: () {
+            onPressed: () async {
               final actualTime = DateTime(
                   _selectedDate.year,
                   _selectedDate.month,
@@ -378,6 +382,7 @@ class _AddPastLogSheetState extends ConsumerState<_AddPastLogSheet> {
                 double newStock = med.remainingQuantity - med.doseAmount;
                 if (newStock < 0) newStock = 0;
                 medBox.put(med.id, med.copyWith(remainingQuantity: newStock));
+                await ReminderService.scheduleMedication(med);
               }
 
               Navigator.pop(context);

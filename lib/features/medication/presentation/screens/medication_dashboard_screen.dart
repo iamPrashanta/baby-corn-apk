@@ -14,6 +14,7 @@ import '../../../../core/design/tokens/colors.dart';
 import '../../../../core/services/reminder_service.dart';
 import '../../../../core/services/notification_service.dart';
 import 'package:intl/intl.dart';
+import '../../../records/presentation/providers/records_provider.dart';
 
 class MedicationDashboardScreen extends ConsumerWidget {
   const MedicationDashboardScreen({super.key});
@@ -21,6 +22,7 @@ class MedicationDashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final medicationsAsync = ref.watch(medicationsProvider);
+    ref.watch(recordsProvider); // Ensure timeline rebuilds immediately on any log changes
 
     return DefaultTabController(
       length: 2,
@@ -307,12 +309,12 @@ class MedicationDashboardScreen extends ConsumerWidget {
 
   Widget _buildTimeline(
       BuildContext context, WidgetRef ref, List<MedicationModel> meds) {
-    // Generate a list of all doses for today
-    final List<Map<String, dynamic>> todayDoses = [];
+    final List<Map<String, dynamic>> pendingDoses = [];
+    final List<Map<String, dynamic>> activityDoses = [];
     final now = DateTime.now();
 
     for (final med in meds) {
-      final List<Map<String, dynamic>> pendingForMed = [];
+      final List<Map<String, dynamic>> expectedDoses = [];
       
       for (final timeStr in med.times) {
         final parts = timeStr.split(' ');
@@ -337,89 +339,133 @@ class MedicationDashboardScreen extends ConsumerWidget {
           period = 'Evening';
         }
 
-        // Check if taken/missed by looking at logs
-        final logs = HiveManager.getRecordsBox().values.where((log) {
-            if (log.type != 'medication') return false;
-            if (log.metadata['medicationId'] != med.id) return false;
-            final stStr = log.metadata['scheduledTime'];
-            if (stStr == null) return false;
-            final st = DateTime.parse(stStr);
-            return st.year == now.year &&
-                   st.month == now.month &&
-                   st.day == now.day &&
-                   st.hour == hour &&
-                   st.minute == minute;
+        expectedDoses.add({
+          'med': med,
+          'timeStr': timeStr,
+          'hour': hour,
+          'minute': minute,
+          'period': period,
+          'status': 'Pending',
         });
-
-        String status = 'Pending';
-        if (logs.isNotEmpty) {
-          final logStatus = logs.first.metadata['status'];
-          status = logStatus == 'taken'
-              ? 'Taken'
-              : logStatus == 'skipped'
-                  ? 'Skipped'
-                  : 'Missed';
-        } else if (now.hour > hour ||
-            (now.hour == hour && now.minute > minute + 30)) {
-          status = 'Missed'; // Visually indicate it's late
-        }
-
-        if (status == 'Pending' || status == 'Missed') {
-          pendingForMed.add({
-            'med': med,
-            'timeStr': timeStr,
-            'hour': hour,
-            'minute': minute,
-            'period': period,
-            'status': status,
-          });
-        }
       }
 
-      // Add only the next pending dose to the timeline
-      if (pendingForMed.isNotEmpty) {
-        pendingForMed.sort((a, b) {
-          int cmp = (a['hour'] as int).compareTo(b['hour'] as int);
-          if (cmp == 0) cmp = (a['minute'] as int).compareTo(b['minute'] as int);
-          return cmp;
-        });
-        todayDoses.add(pendingForMed.first);
+      expectedDoses.sort((a, b) {
+        int cmp = (a['hour'] as int).compareTo(b['hour'] as int);
+        if (cmp == 0) cmp = (a['minute'] as int).compareTo(b['minute'] as int);
+        return cmp;
+      });
+
+      // Match against today's logs chronologically
+      final logs = HiveManager.getRecordsBox().values.where((log) {
+          if (log.type != 'medication') return false;
+          if (log.metadata['medicationId'] != med.id) return false;
+          final ts = log.timestamp;
+          return ts.year == now.year && ts.month == now.month && ts.day == now.day && 
+                 (log.metadata['status'] == 'taken' || log.metadata['status'] == 'missed' || log.metadata['status'] == 'skipped');
+      }).toList();
+      
+      logs.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+      int takenCount = 0;
+      for (var log in logs) {
+         if (takenCount < expectedDoses.length) {
+            final logStatus = log.metadata['status'];
+            expectedDoses[takenCount]['status'] = logStatus == 'taken' ? 'Taken' 
+                                                : logStatus == 'skipped' ? 'Skipped' 
+                                                : 'Missed_Log';
+            takenCount++;
+         }
+      }
+
+      for (var dose in expectedDoses) {
+         if (dose['status'] == 'Pending') {
+            int h = dose['hour'];
+            int m = dose['minute'];
+            if (now.hour > h || (now.hour == h && now.minute > m + 30)) {
+               dose['status'] = 'Missed';
+            }
+         }
+      }
+
+      int expected = expectedDoses.length;
+      int pendingCount = expectedDoses.where((d) => d['status'] == 'Pending' || d['status'] == 'Missed').length;
+      debugPrint('[PENDING RECALCULATED] expected=$expected taken=$takenCount pending=$pendingCount for med ${med.name}');
+      debugPrint('[PENDING MATCHING] scheduled=$expected logs=${logs.length} matched=$takenCount remaining=${expected - takenCount}');
+
+      for (var dose in expectedDoses) {
+        if (dose['status'] == 'Pending' || dose['status'] == 'Missed') {
+          pendingDoses.add(dose);
+        } else {
+          activityDoses.add(dose);
+        }
       }
     }
 
-    if (todayDoses.isEmpty) {
+    if (pendingDoses.isEmpty && activityDoses.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 16.0),
         child: Text('No doses scheduled for today.'),
       );
     }
 
-    todayDoses.sort((a, b) {
+    pendingDoses.sort((a, b) {
       int cmp = (a['hour'] as int).compareTo(b['hour'] as int);
       if (cmp == 0) cmp = (a['minute'] as int).compareTo(b['minute'] as int);
       return cmp;
     });
 
-    final grouped = <String, List<Map<String, dynamic>>>{
-      'Morning': [],
-      'Afternoon': [],
-      'Evening': [],
-      'Night': [],
-    };
+    activityDoses.sort((a, b) {
+      int cmp = (a['hour'] as int).compareTo(b['hour'] as int);
+      if (cmp == 0) cmp = (a['minute'] as int).compareTo(b['minute'] as int);
+      return cmp;
+    });
 
-    for (final dose in todayDoses) {
-      grouped[dose['period'] as String]!.add(dose);
+    final pendingGrouped = <String, List<Map<String, dynamic>>>{
+      'Morning': [], 'Afternoon': [], 'Evening': [], 'Night': [],
+    };
+    for (final dose in pendingDoses) {
+      pendingGrouped[dose['period'] as String]!.add(dose);
+    }
+
+    final activityGrouped = <String, List<Map<String, dynamic>>>{
+      'Morning': [], 'Afternoon': [], 'Evening': [], 'Night': [],
+    };
+    for (final dose in activityDoses) {
+      activityGrouped[dose['period'] as String]!.add(dose);
     }
 
     return Column(
-      children: grouped.entries.where((e) => e.value.isNotEmpty).map((entry) {
-        return _buildTimelinePeriod(context, ref, entry.key, entry.value);
-      }).toList(),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (pendingDoses.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+            child: Text('Pending Doses (${pendingDoses.length})', 
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+          ),
+          const SizedBox(height: 8),
+          ...pendingGrouped.entries.where((e) => e.value.isNotEmpty).map((entry) {
+            return _buildTimelinePeriod(context, ref, entry.key, entry.value, isActivity: false);
+          }),
+        ],
+        if (activityDoses.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+            child: Text('Today\'s Activity', 
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+          ),
+          const SizedBox(height: 8),
+          ...activityGrouped.entries.where((e) => e.value.isNotEmpty).map((entry) {
+            return _buildTimelinePeriod(context, ref, entry.key, entry.value, isActivity: true);
+          }),
+        ],
+      ],
     );
   }
 
   Widget _buildTimelinePeriod(
-      BuildContext context, WidgetRef ref, String period, List<Map<String, dynamic>> doses) {
+      BuildContext context, WidgetRef ref, String period, List<Map<String, dynamic>> doses, {bool isActivity = false}) {
     IconData periodIcon = Icons.nightlight_round;
     Color periodColor = Colors.indigo;
     if (period == 'Morning') {
@@ -462,7 +508,7 @@ class MedicationDashboardScreen extends ConsumerWidget {
             if (status == 'Taken') {
               statusColor = Colors.green;
               statusIcon = Icons.check_circle;
-            } else if (status == 'Missed') {
+            } else if (status == 'Missed' || status == 'Missed_Log') {
               statusColor = Colors.redAccent;
               statusIcon = Icons.cancel;
             } else if (status == 'Skipped') {
@@ -521,32 +567,50 @@ class MedicationDashboardScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.check_circle_outline, color: Colors.green),
-                        onPressed: () {
-                           _handleTakeDose(context, ref, med);
-                        },
-                        tooltip: 'Mark Taken',
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.snooze, color: Colors.orange),
-                        onPressed: () {
-                           _handleSnooze(context, med, dose);
-                        },
-                        tooltip: 'Snooze 10 min',
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.cancel_outlined, color: Colors.red),
-                        onPressed: () {
-                           _handleMissDose(context, ref, med);
-                        },
-                        tooltip: 'Mark Missed',
-                      ),
-                    ],
-                  ),
+                  if (status == 'Taken')
+                     Container(
+                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                       decoration: BoxDecoration(
+                         color: Colors.green.withOpacity(0.1),
+                         borderRadius: BorderRadius.circular(16),
+                         border: Border.all(color: Colors.green.withOpacity(0.5)),
+                       ),
+                       child: const Row(
+                         mainAxisSize: MainAxisSize.min,
+                         children: [
+                           Icon(Icons.check_circle, color: Colors.green, size: 14),
+                           SizedBox(width: 4),
+                           Text('Taken', style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
+                         ],
+                       ),
+                     )
+                  else if (status == 'Pending' || status == 'Missed')
+                     Row(
+                       mainAxisSize: MainAxisSize.min,
+                       children: [
+                         IconButton(
+                           icon: const Icon(Icons.check_circle_outline, color: Colors.green),
+                           onPressed: () {
+                              _handleTakeDose(context, ref, med);
+                           },
+                           tooltip: 'Mark Taken',
+                         ),
+                         IconButton(
+                           icon: const Icon(Icons.snooze, color: Colors.orange),
+                           onPressed: () {
+                              _handleSnooze(context, med, dose);
+                           },
+                           tooltip: 'Snooze 10 min',
+                         ),
+                         IconButton(
+                           icon: const Icon(Icons.cancel_outlined, color: Colors.red),
+                           onPressed: () {
+                              _handleMissDose(context, ref, med);
+                           },
+                           tooltip: 'Mark Missed',
+                         ),
+                       ],
+                     ),
                 ],
               ),
             );
@@ -573,15 +637,18 @@ class MedicationDashboardScreen extends ConsumerWidget {
     );
   }
 
-  void _handleMissDose(BuildContext context, WidgetRef ref, MedicationModel med) {
-    ref.read(medicationsProvider.notifier).missDose(med);
+  void _handleMissDose(BuildContext context, WidgetRef ref, MedicationModel med) async {
+    await ref.read(medicationsProvider.notifier).missDose(med);
+    await ReminderService.scheduleMedication(med);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Dose recorded as missed.'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Dose recorded as missed.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   void _handleEdit(BuildContext context, MedicationModel med) {
@@ -738,8 +805,9 @@ class MedicationDashboardScreen extends ConsumerWidget {
           duration: const Duration(seconds: 10),
           action: SnackBarAction(
             label: 'UNDO',
-            onPressed: () {
-              ref.read(medicationsProvider.notifier).undoDose(med, logId);
+            onPressed: () async {
+              await ref.read(medicationsProvider.notifier).undoDose(med, logId);
+              await ReminderService.scheduleMedication(med);
             },
           ),
           behavior: SnackBarBehavior.floating,
@@ -748,52 +816,7 @@ class MedicationDashboardScreen extends ConsumerWidget {
     }
 
     // Calculate next pending dose for notification
-    DateTime? nextDose;
-    List<DateTime> todayDoses = [];
-    for (final timeStr in med.times) {
-      final parts = timeStr.split(' ');
-      if (parts.length == 2) {
-        final timeParts = parts[0].split(':');
-        int hour = int.tryParse(timeParts[0]) ?? 8;
-        int minute = int.tryParse(timeParts[1]) ?? 0;
-        if (parts[1].toUpperCase() == 'PM' && hour != 12) hour += 12;
-        if (parts[1].toUpperCase() == 'AM' && hour == 12) hour = 0;
-        todayDoses.add(DateTime(now.year, now.month, now.day, hour, minute));
-      }
-    }
-    todayDoses.sort();
-
-    final logs = HiveManager.getRecordsBox().values.where((r) => r.type == 'medication' && r.metadata['medicationId'] == med.id).toList();
-
-    for (final doseTime in todayDoses) {
-      final hasLog = logs.any((l) {
-          final stStr = l.metadata['scheduledTime'];
-          if (stStr == null) return false;
-          final st = DateTime.parse(stStr);
-          return st.year == doseTime.year &&
-                 st.month == doseTime.month &&
-                 st.day == doseTime.day &&
-                 st.hour == doseTime.hour &&
-                 st.minute == doseTime.minute &&
-                 (l.metadata['status'] == 'taken' || l.metadata['status'] == 'missed' || l.metadata['status'] == 'skipped');
-      });
-
-      if (!hasLog) {
-         nextDose = doseTime;
-         break;
-      }
-    }
-
-    String notifBody = 'All doses completed for today!';
-    if (nextDose != null) {
-      final timeFormatted = DateFormat('h:mm a').format(nextDose);
-      notifBody = 'Next dose is scheduled for $timeFormatted';
-    }
-
-    NotificationService.showConfirmationNotification(
-      title: '${med.name} Taken',
-      body: notifBody,
-    );
+    await ReminderService.scheduleMedication(med);
   }
 }
 
