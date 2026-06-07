@@ -58,6 +58,9 @@ class MedicationModel extends HiveObject {
   @HiveField(17)
   final String? reason;
 
+  @HiveField(18)
+  final int notifyBeforeMinutes;
+
   MedicationModel({
     required this.id,
     required this.babyId,
@@ -77,6 +80,7 @@ class MedicationModel extends HiveObject {
     this.isActive = true,
     this.doctorName,
     this.reason,
+    this.notifyBeforeMinutes = 5,
   });
 
   MedicationModel copyWith({
@@ -98,6 +102,7 @@ class MedicationModel extends HiveObject {
     bool? isActive,
     String? doctorName,
     String? reason,
+    int? notifyBeforeMinutes,
   }) {
     return MedicationModel(
       id: id ?? this.id,
@@ -118,6 +123,7 @@ class MedicationModel extends HiveObject {
       isActive: isActive ?? this.isActive,
       doctorName: doctorName ?? this.doctorName,
       reason: reason ?? this.reason,
+      notifyBeforeMinutes: notifyBeforeMinutes ?? this.notifyBeforeMinutes,
     );
   }
 
@@ -141,6 +147,7 @@ class MedicationModel extends HiveObject {
       'isActive': isActive,
       'doctorName': doctorName,
       'reason': reason,
+      'notifyBeforeMinutes': notifyBeforeMinutes,
     };
   }
 
@@ -164,6 +171,7 @@ class MedicationModel extends HiveObject {
       isActive: json['isActive'] as bool? ?? true,
       doctorName: json['doctorName'] as String?,
       reason: json['reason'] as String?,
+      notifyBeforeMinutes: json['notifyBeforeMinutes'] as int? ?? 5,
     );
   }
 }

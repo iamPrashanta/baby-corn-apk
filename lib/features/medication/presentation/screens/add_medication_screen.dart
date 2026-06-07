@@ -30,6 +30,7 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen> {
   String _selectedType = 'Tablet';
   String _selectedSchedule = 'OD';
   List<TimeOfDay> _selectedTimes = [const TimeOfDay(hour: 8, minute: 0)];
+  int _notifyBeforeMinutes = 5;
 
   final List<String> _types = [
     'Tablet',
@@ -134,6 +135,7 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen> {
       lowStockThreshold: totalQty * 0.2, // 20%
       startDate: DateTime.now(),
       notes: _notesController.text.trim(),
+      notifyBeforeMinutes: _notifyBeforeMinutes,
     );
 
     ref.read(medicationsProvider.notifier).addMedication(medication);
@@ -230,6 +232,34 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen> {
                       );
                     }),
                   ],
+                  const SizedBox(height: 24),
+
+                  // Notify Before
+                  Text('Notification',
+                      style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<int>(
+                    value: _notifyBeforeMinutes,
+                    decoration: const InputDecoration(
+                      filled: true,
+                      labelText: 'Notify Before Dose',
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 0, child: Text('Exact time')),
+                      DropdownMenuItem(value: 5, child: Text('5 mins before')),
+                      DropdownMenuItem(value: 10, child: Text('10 mins before')),
+                      DropdownMenuItem(value: 15, child: Text('15 mins before')),
+                      DropdownMenuItem(value: 20, child: Text('20 mins before')),
+                      DropdownMenuItem(value: 30, child: Text('30 mins before')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) {
+                        setState(() {
+                          _notifyBeforeMinutes = val;
+                        });
+                      }
+                    },
+                  ),
                   const SizedBox(height: 24),
 
                   // Dosage

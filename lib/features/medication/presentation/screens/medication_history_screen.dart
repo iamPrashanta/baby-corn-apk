@@ -221,12 +221,27 @@ class _HistoryCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  '${DateFormat('hh:mm a').format(log.timestamp)} • ${medication.doseAmount} ${medication.doseUnit}',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                ),
+                if (log.metadata['scheduledTime'] != null && log.metadata['takenTime'] != null) ...[
+                  Text(
+                    'Scheduled: ${DateFormat('hh:mm a').format(DateTime.parse(log.metadata['scheduledTime']))}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                  Text(
+                    'Taken: ${DateFormat('hh:mm a').format(DateTime.parse(log.metadata['takenTime']))} • ${medication.doseAmount} ${medication.doseUnit}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ] else ...[
+                  Text(
+                    '${DateFormat('hh:mm a').format(log.timestamp)} • ${medication.doseAmount} ${medication.doseUnit}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                ],
                 if (status == 'taken' && log.metadata['takenBy'] != null) ...[
                   const SizedBox(height: 6),
                   Text(

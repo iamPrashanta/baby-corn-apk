@@ -225,30 +225,12 @@ class ReminderService {
     await NotificationService.scheduleNotification(id: id, dateTime: scheduledDate, title: title, body: body);
   }
 
-  /// Schedules medication reminders as full-screen alarms (RC-6 fix).
-  ///
-  /// Previously this called NotificationService.scheduleNotification() which
-  /// produced silent notifications with no screen wake, no alarm sound, and
-  /// no AlarmScreen. Now it routes through AlarmService.scheduleAlarm() so
-  /// medication reminders behave identically to feeding/sleep/diaper reminders.
-  ///
-  /// A default AlarmProfile is used for medications since medications do not
-  /// have a category settings profile (they come from MedicationModel directly).
+  /// Schedules medication reminders as standard push notifications.
+  /// Replaces the previous invasive full-screen alarm behavior.
   static Future<void> scheduleMedication(MedicationModel med, {bool is24Hour = false}) async {
     if (!med.isActive) return;
 
     final now = DateTime.now();
-    bool hasScheduled = false;
-    DateTime? firstScheduled;
-
-    // Default alarm profile for medications: uses app's bundled alarm sound,
-    // vibration enabled, 10-minute snooze (appropriate for medications).
-    const medProfile = AlarmProfile(
-      id: 'medication_default',
-      alarmType: 'full_alarm',
-      vibrationEnabled: true,
-      snoozeMinutes: 10,
-    );
 
     for (int i = 0; i < med.times.length; i++) {
       final timeStr = med.times[i];
@@ -269,41 +251,60 @@ class ReminderService {
 
       DateTime scheduledDate = DateTime(now.year, now.month, now.day, hour, minute);
 
-      if (scheduledDate.isBefore(now)) {
+      // Check if a log already exists for this exact dose
+      final recordsBox = HiveManager.getRecordsBox();
+      final hasLog = recordsBox.values.any((r) {
+        if (r.type != 'medication' || r.metadata['medicationId'] != med.id) return false;
+        final stStr = r.metadata['scheduledTime'];
+        if (stStr == null) return false;
+        final st = DateTime.parse(stStr);
+        return st.year == scheduledDate.year &&
+            st.month == scheduledDate.month &&
+            st.day == scheduledDate.day &&
+            st.hour == scheduledDate.hour &&
+            st.minute == scheduledDate.minute;
+      });
+
+      // If a log exists for today's dose, schedule for tomorrow
+      if (hasLog || scheduledDate.isBefore(now)) {
         scheduledDate = scheduledDate.add(const Duration(days: 1));
       }
 
+      DateTime notifyTime = scheduledDate.subtract(Duration(minutes: med.notifyBeforeMinutes));
+      
+      // If the notification time has already passed (but dose time hasn't), we missed the notification window.
+      // Do not trigger immediately, schedule for tomorrow.
+      if (notifyTime.isBefore(now)) {
+        notifyTime = notifyTime.add(const Duration(days: 1));
+      }
+
       final uniqueId = 10000 + (med.id.hashCode.abs() % 10000) + i;
-      final fingerprint = '${med.id}_${scheduledDate.millisecondsSinceEpoch}_${med.doseAmount}';
+      final fingerprint = '${med.id}_${notifyTime.millisecondsSinceEpoch}_${med.doseAmount}';
       final keysBox = HiveManager.getScheduledNotificationKeysBox();
       
       if (keysBox.containsKey(fingerprint)) {
-        debugPrint('[MEDICATION DUPLICATE BLOCKED] Skipping duplicate scheduling for med ${med.id} at $scheduledDate');
+        debugPrint('[MEDICATION DUPLICATE BLOCKED] Skipping duplicate scheduling for med ${med.id} at $notifyTime');
         continue;
       }
 
-      final payload = 'alarm|medication|${med.id}|$uniqueId|${scheduledDate.millisecondsSinceEpoch}';
+      final payload = 'notification|medication|${med.id}|$uniqueId|${notifyTime.millisecondsSinceEpoch}';
 
-      // RC-6: Use AlarmService instead of NotificationService so medication
-      // reminders wake the screen and play alarm audio.
-      await AlarmService.scheduleAlarm(
+      final bodyText = med.notifyBeforeMinutes > 0 
+          ? '${med.name} is due in ${med.notifyBeforeMinutes} minutes.' 
+          : '${med.name} is due now.';
+
+      await NotificationService.scheduleNotification(
         id: uniqueId,
-        dateTime: scheduledDate,
-        title: 'Medication: ${med.name}',
-        profile: medProfile,
+        dateTime: notifyTime,
+        title: 'Medicine Reminder',
+        body: bodyText,
         payload: payload,
       );
 
       await keysBox.put(fingerprint, fingerprint);
 
-      hasScheduled = true;
-      if (firstScheduled == null || scheduledDate.isBefore(firstScheduled)) {
-        firstScheduled = scheduledDate;
-      }
-      debugPrint('[REMINDER SCHEDULED] Medication ${med.name} | Time: $scheduledDate | ID: $uniqueId');
+      debugPrint('[REMINDER SCHEDULED] Medication ${med.name} | Time: $notifyTime | ID: $uniqueId');
     }
-
-    // Confirmation notification removed to prevent spam
   }
 
   static Future<void> cancelMedication(MedicationModel med) async {

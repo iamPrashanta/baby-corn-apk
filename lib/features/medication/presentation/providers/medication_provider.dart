@@ -105,7 +105,7 @@ class MedicationsNotifier extends StateNotifier<AsyncValue<List<MedicationModel>
     }
   }
 
-  Future<void> takeDose(MedicationModel medication, {String takenBy = 'Caregiver'}) async {
+  Future<void> takeDose(MedicationModel medication, {String takenBy = 'Caregiver', DateTime? actualTime}) async {
     try {
       final now = DateTime.now();
 
@@ -133,15 +133,18 @@ class MedicationsNotifier extends StateNotifier<AsyncValue<List<MedicationModel>
         }
       }
 
+      final doseTime = actualTime ?? now;
+
       final log = RecordModel(
         id: now.millisecondsSinceEpoch.toString(),
         type: 'medication',
-        timestamp: now,
+        timestamp: doseTime,
         metadata: {
           'babyId': _activeBabyId,
           'medicationId': medication.id,
           'medicationName': medication.name,
           'scheduledTime': closestSchedule.toIso8601String(),
+          'takenTime': doseTime.toIso8601String(),
           'status': 'taken',
           'takenBy': takenBy,
         },

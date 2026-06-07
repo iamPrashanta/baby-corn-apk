@@ -286,8 +286,24 @@ class TimelineTile extends ConsumerWidget {
       case 'medication':
         final mName = r.metadata['medicationName'] ?? r.metadata['name'] ?? 'Medication';
         final status = r.metadata['status'] ?? 'taken';
-        final subtitle = 'Status: $status';
-        return ('💊', mName, subtitle, AppColors.primary);
+        
+        String subtitle = 'Status: $status';
+        if (status == 'taken' && r.metadata['takenTime'] != null) {
+          final tTime = DateTime.tryParse(r.metadata['takenTime'].toString());
+          if (tTime != null) {
+            subtitle = 'Taken at ${DateFormat.jm().format(tTime)}';
+          }
+        } else if (status == 'missed') {
+          subtitle = 'Missed Dose';
+        } else if (status == 'skipped') {
+          subtitle = 'Skipped Dose';
+        }
+
+        Color statusColor = AppColors.primary;
+        if (status == 'missed') statusColor = Colors.redAccent;
+        if (status == 'taken') statusColor = Colors.green;
+
+        return ('💊', mName, subtitle, statusColor);
       default:
         return ('📝', 'Activity', '', Colors.grey);
     }

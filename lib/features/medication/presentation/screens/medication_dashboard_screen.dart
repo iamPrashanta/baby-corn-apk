@@ -146,7 +146,7 @@ class MedicationDashboardScreen extends ConsumerWidget {
                           const SizedBox(height: 24),
                         ],
                         Text(
-                          "Today's Timeline",
+                          "Pending Doses",
                           style:
                               Theme.of(context).textTheme.titleLarge?.copyWith(
                                     fontWeight: FontWeight.bold,
@@ -625,13 +625,104 @@ class MedicationDashboardScreen extends ConsumerWidget {
 
   Future<void> _handleTakeDose(
       BuildContext context, WidgetRef ref, MedicationModel med) async {
+    
+    TimeOfDay selectedTime = TimeOfDay.now();
+    
+    final bool? confirmed = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setState) {
+            final isDark = Theme.of(ctx).brightness == Brightness.dark;
+            return Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+                top: 24,
+                left: 24,
+                right: 24,
+              ),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'Dose Taken',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  const Text('Taken At:', style: TextStyle(color: Colors.grey)),
+                  const SizedBox(height: 8),
+                  InkWell(
+                    onTap: () async {
+                      final TimeOfDay? time = await showTimePicker(
+                        context: ctx,
+                        initialTime: selectedTime,
+                      );
+                      if (time != null) {
+                        setState(() {
+                          selectedTime = time;
+                        });
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(selectedTime.format(ctx), style: const TextStyle(fontSize: 16)),
+                          const Icon(Icons.access_time),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          child: const Text('Cancel'),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: FilledButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          child: const Text('Save'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }
+        );
+      }
+    );
+
+    if (confirmed != true) return;
+
+    final now = DateTime.now();
+    final actualDateTime = DateTime(now.year, now.month, now.day, selectedTime.hour, selectedTime.minute);
+
     // We delegate the heavy lifting to the provider which logs it and reduces stock
-    await ref.read(medicationsProvider.notifier).takeDose(med);
+    await ref.read(medicationsProvider.notifier).takeDose(med, actualTime: actualDateTime);
 
     if (!context.mounted) return;
 
     // Calculate next pending dose for notification
-    final now = DateTime.now();
     DateTime? nextDose;
     List<DateTime> todayDoses = [];
     for (final timeStr in med.times) {
