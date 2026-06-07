@@ -26,13 +26,14 @@ class ActiveSessionModelAdapter extends TypeAdapter<ActiveSessionModel> {
       metadata: (fields[6] as Map).cast<String, dynamic>(),
       notes: fields[7] as String?,
       lastHeartbeat: fields[8] as DateTime?,
+      lastKnownDurationSeconds: fields[9] as int?,
     );
   }
 
   @override
   void write(BinaryWriter writer, ActiveSessionModel obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -50,7 +51,9 @@ class ActiveSessionModelAdapter extends TypeAdapter<ActiveSessionModel> {
       ..writeByte(7)
       ..write(obj.notes)
       ..writeByte(8)
-      ..write(obj.lastHeartbeat);
+      ..write(obj.lastHeartbeat)
+      ..writeByte(9)
+      ..write(obj.lastKnownDurationSeconds);
   }
 
   @override

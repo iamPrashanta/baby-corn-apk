@@ -93,11 +93,14 @@ class RecordsNotifier extends StateNotifier<AsyncValue<List<RecordModel>>> {
   Future<void> addRecord(RecordModel record) async {
     try {
       // Ensure the record has the active baby ID before saving
+      var recordToSave = record;
       if (_activeBabyId != null && !record.metadata.containsKey('babyId')) {
-        record.metadata['babyId'] = _activeBabyId;
+        final newMetadata = Map<String, dynamic>.from(record.metadata);
+        newMetadata['babyId'] = _activeBabyId;
+        recordToSave = record.copyWith(metadata: newMetadata);
       }
       
-      await _repository.saveRecord(record);
+      await _repository.saveRecord(recordToSave);
       loadRecords(); // Refresh the list
     } catch (e, st) {
       state = AsyncValue.error(e, st);

@@ -45,6 +45,9 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
              
              final updatedMetadata = Map<String, dynamic>.from(session.metadata);
              updatedMetadata['finalEndTime'] = finalEndTime.toIso8601String();
+             if (session.lastKnownDurationSeconds != null) {
+                updatedMetadata['lastKnownDurationSeconds'] = session.lastKnownDurationSeconds;
+             }
              updatedMetadata['needsFinalization'] = true;
              
              final updatedSession = session.copyWith(
@@ -98,8 +101,15 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
       final finalEndTimeStr = session.metadata['finalEndTime'];
       final finalEndTime = finalEndTimeStr != null ? DateTime.parse(finalEndTimeStr) : DateTime.now();
       
-      Duration duration = finalEndTime.difference(session.startTime) - Duration(seconds: session.totalPausedDurationSeconds);
-      if (duration.isNegative) duration = Duration.zero;
+      Duration duration;
+      if (session.metadata['lastKnownDurationSeconds'] != null) {
+         duration = Duration(seconds: session.metadata['lastKnownDurationSeconds'] as int);
+      } else if (session.lastKnownDurationSeconds != null) {
+         duration = Duration(seconds: session.lastKnownDurationSeconds!);
+      } else {
+         duration = finalEndTime.difference(session.startTime) - Duration(seconds: session.totalPausedDurationSeconds);
+         if (duration.isNegative) duration = Duration.zero;
+      }
       
       final metadata = Map<String, dynamic>.from(session.metadata);
       metadata.remove('needsFinalization');
@@ -283,7 +293,10 @@ class ActiveSessionNotifier extends StateNotifier<ActiveSessionModel?> {
         
         // Update heartbeat and notification every 30 seconds
         if (state!.currentDuration.inSeconds % 30 == 0) {
-          state = state!.copyWith(lastHeartbeat: DateTime.now());
+          state = state!.copyWith(
+            lastHeartbeat: DateTime.now(),
+            lastKnownDurationSeconds: state!.currentDuration.inSeconds,
+          );
           _saveSession(state!);
           NotificationService.showOngoingSessionNotification(state!);
         }

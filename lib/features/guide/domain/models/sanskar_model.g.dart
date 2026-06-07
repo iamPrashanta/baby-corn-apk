@@ -68,13 +68,14 @@ class SanskarModelAdapter extends TypeAdapter<SanskarModel> {
       isCompleted: fields[8] as bool,
       notes: fields[9] as String,
       reminderEnabled: fields[10] as bool,
+      babyId: fields[11] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, SanskarModel obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -96,7 +97,9 @@ class SanskarModelAdapter extends TypeAdapter<SanskarModel> {
       ..writeByte(9)
       ..write(obj.notes)
       ..writeByte(10)
-      ..write(obj.reminderEnabled);
+      ..write(obj.reminderEnabled)
+      ..writeByte(11)
+      ..write(obj.babyId);
   }
 
   @override

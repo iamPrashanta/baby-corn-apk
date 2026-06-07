@@ -33,6 +33,9 @@ class ActiveSessionModel extends HiveObject {
   @HiveField(8)
   final DateTime? lastHeartbeat;
 
+  @HiveField(9)
+  final int? lastKnownDurationSeconds;
+
   ActiveSessionModel({
     required this.id,
     required this.type,
@@ -43,6 +46,7 @@ class ActiveSessionModel extends HiveObject {
     this.metadata = const {},
     this.notes,
     this.lastHeartbeat,
+    this.lastKnownDurationSeconds,
   });
 
   ActiveSessionModel copyWith({
@@ -55,6 +59,7 @@ class ActiveSessionModel extends HiveObject {
     Map<String, dynamic>? metadata,
     String? notes,
     DateTime? lastHeartbeat,
+    int? lastKnownDurationSeconds,
   }) {
     return ActiveSessionModel(
       id: id ?? this.id,
@@ -69,6 +74,7 @@ class ActiveSessionModel extends HiveObject {
       metadata: metadata ?? this.metadata,
       notes: notes ?? this.notes,
       lastHeartbeat: lastHeartbeat ?? this.lastHeartbeat,
+      lastKnownDurationSeconds: lastKnownDurationSeconds ?? this.lastKnownDurationSeconds,
     );
   }
 
@@ -82,6 +88,7 @@ class ActiveSessionModel extends HiveObject {
     Map<String, dynamic>? metadata,
     String? notes,
     DateTime? lastHeartbeat,
+    int? lastKnownDurationSeconds,
   }) {
      return ActiveSessionModel(
       id: id ?? this.id,
@@ -93,6 +100,7 @@ class ActiveSessionModel extends HiveObject {
       metadata: metadata ?? this.metadata,
       notes: notes ?? this.notes,
       lastHeartbeat: lastHeartbeat ?? this.lastHeartbeat,
+      lastKnownDurationSeconds: lastKnownDurationSeconds ?? this.lastKnownDurationSeconds,
     );
   }
 

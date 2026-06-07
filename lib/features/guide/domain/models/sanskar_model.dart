@@ -88,6 +88,9 @@ class SanskarModel extends HiveObject {
   @HiveField(10)
   bool reminderEnabled;
 
+  @HiveField(11)
+  final String babyId;
+
   SanskarModel({
     required this.id,
     required this.name,
@@ -100,6 +103,7 @@ class SanskarModel extends HiveObject {
     this.isCompleted = false,
     this.notes = '',
     this.reminderEnabled = true,
+    this.babyId = '', // Default for backward compatibility
   });
 
   SanskarModel copyWith({
@@ -114,6 +118,7 @@ class SanskarModel extends HiveObject {
     bool? isCompleted,
     String? notes,
     bool? reminderEnabled,
+    String? babyId,
   }) {
     return SanskarModel(
       id: id ?? this.id,
@@ -127,6 +132,7 @@ class SanskarModel extends HiveObject {
       isCompleted: isCompleted ?? this.isCompleted,
       notes: notes ?? this.notes,
       reminderEnabled: reminderEnabled ?? this.reminderEnabled,
+      babyId: babyId ?? this.babyId,
     );
   }
 
@@ -143,6 +149,7 @@ class SanskarModel extends HiveObject {
       'isCompleted': isCompleted,
       'notes': notes,
       'reminderEnabled': reminderEnabled,
+      'babyId': babyId,
     };
   }
 
@@ -159,6 +166,7 @@ class SanskarModel extends HiveObject {
       isCompleted: json['isCompleted'] as bool? ?? false,
       notes: json['notes'] as String? ?? '',
       reminderEnabled: json['reminderEnabled'] as bool? ?? true,
+      babyId: json['babyId'] as String? ?? '',
     );
   }
 }

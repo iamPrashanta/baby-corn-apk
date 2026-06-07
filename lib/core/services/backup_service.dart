@@ -116,20 +116,32 @@ class BackupService {
       final foodTracker = foodTrackerBox.values.map((e) => e.toJson()).toList();
       totalRecords += foodTracker.length;
 
-      // 3. Compile Single Payload
+      // Parse babies list from profile
+      List<dynamic> babiesList = [];
+      if (profileData.containsKey('babies_list')) {
+        final babiesStr = profileData['babies_list'];
+        if (babiesStr is String) {
+          babiesList = jsonDecode(babiesStr);
+        }
+      }
+
+      // 3. Compile Single Payload (Flattened v2)
       final Map<String, dynamic> backupPayload = {
-        'backupVersion': 1,
-        'createdAt': FieldValue.serverTimestamp(),
-        'appVersion': '1.0.0',
-        'recordCount': totalRecords,
-        'profile': profileData,
-        'settings': settingsData,
-        'records': records,
-        'sanskars': sanskars,
-        'moments': moments,
-        'medications': medications,
-        'familyMembers': familyMembers,
-        'foodTracker': foodTracker,
+        'v': 2,
+        'ts': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        'app': '1.0.0',
+        'babies': _compressJson(babiesList),
+        'settings': _compressJson(settingsData),
+        'records': _compressJson(records),
+        'meds': _compressJson(medications),
+        'moments': _compressJson(moments),
+        'sanskars': _compressJson(sanskars),
+        'family': _compressJson(familyMembers),
+        'foodTracker': _compressJson(foodTracker),
+        'meta': {
+          'recordCount': totalRecords,
+          'device': Platform.operatingSystem,
+        }
       };
 
       // 4. Write to Firestore (1 Write Operation!)
@@ -166,13 +178,13 @@ class BackupService {
       }
 
       final data = snapshot.data()!;
-      final backupVersion = data['backupVersion'] as int? ?? 1;
-      final supportedVersion = 1;
+      final version = data['v'] as int? ?? data['backupVersion'] as int? ?? 1;
+      final supportedVersion = 2;
       
-      if (backupVersion > supportedVersion) {
-        throw UnsupportedBackupVersionException(backupVersion);
+      if (version > supportedVersion) {
+        throw UnsupportedBackupVersionException(version);
       }
-      debugPrint('[RESTORE VALIDATION PASSED] Backup version valid');
+      debugPrint('[RESTORE VALIDATION PASSED] Backup version valid ($version)');
 
       debugPrint('[RESTORE SNAPSHOT CREATED] Creating in-memory rollback snapshots...');
       final profileSnapshot = HiveManager.getProfileBox().toMap();
@@ -204,39 +216,60 @@ class BackupService {
         debugPrint('[RESTORE] Rebuilding Hive from single payload...');
 
       // 3. Restore Key-Value Stores
-      final profileData = data['profile'] as Map<String, dynamic>? ?? {};
-      for (final entry in profileData.entries) {
-        await HiveManager.getProfileBox().put(entry.key, entry.value);
+      if (version >= 2 && data.containsKey('babies')) {
+        final babiesList = _decompressJson(data['babies']) as List<dynamic>? ?? [];
+        await HiveManager.getProfileBox().put('babies_list', jsonEncode(babiesList));
+      } else {
+        final profileDataRaw = data['profile'] as Map<String, dynamic>? ?? {};
+        final profileData = _decompressJson(profileDataRaw) as Map<String, dynamic>;
+        for (final entry in profileData.entries) {
+          await HiveManager.getProfileBox().put(entry.key, entry.value);
+        }
       }
 
-      final settingsData = data['settings'] as Map<String, dynamic>? ?? {};
+      final settingsDataRaw = data['settings'] as Map<String, dynamic>? ?? {};
+      final settingsData = _decompressJson(settingsDataRaw) as Map<String, dynamic>;
       settingsData.remove('is_premium');
       for (final entry in settingsData.entries) {
         await HiveManager.getSettingsBox().put(entry.key, entry.value);
       }
 
       // 4. Restore List Stores
-      Future<void> restoreList<T>(String key, dynamic box, T Function(Map<String, dynamic>) fromJson) async {
-        final list = data[key] as List<dynamic>? ?? [];
+      Future<void> restoreList<T>(String key, String v2Key, dynamic box, T Function(Map<String, dynamic>) fromJson) async {
+        final rawList = data.containsKey(v2Key) ? data[v2Key] : data[key];
+        final list = (rawList != null) ? _decompressJson(rawList) as List<dynamic> : [];
         for (final item in list) {
           final map = Map<String, dynamic>.from(item as Map);
           await box.put(map['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(), fromJson(map));
         }
       }
 
-      await restoreList('records', HiveManager.getRecordsBox(), RecordModel.fromJson);
-      await restoreList('sanskars', HiveManager.getSanskarsBox(), SanskarModel.fromJson);
-      await restoreList('moments', HiveManager.getMomentsBox(), MomentModel.fromJson);
-      await restoreList('medications', HiveManager.getMedicationsBox(), MedicationModel.fromJson);
-      await restoreList('familyMembers', HiveManager.getFamilyMembersBox(), FamilyMemberModel.fromJson);
-      await restoreList('foodTracker', HiveManager.getFoodTrackerBox(), FoodIntroRecord.fromJson);
+      await restoreList('records', 'records', HiveManager.getRecordsBox(), RecordModel.fromJson);
+      await restoreList('sanskars', 'sanskars', HiveManager.getSanskarsBox(), SanskarModel.fromJson);
+      await restoreList('moments', 'moments', HiveManager.getMomentsBox(), MomentModel.fromJson);
+      await restoreList('medications', 'meds', HiveManager.getMedicationsBox(), MedicationModel.fromJson);
+      await restoreList('familyMembers', 'family', HiveManager.getFamilyMembersBox(), FamilyMemberModel.fromJson);
+      await restoreList('foodTracker', 'foodTracker', HiveManager.getFoodTrackerBox(), FoodIntroRecord.fromJson);
       
       // Re-insert preserved vaccines if they are not already present
       final recordsBox = HiveManager.getRecordsBox();
       for (final v in localVaccines) {
-         // Match by vaccine name to avoid duplicating the same completed vaccine
          final vaccineName = v.metadata['vaccineName'];
-         final existsInCloud = recordsBox.values.any((r) => r.type == 'vaccine' && r.metadata['vaccineName'] == vaccineName);
+         final babyId = v.metadata['babyId'];
+         final isCustom = v.metadata['isCustom'] == true;
+         final dueDate = v.metadata['dueDate'];
+         
+         final existsInCloud = recordsBox.values.any((r) {
+           if (r.type != 'vaccine') return false;
+           final sameName = r.metadata['vaccineName'] == vaccineName;
+           final sameBaby = r.metadata['babyId'] == babyId;
+           
+           if (isCustom) {
+             final sameDate = r.metadata['dueDate'] == dueDate;
+             return sameName && sameBaby && sameDate;
+           }
+           return sameName && sameBaby;
+         });
          if (!existsInCloud) {
            await recordsBox.put(v.id, v);
            debugPrint('[VACCINE PRESERVED] Kept local completed vaccine: $vaccineName');
@@ -371,24 +404,37 @@ class BackupService {
       }
 
       final data = snapshot.data()!;
-      final backupVersion = data['backupVersion'] as int? ?? 1;
-      final supportedVersion = 1;
+      final version = data['v'] as int? ?? data['backupVersion'] as int? ?? 1;
+      final supportedVersion = 2;
       
-      if (backupVersion > supportedVersion) {
-        throw UnsupportedBackupVersionException(backupVersion);
+      if (version > supportedVersion) {
+        throw UnsupportedBackupVersionException(version);
       }
 
-      debugPrint('[MERGE] Merging Hive databases...');
+      debugPrint('[MERGE] Merging Hive databases (version $version)...');
 
       // Profile & Settings
-      final profileData = data['profile'] as Map<String, dynamic>? ?? {};
-      for (final entry in profileData.entries) {
-        if (!HiveManager.getProfileBox().containsKey(entry.key)) {
-          await HiveManager.getProfileBox().put(entry.key, entry.value);
+      if (version >= 2 && data.containsKey('babies')) {
+        final babiesList = _decompressJson(data['babies']) as List<dynamic>? ?? [];
+        // Only merge if not exists
+        final existingBabiesStr = HiveManager.getProfileBox().get('babies_list') as String?;
+        if (existingBabiesStr == null) {
+           await HiveManager.getProfileBox().put('babies_list', jsonEncode(babiesList));
+        } else {
+           // We could merge babies here, but for simplicity we'll just keep local babies if they exist.
+        }
+      } else {
+        final profileDataRaw = data['profile'] as Map<String, dynamic>? ?? {};
+        final profileData = _decompressJson(profileDataRaw) as Map<String, dynamic>;
+        for (final entry in profileData.entries) {
+          if (!HiveManager.getProfileBox().containsKey(entry.key)) {
+            await HiveManager.getProfileBox().put(entry.key, entry.value);
+          }
         }
       }
 
-      final settingsData = data['settings'] as Map<String, dynamic>? ?? {};
+      final settingsDataRaw = data['settings'] as Map<String, dynamic>? ?? {};
+      final settingsData = _decompressJson(settingsDataRaw) as Map<String, dynamic>;
       settingsData.remove('is_premium');
       for (final entry in settingsData.entries) {
         if (!HiveManager.getSettingsBox().containsKey(entry.key)) {
@@ -396,8 +442,9 @@ class BackupService {
         }
       }
 
-      Future<void> mergeList<T>(String key, dynamic box, T Function(Map<String, dynamic>) fromJson) async {
-        final list = data[key] as List<dynamic>? ?? [];
+      Future<void> mergeList<T>(String key, String v2Key, dynamic box, T Function(Map<String, dynamic>) fromJson) async {
+        final rawList = data.containsKey(v2Key) ? data[v2Key] : data[key];
+        final list = (rawList != null) ? _decompressJson(rawList) as List<dynamic> : [];
         for (final item in list) {
           final map = Map<String, dynamic>.from(item as Map);
           final itemId = map['id'] ?? DateTime.now().millisecondsSinceEpoch.toString();
@@ -407,12 +454,12 @@ class BackupService {
         }
       }
 
-      await mergeList('records', HiveManager.getRecordsBox(), RecordModel.fromJson);
-      await mergeList('sanskars', HiveManager.getSanskarsBox(), SanskarModel.fromJson);
-      await mergeList('moments', HiveManager.getMomentsBox(), MomentModel.fromJson);
-      await mergeList('medications', HiveManager.getMedicationsBox(), MedicationModel.fromJson);
-      await mergeList('familyMembers', HiveManager.getFamilyMembersBox(), FamilyMemberModel.fromJson);
-      await mergeList('foodTracker', HiveManager.getFoodTrackerBox(), FoodIntroRecord.fromJson);
+      await mergeList('records', 'records', HiveManager.getRecordsBox(), RecordModel.fromJson);
+      await mergeList('sanskars', 'sanskars', HiveManager.getSanskarsBox(), SanskarModel.fromJson);
+      await mergeList('moments', 'moments', HiveManager.getMomentsBox(), MomentModel.fromJson);
+      await mergeList('medications', 'meds', HiveManager.getMedicationsBox(), MedicationModel.fromJson);
+      await mergeList('familyMembers', 'family', HiveManager.getFamilyMembersBox(), FamilyMemberModel.fromJson);
+      await mergeList('foodTracker', 'foodTracker', HiveManager.getFoodTrackerBox(), FoodIntroRecord.fromJson);
 
       debugPrint('[MERGE REBUILDING REMINDERS] Reminders recreating...');
       await ReminderService.init();
@@ -427,5 +474,112 @@ class BackupService {
       debugPrint('[MERGE FAILED] Merge failed. Error: $e');
       throw Exception('Failed to merge backup: $e');
     }
+  }
+
+  static const Map<String, String> _shortKeys = {
+    'type': 'ty',
+    'timestamp': 'ts',
+    'metadata': 'md',
+    'babyId': 'bid',
+    'medicationId': 'mid',
+    'scheduledTime': 'sct',
+    'takenTime': 'tkt',
+    'status': 'st',
+    'amount': 'amt',
+    'unit': 'u',
+    'name': 'n',
+    'description': 'd',
+    'category': 'c',
+    'isCompleted': 'ic',
+    'notes': 'nt',
+    'vaccineName': 'vn',
+    'dueDate': 'dd',
+    'notificationSettings': 'notif',
+    'birthDate': 'bd',
+    'birthTime': 'bt',
+  };
+
+  static Map<String, String>? _longKeysCache;
+  static Map<String, String> get _longKeys {
+    if (_longKeysCache == null) {
+      _longKeysCache = _shortKeys.map((k, v) => MapEntry(v, k));
+    }
+    return _longKeysCache!;
+  }
+
+  static dynamic _compressJson(dynamic value) {
+    if (value == null) return null;
+
+    if (value is String) {
+      // Check if it's an ISO8601 string starting with year-month-day
+      final regExp = RegExp(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}');
+      if (regExp.hasMatch(value)) {
+        try {
+          final parsed = DateTime.parse(value);
+          return parsed.millisecondsSinceEpoch ~/ 1000;
+        } catch (_) {
+          return value;
+        }
+      }
+      return value;
+    }
+
+    if (value is List) {
+      final compressedList = value
+          .map((e) => _compressJson(e))
+          .where((e) => e != null)
+          .toList();
+      if (compressedList.isEmpty) return null;
+      return compressedList;
+    }
+
+    if (value is Map) {
+      final compressedMap = <String, dynamic>{};
+      for (final entry in value.entries) {
+        if (entry.value == null) continue;
+        final compressedValue = _compressJson(entry.value);
+        if (compressedValue == null) continue;
+        if (compressedValue is List && compressedValue.isEmpty) continue;
+        if (compressedValue is Map && compressedValue.isEmpty) continue;
+
+        final keyStr = entry.key.toString();
+        if (keyStr == 'createdBy' || keyStr == 'updatedBy' || keyStr == 'isPremium') continue;
+
+        final shortenedKey = _shortKeys[keyStr] ?? keyStr;
+        compressedMap[shortenedKey] = compressedValue;
+      }
+      if (compressedMap.isEmpty) return null;
+      return compressedMap;
+    }
+
+    return value;
+  }
+
+  static dynamic _decompressJson(dynamic value) {
+    if (value == null) return null;
+
+    if (value is int) {
+      // If it's a large int (e.g. seconds since epoch from 2020 to 2050)
+      if (value > 1500000000 && value < 3000000000) {
+        return DateTime.fromMillisecondsSinceEpoch(value * 1000).toIso8601String();
+      }
+      return value;
+    }
+
+    if (value is List) {
+      return value.map((e) => _decompressJson(e)).toList();
+    }
+
+    if (value is Map) {
+      final decompressedMap = <String, dynamic>{};
+      for (final entry in value.entries) {
+        final keyStr = entry.key.toString();
+        final originalKey = _longKeys[keyStr] ?? keyStr;
+        decompressedMap[originalKey] = _decompressJson(entry.value);
+      }
+      return decompressedMap;
+    }
+
+    return value;
   }
 }

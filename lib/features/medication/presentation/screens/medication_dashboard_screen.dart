@@ -367,14 +367,39 @@ class MedicationDashboardScreen extends ConsumerWidget {
       logs.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
       int takenCount = 0;
-      for (var log in logs) {
-         if (takenCount < expectedDoses.length) {
-            final logStatus = log.metadata['status'];
-            expectedDoses[takenCount]['status'] = logStatus == 'taken' ? 'Taken' 
-                                                : logStatus == 'skipped' ? 'Skipped' 
-                                                : 'Missed_Log';
-            takenCount++;
-         }
+      for (var dose in expectedDoses) {
+        final expectedTime = DateTime(now.year, now.month, now.day, dose['hour'] as int, dose['minute'] as int);
+        
+        // Find matching log primarily by exact scheduledTime, fallback to chronological if no scheduledTime exists
+        dynamic matchingLog;
+        try {
+          matchingLog = logs.firstWhere((log) {
+            final scheduledStr = log.metadata['scheduledTime'] as String?;
+            if (scheduledStr != null) {
+              final scheduledTime = DateTime.parse(scheduledStr);
+              return scheduledTime.hour == expectedTime.hour && scheduledTime.minute == expectedTime.minute;
+            }
+            return false;
+          });
+        } catch (_) {
+          matchingLog = null;
+        }
+
+        // Backward compatibility fallback for older logs
+        if (matchingLog == null && takenCount < logs.length) {
+          final unassignedLogs = logs.where((l) => l.metadata['scheduledTime'] == null).toList();
+          if (unassignedLogs.isNotEmpty && takenCount < unassignedLogs.length) {
+             matchingLog = unassignedLogs[takenCount];
+          }
+        }
+
+        if (matchingLog != null) {
+          final logStatus = matchingLog.metadata['status'];
+          dose['status'] = logStatus == 'taken' ? 'Taken' 
+                         : logStatus == 'skipped' ? 'Skipped' 
+                         : 'Missed_Log';
+          takenCount++;
+        }
       }
 
       for (var dose in expectedDoses) {
