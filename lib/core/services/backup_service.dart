@@ -77,6 +77,7 @@ class BackupService {
       final settingsBox = HiveManager.getSettingsBox();
       final settingsData = settingsBox.toMap().cast<String, dynamic>();
       settingsData.remove('engagement_start_date'); // Do not backup transient states
+      settingsData.remove('is_premium');
 
       final recordsBox = HiveManager.getRecordsBox();
       final records = recordsBox.values.map((e) => e.toJson()).toList();
@@ -201,6 +202,7 @@ class BackupService {
       }
 
       final settingsData = data['settings'] as Map<String, dynamic>? ?? {};
+      settingsData.remove('is_premium');
       for (final entry in settingsData.entries) {
         await HiveManager.getSettingsBox().put(entry.key, entry.value);
       }
@@ -373,6 +375,7 @@ class BackupService {
       }
 
       final settingsData = data['settings'] as Map<String, dynamic>? ?? {};
+      settingsData.remove('is_premium');
       for (final entry in settingsData.entries) {
         if (!HiveManager.getSettingsBox().containsKey(entry.key)) {
           await HiveManager.getSettingsBox().put(entry.key, entry.value);

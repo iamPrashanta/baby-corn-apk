@@ -17,7 +17,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/providers/baby_provider.dart';
 import '../../../records/presentation/providers/records_provider.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../providers/premium_provider.dart';
+
 import '../providers/theme_provider.dart';
 
 class AccountScreen extends ConsumerStatefulWidget {
@@ -94,7 +94,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
   Widget build(BuildContext context) {
     debugPrint('[ACCOUNT UI UPDATED]');
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isPremium = ref.watch(premiumProvider);
+
     final user = ref.watch(authStateProvider).value;
 
     return Scaffold(
@@ -164,19 +164,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
               title: const Text('Manage Babies'),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
-                if (!isPremium) {
-                  context.push('/subscription');
-                } else {
-                  context.push('/manage_babies');
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.workspace_premium),
-              title: const Text('Manage Subscription'),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                context.push('/subscription');
+                context.push('/manage_babies');
               },
             ),
           ]),

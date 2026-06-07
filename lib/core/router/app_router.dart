@@ -20,7 +20,7 @@ import '../../features/records/presentation/screens/mood_entry_screen.dart';
 import '../../features/records/presentation/screens/vaccination_tracker_screen.dart';
 import '../../features/records/presentation/screens/doctor_appointments_screen.dart';
 import '../../features/settings/presentation/screens/manage_babies_screen.dart';
-import '../../features/settings/presentation/screens/subscription_screen.dart';
+
 import '../../features/settings/presentation/screens/edit_baby_screen.dart';
 import '../../features/settings/presentation/screens/reminders_setting_screen.dart';
 import '../../features/settings/presentation/screens/reminder_detail_screen.dart';
@@ -106,10 +106,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/medicine/history',
         builder: (context, state) => const MedicationHistoryScreen(),
       ),
-      GoRoute(
-        path: '/subscription',
-        builder: (context, state) => const SubscriptionScreen(),
-      ),
+
       GoRoute(
         path: '/manage_babies',
         builder: (context, state) => const ManageBabiesScreen(),

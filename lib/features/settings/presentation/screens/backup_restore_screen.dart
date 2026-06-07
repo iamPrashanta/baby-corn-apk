@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../auth/domain/services/auth_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import '../providers/premium_provider.dart';
+
 import '../../../../core/services/backup_service.dart';
 import '../../../../core/design/tokens/colors.dart';
 import '../../../../core/design/components/cards/app_card.dart';
@@ -101,7 +101,7 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authStateProvider).value;
-    final isPremium = ref.watch(premiumProvider);
+
 
     return Scaffold(
       appBar: AppBar(
@@ -117,7 +117,7 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
                   children: [
                     _buildAccountCard(user),
                     const SizedBox(height: 16),
-                    if (user != null) _buildBackupCard(isPremium),
+                    if (user != null) _buildBackupCard(),
                     const SizedBox(height: 16),
                     _buildSafetyCard(),
                   ],
@@ -192,7 +192,7 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
     );
   }
 
-  Widget _buildBackupCard(bool isPremium) {
+  Widget _buildBackupCard() {
     return AppCard(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -202,10 +202,7 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
             Row(
               children: [
                 Text('Cloud Backup', style: Theme.of(context).textTheme.titleLarge),
-                if (!isPremium) ...[
-                  const SizedBox(width: 8),
-                  const Icon(Icons.workspace_premium, color: Colors.orange, size: 20),
-                ]
+
               ],
             ),
             const SizedBox(height: 16),
@@ -236,17 +233,10 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
               children: [
                 Expanded(
                   child: AppButton(
-                    text: isPremium ? 'Backup Now' : 'Unlock Premium to Backup',
-                    type: isPremium ? AppButtonType.primary : AppButtonType.secondary,
+                    text: 'Backup Now',
+                    type: AppButtonType.primary,
                     onPressed: () {
-                      if (isPremium) {
-                        _handleBackup();
-                      } else {
-                        // show premium paywall or snackbar
-                        ScaffoldMessenger.of(context).showSnackBar(
-                           const SnackBar(content: Text('Please upgrade to Premium to use Cloud Backup.')),
-                        );
-                      }
+                      _handleBackup();
                     },
                   ),
                 ),

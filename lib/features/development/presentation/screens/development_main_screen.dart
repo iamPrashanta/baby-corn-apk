@@ -10,8 +10,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/design/tokens/colors.dart';
 import '../../../../core/design/layouts/custom_app_bar.dart';
-import '../../../settings/presentation/providers/premium_provider.dart';
-import '../../../settings/presentation/screens/subscription_screen.dart';
+
 import '../providers/moments_provider.dart';
 import '../widgets/add_moment_sheet.dart';
 import '../../domain/models/moment_model.dart';
@@ -22,106 +21,34 @@ class DevelopmentMainScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final isPremium = ref.watch(premiumProvider);
+
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(title: l10n.development),
-      body: isPremium ? const _MomentsGallery() : _buildPremiumLock(context),
-      floatingActionButton: isPremium
-          ? SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: FloatingActionButton.extended(
-                  onPressed: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      builder: (context) => const AddMomentSheet(),
-                    );
-                  },
-                  backgroundColor: AppColors.primary,
-                  icon: const Icon(Icons.add_a_photo_rounded, color: Colors.white),
-                  label: Text(l10n.addMoment, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                ),
-              ),
-            )
-          : null,
-    );
-  }
-
-  Widget _buildPremiumLock(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.workspace_premium_rounded,
-                size: 64,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Pro Feature',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Unlock the Development Journey, track milestones, and save unlimited moments with the Baby Corn Pro plan.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: isDark ? Colors.white70 : Colors.black54,
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const SubscriptionScreen()),
-                  );
-                },
-                icon: const Icon(Icons.lock_open_rounded, color: Colors.white),
-                label: const Text(
-                  'Unlock for ₹99/month',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4.0),
-                  ),
-                  elevation: 4,
-                ),
-              ),
-            ),
-          ],
+      body: const _MomentsGallery(),
+      floatingActionButton: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 16.0),
+          child: FloatingActionButton.extended(
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => const AddMomentSheet(),
+              );
+            },
+            backgroundColor: AppColors.primary,
+            icon: const Icon(Icons.add_a_photo_rounded, color: Colors.white),
+            label: Text(l10n.addMoment, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
         ),
       ),
     );
   }
+
+
 }
 
 class _MomentsGallery extends ConsumerWidget {
